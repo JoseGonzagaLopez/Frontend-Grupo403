@@ -66,8 +66,12 @@ export default function BookingsClient({
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
   const filteredBookings = useMemo(() => {
-    if (statusFilter === "all") return bookings;
-    return bookings.filter((booking) => booking.status === statusFilter);
+    let filtered = statusFilter === "all" ? bookings : bookings.filter((booking) => booking.status === statusFilter);
+    return filtered.sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.time}`);
+      const dateB = new Date(`${b.date}T${b.time}`);
+      return dateB.getTime() - dateA.getTime();
+    });
   }, [bookings, statusFilter]);
 
   const totalCount = bookings.length;
@@ -448,7 +452,7 @@ export default function BookingsClient({
               Eliminar reserva
             </h3>
             <p id="delete-modal-description" className="modal-text">
-              ¿Seguro que quieres eliminar la reserva #{deleteTargetId}? Esta acción no se puede deshacer.
+              ¿Seguro que quieres eliminar la reserva? Esta acción no se puede deshacer.
             </p>
             <div className="modal-actions">
               <button
@@ -488,7 +492,6 @@ export default function BookingsClient({
         <table className="data-table">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Fecha</th>
               <th>Hora</th>
               <th>Servicio</th>
@@ -501,7 +504,6 @@ export default function BookingsClient({
           <tbody>
             {filteredBookings.map((booking) => (
               <tr key={booking.id}>
-                <td style={{ fontWeight: 600 }}>{booking.id}</td>
                 <td>{formatDate(booking.date)}</td>
                 <td>{booking.time}</td>
                 <td>{booking.serviceName}</td>
