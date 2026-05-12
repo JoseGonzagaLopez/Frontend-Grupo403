@@ -56,9 +56,7 @@ export default async function DashboardPage() {
   const sortedAppointments = [...appointments].sort(sortByDateTime);
   const appointmentsToday = sortedAppointments.filter((appointment) => appointment.date === today);
   const upcomingAppointments = sortedAppointments.filter((appointment) => parseBookingDate(appointment) >= now);
-  const appointmentsNext = upcomingAppointments.length > 0
-    ? upcomingAppointments.slice(0, 5)
-    : sortedAppointments.slice(0, 5);
+  const appointmentsNext = upcomingAppointments.slice(0, 5);
   const pendingToday = appointmentsToday.filter((appointment) => appointment.status === 'pending').length;
   const paidToday = appointmentsToday.filter((appointment) => appointment.status === 'paid').length;
 
@@ -83,10 +81,10 @@ export default async function DashboardPage() {
     ? `${topBusinessEntry[1]} reserva${topBusinessEntry[1] === 1 ? '' : 's'} hoy`
     : 'No hay reservas en el día';
 
-  const nextBooking = upcomingAppointments[0] ?? sortedAppointments[0];
+  const nextBooking = upcomingAppointments[0];
   const nextBookingLabel = nextBooking
     ? `${nextBooking.serviceName}`
-    : 'No hay reservas disponibles';
+    : 'No hay reservas pendientes';
   const nextBookingMeta = nextBooking
     ? `${nextBooking.time} · Comercio #${nextBooking.businessId}`
     : 'Agrega nuevas reservas para que aparezcan aquí';
@@ -167,8 +165,8 @@ export default async function DashboardPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '2rem 0' }}>
-                    No hay próximas reservas.
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '2rem 0', color: '#6b7280' }}>
+                    No hay reservas pendientes.
                   </td>
                 </tr>
               )}
