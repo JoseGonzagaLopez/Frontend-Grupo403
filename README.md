@@ -8,7 +8,7 @@ Frontend del proyecto de gestión de reservas, construido con **Next.js 16**, **
 - **React 19**
 - **TypeScript**
 - **CSS propio** en `globals.css`
-- **fetch** nativo para llamadas a la API
+- **fetch** nativo para llamadas a la API 
 
 ## Estructura del proyecto
 
