@@ -135,8 +135,9 @@ export default async function DashboardPage() {
         <div className="section-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Próximas reservas</h3>
-              <link href="/bookings?status=pending" className="panel-subtle-link">
-              Ver todas </link>
+               <button className="panel-subtle-link" type="button">
+              Ver todas
+            </button>
           </div>
 
           <table className="data-table">
