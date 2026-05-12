@@ -323,7 +323,7 @@ export default function BookingsClient({
               <input
                 className="input"
                 type="number"
-                min={1}
+                
                 value={createForm.businessId}
                 onChange={(e) =>
                   updateCreateForm("businessId", Number(e.target.value))
