@@ -317,7 +317,7 @@ export default function BookingsClient({
                 onChange={(e) =>
                   updateCreateForm("customerId", Number(e.target.value))
                 }
-                placeholder="Customer ID"
+                placeholder="Nombre Cliente"
                 required
               />
               <input
@@ -328,7 +328,7 @@ export default function BookingsClient({
                 onChange={(e) =>
                   updateCreateForm("businessId", Number(e.target.value))
                 }
-                placeholder="Business ID"
+                placeholder="Nombre Empresa"
                 required
               />
               <input
