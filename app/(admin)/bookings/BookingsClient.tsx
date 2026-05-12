@@ -47,8 +47,8 @@ export default function BookingsClient({
     date: "",
     time: "",
     status: "pending",
-    customerId: 1,
-    businessId: 1,
+    customerId: "" as any,
+    businessId: "" as any,
     serviceName: "",
   };
 
@@ -323,7 +323,7 @@ export default function BookingsClient({
               <input
                 className="input"
                 type="number"
-                
+                min={1}
                 value={createForm.businessId}
                 onChange={(e) =>
                   updateCreateForm("businessId", Number(e.target.value))
