@@ -28,6 +28,18 @@ export interface UpdateBookingDto {
   serviceName?: string;
 }
 
+export type PagoStatus = 'pending' | 'paid' | 'Por cobrar' | 'Pagado' | string;
+
+export interface Pago {
+  ID: number;
+  Cliente: string;
+  Comercio: string;
+  Importe: number;
+  Metodo: string;
+  Fecha: string;
+  Estado: string;
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export async function getAppointments(): Promise<Booking[]> {
@@ -37,6 +49,18 @@ export async function getAppointments(): Promise<Booking[]> {
 
   if (!res.ok) {
     throw new Error("Error al obtener las reservas");
+  }
+
+  return res.json();
+}
+
+export async function getPagos(): Promise<Pago[]> {
+  const res = await fetch(`${API_URL}/pagos`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al obtener los pagos");
   }
 
   return res.json();
