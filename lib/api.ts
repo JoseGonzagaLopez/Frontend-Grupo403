@@ -120,6 +120,10 @@ export type Customer = {
   Nombre: string;
   Telefono: string;
   Correo: string;
+  appointments?: {
+    businessId: number;
+    negocio?: { Nombre: string };
+  }[];
 };
 
 export type CreateCustomerDto = {

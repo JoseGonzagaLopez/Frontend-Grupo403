@@ -285,21 +285,32 @@ export default function CustomersClient({
 
             {/* TABLA */}
             <section className="customer-grid">
-                {customers.map((customer) => (
-                    <div key={customer.id} className="customer-card">
-                        <p className="customer-name">{customer.Nombre}</p>
-                        <p className="customer-meta">{customer.Telefono}</p>
-                        <p className="customer-meta">{customer.Correo}</p>
-                        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                            <button type="button" className="secondary-btn" onClick={() => openEditForm(customer)}>
-                                Editar
-                            </button>
-                            <button type="button" className="secondary-btn" onClick={() => openDeleteModal(customer.id)}>
-                                Eliminar
-                            </button>
+                {customers.map((customer) => {
+                    const negocios = [...new Set(
+                        (customer.appointments ?? [])
+                            .map((a) => a.negocio?.Nombre)
+                            .filter(Boolean)
+                    )];
+
+                    return (
+                        <div key={customer.id} className="customer-card">
+                            <p className="customer-name">{customer.Nombre}</p>
+                            <p className="customer-meta">{customer.Telefono}</p>
+                            <p className="customer-meta">{customer.Correo}</p>
+
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+                                {negocios.map((negocio) => (
+                                    <div key={negocio} className="customer-tag">{negocio}</div>
+                                ))}
+                            </div>
+
+                            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                                <button type="button" className="secondary-btn" onClick={() => openEditForm(customer)}>Editar</button>
+                                <button type="button" className="secondary-btn" onClick={() => openDeleteModal(customer.id)}>Eliminar</button>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </section>
         </div>
     );
