@@ -209,3 +209,45 @@ export async function deletePago(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/pagos/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Error al eliminar el pago");
 }
+
+export type Negocio = {
+  id: number;
+  Nombre: string;
+};
+
+export type CreateNegocioDto = {
+  Nombre: string;
+};
+
+export type UpdateNegocioDto = Partial<CreateNegocioDto>;
+
+export async function getNegocios(): Promise<Negocio[]> {
+  const res = await fetch(`${API_URL}/negocios`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener los negocios");
+  return res.json();
+}
+
+export async function createNegocio(data: CreateNegocioDto): Promise<Negocio> {
+  const res = await fetch(`${API_URL}/negocios`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al crear el negocio");
+  return res.json();
+}
+
+export async function updateNegocio(id: number, data: UpdateNegocioDto): Promise<Negocio> {
+  const res = await fetch(`${API_URL}/negocios/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al actualizar el negocio");
+  return res.json();
+}
+
+export async function deleteNegocio(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/negocios/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar el negocio");
+}

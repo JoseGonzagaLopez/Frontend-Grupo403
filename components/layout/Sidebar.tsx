@@ -2,16 +2,39 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const menuItems = [
   { label: "Panel de control", href: "/dashboard", icon: "◫" },
   { label: "Reservas", href: "/bookings", icon: "☰" },
   { label: "Clientes", href: "/customers", icon: "◎" },
+  { label: "Negocios", href: "/negocios", icon: "◭" },
   { label: "Pagos", href: "/payments", icon: "◌" },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved === "dark") {
+      setDark(true);
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  }, []);
+
+  function toggleTheme() {
+    const next = !dark;
+    setDark(next);
+    if (next) {
+      document.documentElement.setAttribute("data-theme", "dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+      localStorage.setItem("theme", "light");
+    }
+  }
 
   return (
     <aside className="admin-sidebar">
@@ -36,6 +59,15 @@ export default function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="theme-toggle">
+        <span className="theme-toggle__icon">{dark ? "🌙" : "☀️"}</span>
+        <span className="theme-toggle__label">{dark ? "Modo oscuro" : "Modo claro"}</span>
+        <label className="theme-toggle__switch">
+          <input type="checkbox" checked={dark} onChange={toggleTheme} />
+          <span className="theme-toggle__track" />
+        </label>
+      </div>
     </aside>
   );
 }
