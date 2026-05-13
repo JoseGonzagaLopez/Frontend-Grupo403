@@ -3,7 +3,6 @@
 type PaymentStatus = 'pending' | 'paid' | 'Por cobrar' | 'Pagado' | string;
 
 type Payment = {
-  id: string;
   client: string;
   business: string;
   amount: string;
@@ -28,7 +27,6 @@ function mapPagoToPayment(pago: Pago): Payment {
   const status = pago.Estado === 'paid' || pago.Estado === 'Pagado' ? 'paid' : pago.Estado === 'pending' || pago.Estado === 'Por cobrar' ? 'pending' : pago.Estado;
 
   return {
-    id: `COB-${pago.ID.toString().padStart(3, '0')}`,
     client: pago.Cliente,
     business: pago.Comercio,
     amount: `${pago.Importe} €`,
@@ -136,7 +134,6 @@ export default async function PaymentsPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Cliente</th>
               <th>Comercio</th>
               <th>Importe</th>
@@ -147,8 +144,7 @@ export default async function PaymentsPage() {
           </thead>
           <tbody>
             {payments.map((payment) => (
-              <tr key={payment.id}>
-                <td style={{ fontWeight: 600 }}>{payment.id}</td>
+              <tr key={`${payment.client}-${payment.business}-${payment.date}-${payment.method}`}>
                 <td>{payment.client}</td>
                 <td>{payment.business}</td>
                 <td>{payment.amount}</td>
