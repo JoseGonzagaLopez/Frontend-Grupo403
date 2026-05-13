@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import type {
   Booking,
   BookingStatus,
   CreateBookingDto,
   UpdateBookingDto,
+  Customer,
+  Business,
 } from "@/lib/api";
 import {
   createAppointment,
@@ -36,19 +38,168 @@ function formatDate(date: string) {
   }
 }
 
+function SearchableSelect({
+  options,
+  value,
+  onChange,
+  placeholder,
+  className = ""
+}: {
+  options: { id: number, label: string }[],
+  value: number | '',
+  onChange: (id: number | '') => void,
+  placeholder: string,
+  className?: string
+}) {
+  const [search, setSearch] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const selectedOption = options.find(o => o.id === value);
+
+  const filteredOptions = useMemo(() => {
+    if (!search) return options;
+    return options.filter(o =>
+      (o.label || "").toLowerCase().includes(search.toLowerCase())
+    );
+  }, [options, search]);
+
+  return (
+    <div className={`searchable-select ${className}`} ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
+      <div
+        className="input input--full"
+        onClick={() => {
+          setIsOpen(!isOpen);
+          setSearch("");
+        }}
+        style={{
+          cursor: 'pointer',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          backgroundColor: 'white',
+          minHeight: '42px'
+        }}
+      >
+        <span style={{ color: selectedOption ? 'inherit' : '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>{isOpen ? '▲' : '▼'}</span>
+      </div>
+
+      {isOpen && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          maxHeight: '300px',
+          display: 'flex',
+          flexDirection: 'column',
+          background: 'white',
+          border: '1px solid #e2e8f0',
+          borderRadius: '0.5rem',
+          zIndex: 100,
+          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+          marginTop: '4px',
+          overflow: 'hidden'
+        }}>
+          <div style={{ padding: '8px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
+            <input
+              ref={searchInputRef}
+              type="text"
+              className="input input--full"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ fontSize: '0.9rem', padding: '6px 10px' }}
+            />
+          </div>
+
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            {value !== '' && (
+              <div
+                style={{ padding: '8px 12px', cursor: 'pointer', color: '#ef4444', borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem' }}
+                onClick={() => {
+                  onChange('');
+                  setSearch("");
+                  setIsOpen(false);
+                }}
+              >
+                ✕ Quitar selección
+              </div>
+            )}
+            {filteredOptions.length === 0 ? (
+              <div style={{ padding: '12px', color: '#64748b', textAlign: 'center', fontSize: '0.9rem' }}>
+                No hay resultados
+              </div>
+            ) : (
+              filteredOptions.map(option => (
+                <div
+                  key={option.id}
+                  style={{
+                    padding: '10px 12px',
+                    cursor: 'pointer',
+                    borderBottom: '1px solid #f1f5f9',
+                    backgroundColor: option.id === value ? '#f8fafc' : 'transparent',
+                    fontWeight: option.id === value ? '600' : '400',
+                    fontSize: '0.9rem'
+                  }}
+                  onClick={() => {
+                    onChange(option.id);
+                    setSearch("");
+                    setIsOpen(false);
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = option.id === value ? '#f8fafc' : 'transparent'}
+                >
+                  {option.label}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BookingsClient({
   initialBookings,
+  initialCustomers = [],
+  initialBusinesses = [],
 }: {
   initialBookings: Booking[];
+  initialCustomers?: Customer[];
+  initialBusinesses?: Business[];
 }) {
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
+  const customers = initialCustomers || [];
+  const businesses = initialBusinesses || [];
 
   const emptyForm: CreateBookingDto = {
     date: "",
     time: "",
     status: "pending",
-    customerId: "" as any,
-    businessId: "" as any,
+    customerId: 0,
+    businessId: 0,
     serviceName: "",
   };
 
@@ -56,6 +207,7 @@ export default function BookingsClient({
   const [editForm, setEditForm] = useState<CreateBookingDto>(emptyForm);
 
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
+  const [customerFilter, setCustomerFilter] = useState<number | "">("");
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
@@ -66,13 +218,22 @@ export default function BookingsClient({
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
 
   const filteredBookings = useMemo(() => {
-    let filtered = statusFilter === "all" ? bookings : bookings.filter((booking) => booking.status === statusFilter);
+    let filtered = bookings;
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((booking) => booking.status === statusFilter);
+    }
+
+    if (customerFilter !== "") {
+      filtered = filtered.filter((booking) => booking.customerId === customerFilter);
+    }
+
     return filtered.sort((a, b) => {
       const dateA = new Date(`${a.date}T${a.time}`);
       const dateB = new Date(`${b.date}T${b.time}`);
       return dateB.getTime() - dateA.getTime();
     });
-  }, [bookings, statusFilter]);
+  }, [bookings, statusFilter, customerFilter]);
 
   const totalCount = bookings.length;
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
@@ -313,27 +474,17 @@ export default function BookingsClient({
                 <option value="confirmed">Confirmada</option>
                 <option value="paid">Pagada</option>
               </select>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={createForm.customerId}
-                onChange={(e) =>
-                  updateCreateForm("customerId", Number(e.target.value))
-                }
+              <SearchableSelect
+                options={customers.map(c => ({ id: c.id, label: c.Nombre || (c as any).nombre || `Cliente ${c.id}` }))}
+                value={createForm.customerId || ""}
+                onChange={(id) => updateCreateForm("customerId", id || 0)}
                 placeholder="Nombre Cliente"
-                required
               />
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={createForm.businessId}
-                onChange={(e) =>
-                  updateCreateForm("businessId", Number(e.target.value))
-                }
+              <SearchableSelect
+                options={businesses.map(b => ({ id: b.id, label: b.Nombre || (b as any).nombre || `Negocio ${b.id}` }))}
+                value={createForm.businessId || ""}
+                onChange={(id) => updateCreateForm("businessId", id || 0)}
                 placeholder="Nombre Empresa"
-                required
               />
               <input
                 className="input input--full"
@@ -392,27 +543,17 @@ export default function BookingsClient({
                 <option value="confirmed">Confirmada</option>
                 <option value="paid">Pagada</option>
               </select>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={editForm.customerId}
-                onChange={(e) =>
-                  updateEditForm("customerId", Number(e.target.value))
-                }
-                placeholder="Customer ID"
-                required
+              <SearchableSelect
+                options={customers.map(c => ({ id: c.id, label: c.Nombre || (c as any).nombre || `Cliente ${c.id}` }))}
+                value={editForm.customerId || ""}
+                onChange={(id) => updateEditForm("customerId", id || 0)}
+                placeholder="Nombre Cliente"
               />
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={editForm.businessId}
-                onChange={(e) =>
-                  updateEditForm("businessId", Number(e.target.value))
-                }
-                placeholder="Business ID"
-                required
+              <SearchableSelect
+                options={businesses.map(b => ({ id: b.id, label: b.Nombre || (b as any).nombre || `Negocio ${b.id}` }))}
+                value={editForm.businessId || ""}
+                onChange={(id) => updateEditForm("businessId", id || 0)}
+                placeholder="Nombre Empresa"
               />
               <input
                 className="input input--full"
@@ -478,11 +619,22 @@ export default function BookingsClient({
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>
-          <div className="filter-row">
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("all")}>Todas</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("pending")}>Pendientes</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("confirmed")}>Confirmadas</button>
-            <button type="button" className="filter-pill" onClick={() => setStatusFilter("paid")}>Pagadas</button>
+          <div className="filter-row" style={{ flexWrap: 'wrap', gap: '12px' }}>
+            <div className="filter-group" style={{ display: 'flex', gap: '8px' }}>
+              <button type="button" className={`filter-pill ${statusFilter === 'all' ? 'active' : ''}`} onClick={() => setStatusFilter("all")}>Todas</button>
+              <button type="button" className={`filter-pill ${statusFilter === 'pending' ? 'active' : ''}`} onClick={() => setStatusFilter("pending")}>Pendientes</button>
+              <button type="button" className={`filter-pill ${statusFilter === 'confirmed' ? 'active' : ''}`} onClick={() => setStatusFilter("confirmed")}>Confirmadas</button>
+              <button type="button" className={`filter-pill ${statusFilter === 'paid' ? 'active' : ''}`} onClick={() => setStatusFilter("paid")}>Pagadas</button>
+            </div>
+
+            <div style={{ width: '200px' }}>
+              <SearchableSelect
+                options={customers.map(c => ({ id: c.id, label: c.Nombre || (c as any).nombre || `Cliente ${c.id}` }))}
+                value={customerFilter}
+                onChange={(id) => setCustomerFilter(id)}
+                placeholder="Filtrar por Cliente"
+              />
+            </div>
           </div>
         </div>
 
@@ -507,8 +659,8 @@ export default function BookingsClient({
                 <td>{formatDate(booking.date)}</td>
                 <td>{booking.time}</td>
                 <td>{booking.serviceName}</td>
-                <td>{booking.customerId}</td>
-                <td>{booking.businessId}</td>
+                <td>{customers.find(c => c.id === booking.customerId)?.Nombre || (customers.find(c => c.id === booking.customerId) as any)?.nombre || `Cliente ${booking.customerId}`}</td>
+                <td>{businesses.find(b => b.id === booking.businessId)?.Nombre || (businesses.find(b => b.id === booking.businessId) as any)?.nombre || `Negocio ${booking.businessId}`}</td>
                 <td><StatusBadge status={booking.status} /></td>
                 <td>
                   <div style={{ display: "flex", gap: 8 }}>

@@ -139,6 +139,11 @@ export type Customer = {
   }[];
 };
 
+export type Business = {
+  id: number;
+  Nombre: string;
+};
+
 export type CreateCustomerDto = {
   Nombre: string;
   Telefono: string;
@@ -155,6 +160,18 @@ export async function getCustomers(): Promise<Customer[]> {
 
   if (!res.ok) {
     throw new Error("Error al obtener los clientes");
+  }
+
+  return res.json();
+}
+
+export async function getBusinesses(): Promise<Business[]> {
+  const res = await fetch(`${API_URL}/negocios`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al obtener los negocios");
   }
 
   return res.json();
