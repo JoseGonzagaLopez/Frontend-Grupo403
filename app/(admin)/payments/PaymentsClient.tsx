@@ -312,14 +312,18 @@ export default function PaymentsClient({
                 placeholder="Importe"
                 required
               />
-              <input
-                className="input"
-                type="text"
+              <select
+                className="select"
                 value={createForm.Metodo}
                 onChange={(e) => updateCreateForm("Metodo", e.target.value)}
-                placeholder="Método de pago"
                 required
-              />
+              >
+                <option value="">Seleccionar método</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Bizum">Bizum</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Pendiente">Pendiente</option>
+              </select>
               <input
                 className="input"
                 type="date"
@@ -390,14 +394,18 @@ export default function PaymentsClient({
                 placeholder="Importe"
                 required
               />
-              <input
-                className="input"
-                type="text"
+              <select
+                className="select"
                 value={editForm.Metodo}
                 onChange={(e) => updateEditForm("Metodo", e.target.value)}
-                placeholder="Método de pago"
                 required
-              />
+              >
+                <option value="">Seleccionar método</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Bizum">Bizum</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Pendiente">Pendiente</option>
+              </select>
               <input
                 className="input"
                 type="date"
