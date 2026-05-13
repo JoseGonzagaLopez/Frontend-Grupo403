@@ -32,6 +32,16 @@ export default function CustomersClient({
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
     const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+    const [search, setSearch] = useState("");
+
+    const filteredCustomers = customers.filter((customer) => {
+        const term = search.toLowerCase();
+        return (
+            customer.Nombre.toLowerCase().includes(term) ||
+            customer.Telefono.toLowerCase().includes(term) ||
+            customer.Correo.toLowerCase().includes(term)
+        );
+    });
 
     function updateCreateForm<K extends keyof CreateCustomerDto>(
         key: K,
@@ -164,8 +174,15 @@ export default function CustomersClient({
             {/* nuevo el buscador */}
             <section className="section-card">
                 <div className="search-row">
-                    <input className="input" placeholder="Buscar cliente..." />
-                    <button className="secondary-btn" type="button">Filtrar</button>
+                    <input
+                        className="input"
+                        placeholder="Buscar cliente..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                    <button className="secondary-btn" type="button" onClick={() => setSearch("")}>
+                        Limpiar
+                    </button>
                 </div>
             </section>
 
@@ -285,7 +302,7 @@ export default function CustomersClient({
 
             {/* TABLA */}
             <section className="customer-grid">
-                {customers.map((customer) => {
+                {filteredCustomers.map((customer) => {
                     const negocios = [...new Set(
                         (customer.appointments ?? [])
                             .map((a) => a.negocio?.Nombre)
@@ -312,6 +329,12 @@ export default function CustomersClient({
                     );
                 })}
             </section>
-        </div>
+
+            {filteredCustomers.length === 0 && (
+                <p style={{ textAlign: "center", color: "#888", padding: "16px 0" }}>
+                    Sin coincidencias
+                </p>
+            )}
+        </div >
     );
 }
