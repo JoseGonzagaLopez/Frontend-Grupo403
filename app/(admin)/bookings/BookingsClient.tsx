@@ -36,6 +36,7 @@ function formatDate(date: string) {
   }
 }
 
+
 export default function BookingsClient({
   initialBookings,
 }: {
