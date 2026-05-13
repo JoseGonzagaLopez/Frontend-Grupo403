@@ -32,13 +32,26 @@ export type PagoStatus = 'pending' | 'paid' | 'Por cobrar' | 'Pagado' | string;
 
 export interface Pago {
   ID: number;
-  Cliente: string;
-  Comercio: string;
+  customerId: number;
+  businessId: number;
   Importe: number;
   Metodo: string;
   Fecha: string;
   Estado: string;
+  Cliente?: string;
+  Comercio?: string;
 }
+
+export type CreatePagoDto = {
+  customerId: number;
+  businessId: number;
+  Importe: number;
+  Metodo: string;
+  Fecha: string;
+  Estado: string;
+};
+
+export type UpdatePagoDto = Partial<CreatePagoDto>;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -170,4 +183,29 @@ export async function updateCustomer(id: number, data: UpdateCustomerDto): Promi
 export async function deleteCustomer(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/clientes/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Error al eliminar el cliente");
+}
+
+export async function createPago(data: CreatePagoDto): Promise<Pago> {
+  const res = await fetch(`${API_URL}/pagos`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al crear el pago");
+  return res.json();
+}
+
+export async function updatePago(id: number, data: UpdatePagoDto): Promise<Pago> {
+  const res = await fetch(`${API_URL}/pagos/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al actualizar el pago");
+  return res.json();
+}
+
+export async function deletePago(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/pagos/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar el pago");
 }
