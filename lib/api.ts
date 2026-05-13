@@ -114,3 +114,56 @@ export async function deleteAppointment(
 
   return res.json();
 }
+
+export type Customer = {
+  id: number;
+  Nombre: string;
+  Telefono: string;
+  Correo: string;
+};
+
+export type CreateCustomerDto = {
+  Nombre: string;
+  Telefono: string;
+  Correo: string;
+};
+
+export type UpdateCustomerDto = Partial<CreateCustomerDto>;
+
+// Funciones API (ajusta la URL a tu backend)
+export async function getCustomers(): Promise<Customer[]> {
+  const res = await fetch(`${API_URL}/clientes`, {
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al obtener los clientes");
+  }
+
+  return res.json();
+}
+
+export async function createCustomer(data: CreateCustomerDto): Promise<Customer> {
+  const res = await fetch(`${API_URL}/clientes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al crear el cliente");
+  return res.json();
+}
+
+export async function updateCustomer(id: number, data: UpdateCustomerDto): Promise<Customer> {
+  const res = await fetch(`${API_URL}/clientes/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al actualizar el cliente");
+  return res.json();
+}
+
+export async function deleteCustomer(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/clientes/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar el cliente");
+}
