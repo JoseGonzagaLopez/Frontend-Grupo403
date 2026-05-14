@@ -1,5 +1,6 @@
-﻿import { getAppointments, type Booking, type BookingStatus } from '@/lib/api';
+﻿import { getAppointments, getCustomers, type Booking, type BookingStatus } from '@/lib/api';
 import Link from 'next/link';
+import ExportButton from "./ExportButton";
 
 function Badge({ status }: { status: BookingStatus }) {
   const label =
@@ -51,6 +52,7 @@ function sortByDateTime(a: Booking, b: Booking) {
 
 export default async function DashboardPage() {
   const appointments = await getAppointments();
+  const customers = await getCustomers();
   const today = new Date().toISOString().slice(0, 10);
   const now = new Date();
 
@@ -102,9 +104,7 @@ export default async function DashboardPage() {
           <p>Control diario de reservas, actividad y pagos.</p>
         </div>
 
-        <button className="primary-btn" type="button">
-          Exportar reporte
-        </button>
+        <ExportButton appointments={appointments} customers={customers} />
       </section>
 
       <section className="kpi-grid">
@@ -136,9 +136,9 @@ export default async function DashboardPage() {
         <div className="section-card">
           <div className="panel-title-row">
             <h3 className="panel-title">Próximas reservas</h3>
-               <Link href="/reservas" className="panel-subtle-link">
-               Ver todas
-               </Link>
+            <Link href="/reservas" className="panel-subtle-link">
+              Ver todas
+            </Link>
           </div>
 
           <table className="data-table">

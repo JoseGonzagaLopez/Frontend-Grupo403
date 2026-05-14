@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { Pago, CreatePagoDto, Customer } from "@/lib/api";
+import { useState, useEffect, useRef } from "react";
+import type { Pago, CreatePagoDto, Customer, Business } from "@/lib/api";
 import {
   createPago,
   deletePago,
@@ -12,9 +12,10 @@ import {
 type PaymentStatus = 'pending' | 'paid' | 'Por cobrar' | 'Pagado' | string;
 
 function Badge({ status }: { status: PaymentStatus }) {
+  const isPending = status === 'pending' || status === 'Por cobrar';
   return (
-    <span className={`badge badge--${status === 'pending' ? 'pending' : 'confirmed'}`}>
-      {status === 'pending' ? 'Por cobrar' : 'Pagado'}
+    <span className={`badge badge--${isPending ? 'pending' : 'confirmed'}`}>
+      {isPending ? 'Por cobrar' : 'Pagado'}
     </span>
   );
 }
@@ -60,15 +61,177 @@ function KpiCard({
   );
 }
 
+function SearchableSelect({
+  options,
+  value,
+  onChange,
+  placeholder,
+  className = "",
+}: {
+  options: { id: number; label: string }[];
+  value: number | "";
+  onChange: (id: number | "") => void;
+  placeholder: string;
+  className?: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filteredOptions = options.filter((opt) =>
+    opt.label.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const selectedLabel = options.find((opt) => opt.id === value)?.label || "";
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={`searchable-select ${className}`}
+      style={{ position: "relative", width: "100%" }}
+    >
+      <button
+        type="button"
+        className="input"
+        style={{
+          textAlign: "left",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          cursor: "pointer",
+          width: "100%",
+        }}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span style={{ color: value === "" ? "#94a3b8" : "inherit" }}>
+          {selectedLabel || placeholder}
+        </span>
+        <span style={{ fontSize: "12px", opacity: 0.5 }}>▼</span>
+      </button>
+
+      {isOpen && (
+        <div
+          className="searchable-select__dropdown"
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "8px",
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+            marginTop: "4px",
+            maxHeight: "300px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div style={{ padding: "8px", borderBottom: "1px solid var(--border)" }}>
+            <input
+              ref={inputRef}
+              type="text"
+              className="input"
+              style={{ height: "36px", fontSize: "14px" }}
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            {value !== "" && (
+              <div
+                style={{
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                  color: "#ef4444",
+                  fontSize: "14px",
+                  borderBottom: "1px solid var(--border)",
+                }}
+                onClick={() => {
+                  onChange("");
+                  setSearch("");
+                  setIsOpen(false);
+                }}
+              >
+                ✕ Quitar selección
+              </div>
+            )}
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt) => (
+                <div
+                  key={opt.id}
+                  style={{
+                    padding: "8px 12px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    background: value === opt.id ? "var(--surface-2)" : "transparent",
+                    fontWeight: value === opt.id ? "600" : "400",
+                  }}
+                  className="searchable-select__option"
+                  onClick={() => {
+                    onChange(opt.id);
+                    setSearch("");
+                    setIsOpen(false);
+                  }}
+                >
+                  {opt.label}
+                </div>
+              ))
+            ) : (
+              <div
+                style={{
+                  padding: "12px",
+                  textAlign: "center",
+                  color: "#94a3b8",
+                  fontSize: "14px",
+                }}
+              >
+                No hay resultados
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PaymentsClient({
   initialPayments,
   initialCustomers,
+  initialBusinesses,
 }: {
   initialPayments: Pago[];
   initialCustomers: Customer[];
+  initialBusinesses: Business[];
 }) {
   const [payments, setPayments] = useState<Pago[]>(initialPayments);
   const [customers] = useState<Customer[]>(initialCustomers);
+  const [businesses] = useState<Business[]>(initialBusinesses);
 
   const emptyForm: CreatePagoDto = {
     customerId: 0,
@@ -281,27 +444,23 @@ export default function PaymentsClient({
 
           <form onSubmit={handleCreateSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <select
-                className="select"
-                value={createForm.customerId}
-                onChange={(e) => updateCreateForm("customerId", Number(e.target.value))}
-                required
-              >
-                <option value={0}>Seleccionar cliente</option>
-                {customers.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.Nombre}
-                  </option>
-                ))}
-              </select>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={createForm.businessId}
-                onChange={(e) => updateCreateForm("businessId", Number(e.target.value))}
-                placeholder="ID Negocio"
-                required
+              <SearchableSelect
+                options={customers.map((c) => ({
+                  id: c.id,
+                  label: c.Nombre || (c as any).nombre || `Cliente ${c.id}`,
+                }))}
+                value={createForm.customerId === 0 ? "" : createForm.customerId}
+                onChange={(id) => updateCreateForm("customerId", id === "" ? 0 : id)}
+                placeholder="Seleccionar Cliente"
+              />
+              <SearchableSelect
+                options={businesses.map((b) => ({
+                  id: b.id,
+                  label: b.Nombre || (b as any).nombre || `Empresa ${b.id}`,
+                }))}
+                value={createForm.businessId === 0 ? "" : createForm.businessId}
+                onChange={(id) => updateCreateForm("businessId", id === "" ? 0 : id)}
+                placeholder="Seleccionar Empresa"
               />
               <input
                 className="input"
@@ -363,27 +522,23 @@ export default function PaymentsClient({
 
           <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <select
-                className="select"
-                value={editForm.customerId}
-                onChange={(e) => updateEditForm("customerId", Number(e.target.value))}
-                required
-              >
-                <option value={0}>Seleccionar cliente</option>
-                {customers.map((customer) => (
-                  <option key={customer.id} value={customer.id}>
-                    {customer.Nombre}
-                  </option>
-                ))}
-              </select>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                value={editForm.businessId}
-                onChange={(e) => updateEditForm("businessId", Number(e.target.value))}
-                placeholder="ID Negocio"
-                required
+              <SearchableSelect
+                options={customers.map((c) => ({
+                  id: c.id,
+                  label: c.Nombre || (c as any).nombre || `Cliente ${c.id}`,
+                }))}
+                value={editForm.customerId === 0 ? "" : editForm.customerId}
+                onChange={(id) => updateEditForm("customerId", id === "" ? 0 : id)}
+                placeholder="Seleccionar Cliente"
+              />
+              <SearchableSelect
+                options={businesses.map((b) => ({
+                  id: b.id,
+                  label: b.Nombre || (b as any).nombre || `Empresa ${b.id}`,
+                }))}
+                value={editForm.businessId === 0 ? "" : editForm.businessId}
+                onChange={(id) => updateEditForm("businessId", id === "" ? 0 : id)}
+                placeholder="Seleccionar Empresa"
               />
               <input
                 className="input"
