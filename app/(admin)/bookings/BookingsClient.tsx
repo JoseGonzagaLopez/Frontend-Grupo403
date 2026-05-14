@@ -116,8 +116,8 @@ function SearchableSelect({
             left: 0,
             right: 0,
             zIndex: 100,
-            background: "white",
-            border: "1px solid #e2e8f0",
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
             borderRadius: "8px",
             boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
             marginTop: "4px",
@@ -126,7 +126,7 @@ function SearchableSelect({
             flexDirection: "column",
           }}
         >
-          <div style={{ padding: "8px", borderBottom: "1px solid #f1f5f9" }}>
+          <div style={{ padding: "8px", borderBottom: "1px solid var(--border)" }}>
             <input
               ref={inputRef}
               type="text"
@@ -147,7 +147,7 @@ function SearchableSelect({
                   cursor: "pointer",
                   color: "#ef4444",
                   fontSize: "14px",
-                  borderBottom: "1px solid #f1f5f9",
+                  borderBottom: "1px solid var(--border)",
                 }}
                 onClick={() => {
                   onChange("");
@@ -166,7 +166,7 @@ function SearchableSelect({
                     padding: "8px 12px",
                     cursor: "pointer",
                     fontSize: "14px",
-                    background: value === opt.id ? "#f8fafc" : "transparent",
+                    background: value === opt.id ? "var(--surface-2)" : "transparent",
                     fontWeight: value === opt.id ? "600" : "400",
                   }}
                   className="searchable-select__option"
