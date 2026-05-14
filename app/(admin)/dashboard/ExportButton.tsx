@@ -43,6 +43,11 @@ export default function ExportButton({
             .filter((b) => new Date(`${b.date}T${b.time}`) >= now)
             .sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime());
 
+        if (proximas.length === 0) {
+            window.alert('No hay próximas reservas para exportar.');
+            return;
+        }
+
         const ventana = window.open("", "_blank");
         ventana?.document.write(`
       <html>
