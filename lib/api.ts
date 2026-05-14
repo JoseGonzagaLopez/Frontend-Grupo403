@@ -139,6 +139,11 @@ export type Customer = {
   }[];
 };
 
+export type Business = {
+  id: number;
+  Nombre: string;
+};
+
 export type CreateCustomerDto = {
   Nombre: string;
   Telefono: string;
@@ -208,4 +213,15 @@ export async function updatePago(id: number, data: UpdatePagoDto): Promise<Pago>
 export async function deletePago(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/pagos/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Error al eliminar el pago");
+}
+export async function getBusinesses(): Promise<Business[]> {
+  const res = await fetch(`${API_URL}/negocios`, {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    throw new Error('Error al obtener los negocios');
+  }
+
+  return res.json();
 }
