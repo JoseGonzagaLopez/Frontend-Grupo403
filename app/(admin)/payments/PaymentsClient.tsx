@@ -236,7 +236,7 @@ export default function PaymentsClient({
   const emptyForm: CreatePagoDto = {
     customerId: 0,
     businessId: 0,
-    Importe: 0,
+    Importe: "" as any,
     Metodo: "",
     Fecha: "",
     Estado: "Por cobrar",
@@ -467,7 +467,7 @@ export default function PaymentsClient({
                 type="number"
                 step="0.01"
                 value={createForm.Importe}
-                onChange={(e) => updateCreateForm("Importe", parseFloat(e.target.value))}
+                onChange={(e) => updateCreateForm("Importe", e.target.value === "" ? "" as any : parseFloat(e.target.value))}
                 placeholder="Importe"
                 required
               />
@@ -545,7 +545,7 @@ export default function PaymentsClient({
                 type="number"
                 step="0.01"
                 value={editForm.Importe}
-                onChange={(e) => updateEditForm("Importe", parseFloat(e.target.value))}
+                onChange={(e) => updateEditForm("Importe", e.target.value === "" ? "" as any : parseFloat(e.target.value))}
                 placeholder="Importe"
                 required
               />
