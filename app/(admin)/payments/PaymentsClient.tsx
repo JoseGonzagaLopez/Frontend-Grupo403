@@ -408,7 +408,7 @@ export default function PaymentsClient({
       <section className="page-hero">
         <div>
           <h2>Pagos</h2>
-          <p>Seguimiento de cobros realizados y pendientes.</p>
+          <p>Seguimiento de cobros inmediatos realizados y pendientes.</p>
         </div>
 
         <button className="primary-btn" type="button" onClick={openCreateForm}>
