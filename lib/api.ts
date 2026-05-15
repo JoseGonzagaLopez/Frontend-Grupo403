@@ -144,6 +144,12 @@ export type Business = {
   Nombre: string;
 };
 
+export type CreateBusinessDto = {
+  Nombre: string;
+};
+
+export type UpdateBusinessDto = Partial<CreateBusinessDto>;
+
 export type CreateCustomerDto = {
   Nombre: string;
   Telefono: string;
@@ -224,4 +230,29 @@ export async function getBusinesses(): Promise<Business[]> {
   }
 
   return res.json();
+}
+
+export async function createBusiness(data: CreateBusinessDto): Promise<Business> {
+  const res = await fetch(`${API_URL}/negocios`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al crear el negocio");
+  return res.json();
+}
+
+export async function updateBusiness(id: number, data: UpdateBusinessDto): Promise<Business> {
+  const res = await fetch(`${API_URL}/negocios/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al actualizar el negocio");
+  return res.json();
+}
+
+export async function deleteBusiness(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/negocios/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar el negocio");
 }
