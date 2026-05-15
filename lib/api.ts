@@ -8,6 +8,7 @@ export interface Booking {
   customerId: number;
   businessId: number;
   serviceName: string;
+  importe: number;
 }
 
 export interface CreateBookingDto {
@@ -17,6 +18,7 @@ export interface CreateBookingDto {
   customerId: number;
   businessId: number;
   serviceName: string;
+  importe: number;
 }
 
 export interface UpdateBookingDto {
@@ -26,6 +28,7 @@ export interface UpdateBookingDto {
   customerId?: number;
   businessId?: number;
   serviceName?: string;
+  importe?: number;
 }
 
 export type PagoStatus = 'pending' | 'paid' | 'Por cobrar' | 'Pagado' | string;

@@ -39,6 +39,14 @@ function formatDate(date: string) {
   }
 }
 
+function formatImporte(value: number | undefined) {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+  }).format(value ?? 0);
+}
+
 function SearchableSelect({
   options,
   value,
@@ -219,6 +227,7 @@ export default function BookingsClient({
     customerId: "" as any,
     businessId: "" as any,
     serviceName: "",
+    importe: 0,
   };
 
   const [createForm, setCreateForm] = useState<CreateBookingDto>(emptyForm);
@@ -314,6 +323,7 @@ export default function BookingsClient({
       customerId: booking.customerId,
       businessId: booking.businessId,
       serviceName: booking.serviceName,
+      importe: booking.importe ?? 0,
     });
   }
 
@@ -369,6 +379,7 @@ export default function BookingsClient({
         customerId: editForm.customerId,
         businessId: editForm.businessId,
         serviceName: editForm.serviceName,
+        importe: editForm.importe,
       };
 
       const updated = await updateAppointment(editingBookingId, payload);
@@ -511,6 +522,16 @@ export default function BookingsClient({
                 placeholder="Seleccionar Empresa"
               />
               <input
+                className="input"
+                type="number"
+                min={0}
+                step={0.01}
+                value={createForm.importe}
+                onChange={(e) => updateCreateForm("importe", Number(e.target.value))}
+                placeholder="Importe"
+                required
+              />
+              <input
                 className="input input--full"
                 type="text"
                 value={createForm.serviceName}
@@ -584,6 +605,16 @@ export default function BookingsClient({
                 value={editForm.businessId}
                 onChange={(id) => updateEditForm("businessId", id as number)}
                 placeholder="Seleccionar Empresa"
+              />
+              <input
+                className="input"
+                type="number"
+                min={0}
+                step={0.01}
+                value={editForm.importe}
+                onChange={(e) => updateEditForm("importe", Number(e.target.value))}
+                placeholder="Importe"
+                required
               />
               <input
                 className="input input--full"
@@ -677,6 +708,7 @@ export default function BookingsClient({
               <th>Fecha</th>
               <th>Hora</th>
               <th>Servicio</th>
+              <th>Importe</th>
               <th>Cliente</th>
               <th>Negocio</th>
               <th>Estado</th>
@@ -689,6 +721,7 @@ export default function BookingsClient({
                 <td>{formatDate(booking.date)}</td>
                 <td>{booking.time}</td>
                 <td>{booking.serviceName}</td>
+                <td>{formatImporte(booking.importe)}</td>
                 <td>
                   {customers.find((c) => c.id === booking.customerId)?.Nombre ||
                     (customers.find((c) => c.id === booking.customerId) as any)?.nombre ||
