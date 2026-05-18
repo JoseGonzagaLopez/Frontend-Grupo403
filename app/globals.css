@@ -158,10 +158,10 @@ button, input, select, textarea { font: inherit; }
 .admin-shell {
   display: flex;
   min-height: 100vh;
-  padding: var(--space-4);
-  gap: var(--space-4);
-  max-width: 1600px;
-  margin: 0 auto;
+  padding: 0;
+  gap: 0;
+  max-width: 100%;
+  margin: 0;
 }
 
 /* ─── SIDEBAR (Estilo Glassmorphism) ─── */
@@ -170,13 +170,12 @@ button, input, select, textarea { font: inherit; }
   background: var(--surface);
   backdrop-filter: var(--blur-lg);
   -webkit-backdrop-filter: var(--blur-lg);
-  border: 1px solid var(--border);
-  border-top: 1px solid var(--border-glow);
-  border-radius: var(--radius-xl);
+  border-right: 1px solid var(--border);
+  border-radius: 0;
   padding: var(--space-5) var(--space-4);
   position: sticky;
-  top: var(--space-4);
-  height: calc(100vh - var(--space-4) * 2);
+  top: 0;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
@@ -258,7 +257,7 @@ button, input, select, textarea { font: inherit; }
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: var(--space-4);
+  gap: 0;
 }
 
 /* ─── HEADER (Glassmorphism Píldora) ─── */
@@ -270,12 +269,11 @@ button, input, select, textarea { font: inherit; }
   background: var(--surface);
   backdrop-filter: var(--blur-lg);
   -webkit-backdrop-filter: var(--blur-lg);
-  border: 1px solid var(--border);
-  border-top: 1px solid var(--border-glow);
-  border-radius: 999px;
-  box-shadow: var(--shadow-md);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: var(--shadow-sm);
   position: sticky;
-  top: var(--space-4);
+  top: 0;
   z-index: 30;
 }
 
@@ -336,7 +334,7 @@ button, input, select, textarea { font: inherit; }
 
 /* ─── CONTENT ─── */
 .admin-content {
-  padding: 0;
+  padding: var(--space-5);
   flex: 1;
   animation: fadeSlideUp 0.4s var(--transition-smooth);
 }
