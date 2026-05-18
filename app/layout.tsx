@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "Bookings Admin",
-  description: "Base inicial del proyecto de gestión de reservas",
+  title: "BookFlow — Bookings Admin",
+  description: "Panel de administración de reservas, clientes y cobros",
 };
 
 export default function RootLayout({
@@ -14,7 +14,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body>
+      <head>
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        <link
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body suppressHydrationWarning>
         <ThemeProvider
           attribute="data-theme"
           defaultTheme="system"
