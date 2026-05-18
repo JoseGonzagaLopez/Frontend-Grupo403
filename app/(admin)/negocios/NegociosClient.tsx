@@ -17,6 +17,8 @@ export default function NegociosClient({
 
     const emptyForm: CreateBusinessDto = {
         Nombre: "",
+        Localicacion: "",
+        Telefono: "",
     };
 
     const [createForm, setCreateForm] = useState<CreateBusinessDto>(emptyForm);
@@ -74,6 +76,8 @@ export default function NegociosClient({
         setEditingBusinessId(business.id);
         setEditForm({
             Nombre: business.Nombre,
+            Localicacion: business.Localicacion ?? "",
+            Telefono: business.Telefono ?? "",
         });
     }
 
@@ -194,6 +198,16 @@ export default function NegociosClient({
                                 onChange={(e) => updateCreateForm("Nombre", e.target.value)}
                                 placeholder="Nombre del negocio" required
                             />
+                            <input className="input" type="text"
+                                value={createForm.Localicacion}
+                                onChange={(e) => updateCreateForm("Localicacion", e.target.value)}
+                                placeholder="Ubicación del negocio"
+                            />
+                            <input className="input" type="text"
+                                value={createForm.Telefono}
+                                onChange={(e) => updateCreateForm("Telefono", e.target.value)}
+                                placeholder="Teléfono del negocio"
+                            />
                         </div>
                         {errorMessage && <div className="message-error">{errorMessage}</div>}
                         <div className="message-row">
@@ -223,6 +237,20 @@ export default function NegociosClient({
                                 onChange={(e) => updateEditForm("Nombre", e.target.value)}
                                 placeholder="Nombre del negocio"
                                 required
+                            />
+                            <input
+                                className="input"
+                                type="text"
+                                value={editForm.Localicacion}
+                                onChange={(e) => updateEditForm("Localicacion", e.target.value)}
+                                placeholder="Ubicación del negocio"
+                            />
+                            <input
+                                className="input"
+                                type="text"
+                                value={editForm.Telefono}
+                                onChange={(e) => updateEditForm("Telefono", e.target.value)}
+                                placeholder="Teléfono del negocio"
                             />
                         </div>
                         {errorMessage && <div className="message-error">{errorMessage}</div>}
@@ -271,7 +299,12 @@ export default function NegociosClient({
                 {filteredBusinesses.map((business) => (
                     <div key={business.id} className="customer-card">
                         <p className="customer-name">{business.Nombre}</p>
-                        
+                        {business.Localicacion && (
+                            <p className="customer-meta">Ubicación: {business.Localicacion}</p>
+                        )}
+                        {business.Telefono && (
+                            <p className="customer-meta">Teléfono: {business.Telefono}</p>
+                        )}
                         <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
                             <button type="button" className="secondary-btn" onClick={() => openEditForm(business)}>Editar</button>
                             <button type="button" className="secondary-btn" onClick={() => openDeleteModal(business.id)}>Eliminar</button>

@@ -145,10 +145,14 @@ export type Customer = {
 export type Business = {
   id: number;
   Nombre: string;
+  Localicacion?: string;
+  Telefono?: string;
 };
 
 export type CreateBusinessDto = {
   Nombre: string;
+  Localicacion?: string;
+  Telefono?: string;
 };
 
 export type UpdateBusinessDto = Partial<CreateBusinessDto>;
