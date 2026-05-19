@@ -124,8 +124,8 @@ export default async function DashboardPage() {
           <KpiCard
             title="Pendientes"
             value={`${pendingToday}`}
-            subtitle="Seguimiento necesario"
-            variant="warning"
+            subtitle={pendingToday === 0 ? 'Seguimiento completado' : 'Seguimiento necesario'}
+            variant={pendingToday === 0 ? undefined : 'warning'}
           />
           <KpiCard
             title="Clientes activos"
