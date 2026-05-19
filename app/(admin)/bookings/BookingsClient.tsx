@@ -15,6 +15,7 @@ import {
   updateAppointment,
 } from "@/lib/api";
 import { useEffect, useRef } from "react";
+import { CustomDatePicker } from "@/components/CustomDatePicker";
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const label =
@@ -478,18 +479,20 @@ export default function BookingsClient({
 
           <form onSubmit={handleCreateSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <input
-                className="input"
-                type="date"
+              <CustomDatePicker
                 value={createForm.date}
-                onChange={(e) => updateCreateForm("date", e.target.value)}
-                required
+                onChange={(date) => updateCreateForm("date", date)}
               />
               <input
                 className="input"
                 type="time"
                 value={createForm.time}
                 onChange={(e) => updateCreateForm("time", e.target.value)}
+                onClick={(e) => {
+                  if ('showPicker' in HTMLInputElement.prototype) {
+                    e.currentTarget.showPicker();
+                  }
+                }}
                 required
               />
               <select
@@ -563,18 +566,20 @@ export default function BookingsClient({
 
           <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <input
-                className="input"
-                type="date"
+              <CustomDatePicker
                 value={editForm.date}
-                onChange={(e) => updateEditForm("date", e.target.value)}
-                required
+                onChange={(date) => updateEditForm("date", date)}
               />
               <input
                 className="input"
                 type="time"
                 value={editForm.time}
                 onChange={(e) => updateEditForm("time", e.target.value)}
+                onClick={(e) => {
+                  if ('showPicker' in HTMLInputElement.prototype) {
+                    e.currentTarget.showPicker();
+                  }
+                }}
                 required
               />
               <select
