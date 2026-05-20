@@ -6,6 +6,8 @@ import {
     createCustomer,
     deleteCustomer,
     updateCustomer,
+    getAppointments,
+    deleteAppointment,
 } from "@/lib/api";
 
 export default function CustomersClient({
@@ -32,6 +34,7 @@ export default function CustomersClient({
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [editingCustomerId, setEditingCustomerId] = useState<number | null>(null);
     const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+    const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
     const [search, setSearch] = useState("");
 
     const filteredCustomers = customers.filter((customer) => {
@@ -91,13 +94,15 @@ export default function CustomersClient({
         setEditForm(emptyForm);
     }
 
-    function openDeleteModal(id: number) {
+    function openDeleteModal(customer: Customer) {
         setErrorMessage("");
         setSuccessMessage("");
-        setDeleteTargetId(id);
+        setCustomerToDelete(customer);
+        setDeleteTargetId(customer.id);
     }
 
     function closeDeleteModal() {
+        setCustomerToDelete(null);
         setDeleteTargetId(null);
     }
 
@@ -146,13 +151,24 @@ export default function CustomersClient({
         setSuccessMessage("");
         setErrorMessage("");
         try {
+            const hasAppointments = (customerToDelete?.appointments?.length ?? 0) > 0;
+            if (hasAppointments) {
+                // Fetch all appointments and delete the ones belonging to this customer
+                const allAppointments = await getAppointments();
+                const customerAppointments = allAppointments.filter(a => a.customerId === deleteTargetId);
+                
+                await Promise.all(
+                    customerAppointments.map((appt) => deleteAppointment(appt.id))
+                );
+            }
+
             await deleteCustomer(deleteTargetId);
             setCustomers((prev) => prev.filter((c) => c.id !== deleteTargetId));
             if (editingCustomerId === deleteTargetId) closeEditForm();
             setSuccessMessage("Cliente eliminado correctamente.");
             closeDeleteModal();
         } catch {
-            setErrorMessage("No se pudo eliminar el cliente.");
+            setErrorMessage("No se pudo eliminar el cliente o sus reservas.");
         } finally {
             setDeletingCustomerId(null);
         }
@@ -269,8 +285,7 @@ export default function CustomersClient({
                 </section>
             )}
 
-            {/* MODAL ELIMINAR */}
-            {deleteTargetId !== null && (
+            {deleteTargetId !== null && customerToDelete !== null && (
                 <div
                     className="modal-backdrop"
                     role="dialog"
@@ -280,12 +295,18 @@ export default function CustomersClient({
                     <div className="modal-card">
                         <div className="modal-icon">!</div>
                         <h3 className="modal-title">Eliminar cliente</h3>
-                        <p className="modal-text">
-                            ¿Seguro que quieres eliminar este cliente? Esta acción no se puede deshacer.
-                        </p>
+                        {(customerToDelete.appointments?.length ?? 0) > 0 ? (
+                            <p className="modal-text">
+                                Este usuario tiene {(customerToDelete.appointments?.length ?? 0)} reserva(s) asociada(s). Si continúas, se borrará el usuario y todas sus reservas. ¿Deseas borrarlas de todas formas?
+                            </p>
+                        ) : (
+                            <p className="modal-text">
+                                ¿Seguro que quieres eliminar este cliente? Esta acción no se puede deshacer.
+                            </p>
+                        )}
                         <div className="modal-actions">
                             <button type="button" className="secondary-btn" onClick={closeDeleteModal}>
-                                Cancelar
+                                {(customerToDelete.appointments?.length ?? 0) > 0 ? "No" : "Cancelar"}
                             </button>
                             <button
                                 type="button"
@@ -293,7 +314,7 @@ export default function CustomersClient({
                                 onClick={confirmDelete}
                                 disabled={deletingCustomerId === deleteTargetId}
                             >
-                                {deletingCustomerId === deleteTargetId ? "Eliminando..." : "Eliminar"}
+                                {deletingCustomerId === deleteTargetId ? "Eliminando..." : ((customerToDelete.appointments?.length ?? 0) > 0 ? "Sí, borrar todo" : "Eliminar")}
                             </button>
                         </div>
                     </div>
@@ -323,7 +344,7 @@ export default function CustomersClient({
 
                             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                                 <button type="button" className="secondary-btn" onClick={() => openEditForm(customer)}>Editar</button>
-                                <button type="button" className="secondary-btn" onClick={() => openDeleteModal(customer.id)}>Eliminar</button>
+                                <button type="button" className="secondary-btn" onClick={() => openDeleteModal(customer)}>Eliminar</button>
                             </div>
                         </div>
                     );

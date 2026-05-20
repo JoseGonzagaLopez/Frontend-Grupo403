@@ -2,6 +2,7 @@ import { getAppointments, getCustomers, type Booking, type BookingStatus } from 
 import Link from 'next/link';
 import ExportButton from "./ExportButton";
 import ErrorView from '@/components/ErrorView';
+import ReservationsChart from './ReservationsChart';
 
 function Badge({ status }: { status: BookingStatus }) {
   const label =
@@ -124,8 +125,8 @@ export default async function DashboardPage() {
           <KpiCard
             title="Pendientes"
             value={`${pendingToday}`}
-            subtitle={pendingToday === 0 ? 'Seguimiento completado' : 'Seguimiento necesario'}
-            variant={pendingToday === 0 ? undefined : 'warning'}
+            subtitle="Seguimiento necesario"
+            variant="warning"
           />
           <KpiCard
             title="Clientes activos"
@@ -134,11 +135,13 @@ export default async function DashboardPage() {
           />
         </section>
 
+        <ReservationsChart appointments={appointments} />
+
         <section className="dashboard-grid">
           <div className="section-card">
             <div className="panel-title-row">
               <h3 className="panel-title">Próximas reservas</h3>
-              <Link href="/bookings" className="panel-subtle-link">
+              <Link href="/reservas" className="panel-subtle-link">
                 Ver todas
               </Link>
             </div>
