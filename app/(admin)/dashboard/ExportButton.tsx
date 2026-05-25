@@ -6,6 +6,7 @@ interface Appointment {
     serviceName: string;
     status: string;
     customerId: number;
+    importe: number;
 }
 
 interface Customer {
@@ -21,6 +22,14 @@ function formatDate(date: string) {
     } catch {
         return date;
     }
+}
+
+function formatImporte(value: number) {
+    return new Intl.NumberFormat("es-ES", {
+        style: "currency",
+        currency: "EUR",
+        minimumFractionDigits: 2,
+    }).format(value);
 }
 
 function traducirEstado(status: string) {
@@ -73,6 +82,7 @@ export default function ExportButton({
                 <th>Hora</th>
                 <th>Servicio</th>
                 <th>Cliente</th>
+                <th>Importe</th>
                 <th>Estado</th>
               </tr>
             </thead>
@@ -83,6 +93,7 @@ export default function ExportButton({
                   <td>${b.time}</td>
                   <td>${b.serviceName}</td>
                   <td>${customers.find((c) => c.id === b.customerId)?.Nombre ?? `Cliente #${b.customerId}`}</td>
+                  <td>${formatImporte(b.importe)}</td>
                   <td>${traducirEstado(b.status)}</td>
                 </tr>
               `).join("")}

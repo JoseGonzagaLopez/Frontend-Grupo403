@@ -40,6 +40,10 @@ function formatDate(date: string) {
   }
 }
 
+type BookingForm = Omit<CreateBookingDto, 'importe'> & {
+  importe: number | "";
+};
+
 function formatImporte(value: number | undefined) {
   return new Intl.NumberFormat('es-ES', {
     style: 'currency',
@@ -221,18 +225,18 @@ export default function BookingsClient({
   const [customers] = useState<Customer[]>(initialCustomers);
   const [businesses] = useState<Business[]>(initialBusinesses);
 
-  const emptyForm: CreateBookingDto = {
+  const emptyForm: BookingForm = {
     date: "",
     time: "",
     status: "pending",
     customerId: "" as any,
     businessId: "" as any,
     serviceName: "",
-    importe: 0,
+    importe: "",
   };
 
-  const [createForm, setCreateForm] = useState<CreateBookingDto>(emptyForm);
-  const [editForm, setEditForm] = useState<CreateBookingDto>(emptyForm);
+  const [createForm, setCreateForm] = useState<BookingForm>(emptyForm);
+  const [editForm, setEditForm] = useState<BookingForm>(emptyForm);
 
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
   const [customerFilter, setCustomerFilter] = useState<number | "">("");
@@ -346,12 +350,36 @@ export default function BookingsClient({
 
   async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (
+      !createForm.date ||
+      !createForm.time ||
+      createForm.customerId === "" ||
+      createForm.businessId === "" ||
+      !createForm.serviceName ||
+      createForm.importe === ""
+    ) {
+      setErrorMessage("Completa todos los campos");
+      setSuccessMessage("");
+      return;
+    }
     setLoadingCreate(true);
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
-      const created = await createAppointment(createForm);
+      const importeValue =
+        createForm.importe === ""
+          ? NaN
+          : Number(createForm.importe);
+
+      if (createForm.importe === "" || Number.isNaN(importeValue)) {
+        throw new Error("Importe inválido");
+      }
+
+      const created = await createAppointment({
+        ...createForm,
+        importe: importeValue,
+      });
       setBookings((prev) => [created, ...prev]);
       resetCreateForm();
       setIsCreateOpen(false);
@@ -367,12 +395,33 @@ export default function BookingsClient({
     e.preventDefault();
 
     if (!editingBookingId) return;
+    if (
+      !editForm.date ||
+      !editForm.time ||
+      editForm.customerId === "" ||
+      editForm.businessId === "" ||
+      !editForm.serviceName ||
+      editForm.importe === ""
+    ) {
+      setErrorMessage("Completa todos los campos");
+      setSuccessMessage("");
+      return;
+    }
 
     setLoadingEdit(true);
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
+      const importeValue =
+        editForm.importe === ""
+          ? NaN
+          : Number(editForm.importe);
+
+      if (editForm.importe === "" || Number.isNaN(importeValue)) {
+        throw new Error("Importe inválido");
+      }
+
       const payload: UpdateBookingDto = {
         date: editForm.date,
         time: editForm.time,
@@ -380,7 +429,7 @@ export default function BookingsClient({
         customerId: editForm.customerId,
         businessId: editForm.businessId,
         serviceName: editForm.serviceName,
-        importe: editForm.importe,
+        importe: importeValue,
       };
 
       const updated = await updateAppointment(editingBookingId, payload);

@@ -52,6 +52,14 @@ function sortByDateTime(a: Booking, b: Booking) {
   return parseBookingDate(a).getTime() - parseBookingDate(b).getTime();
 }
 
+function formatImporte(value: number) {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 2,
+  }).format(value);
+}
+
 export default async function DashboardPage() {
   try {
     const appointments = await getAppointments();
@@ -153,6 +161,7 @@ export default async function DashboardPage() {
                   <th>Hora</th>
                   <th>Servicio</th>
                   <th>Cliente</th>
+                  <th>Importe</th>
                   <th>Estado</th>
                 </tr>
               </thead>
@@ -164,6 +173,7 @@ export default async function DashboardPage() {
                       <td style={{ fontWeight: 600 }}>{appointment.time}</td>
                       <td>{appointment.serviceName}</td>
                       <td>{customers.find(c => c.id === appointment.customerId)?.Nombre || `Cliente #${appointment.customerId}`}</td>
+                      <td>{formatImporte(appointment.importe)}</td>
                       <td>
                         <Badge status={appointment.status} />
                       </td>
