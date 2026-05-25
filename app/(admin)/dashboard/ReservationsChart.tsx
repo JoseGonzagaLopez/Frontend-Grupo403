@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -17,6 +17,12 @@ interface ReservationsChartProps {
 }
 
 export default function ReservationsChart({ appointments }: ReservationsChartProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const data = useMemo(() => {
     // Group by date and count reservations
     const chartData = appointments.reduce((acc, appointment) => {
@@ -45,6 +51,17 @@ export default function ReservationsChart({ appointments }: ReservationsChartPro
       // Mostrar solo los últimos 14 días con actividad o similar, o todos si son pocos
       .slice(-14);
   }, [appointments]);
+
+  if (!isMounted) {
+    return (
+      <div className="flex h-[300px] items-center justify-center text-gray-500 bg-white rounded-xl border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+        <div className="animate-pulse flex flex-col items-center gap-2">
+          <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+          <span className="text-sm">Cargando gráfico...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (data.length === 0) {
     return (

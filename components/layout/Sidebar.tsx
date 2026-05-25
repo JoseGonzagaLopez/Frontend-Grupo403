@@ -11,11 +11,16 @@ const menuItems = [
   { label: "Negocios", href: "/negocios", icon: "❖" },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  setIsOpen?: (open: boolean) => void;
+}
+
+export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="admin-sidebar">
+    <aside className={`admin-sidebar ${isOpen ? "admin-sidebar--open" : ""}`}>
       <div className="admin-sidebar__brand">
         <h2 className="admin-sidebar__title">BookFlow</h2>
         <p className="admin-sidebar__subtitle">Admin workspace</p>
@@ -29,6 +34,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setIsOpen && setIsOpen(false)}
               className={`admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""}`}
             >
               <span>{item.icon}</span>

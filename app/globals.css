@@ -167,21 +167,44 @@ button, input, select, textarea { font: inherit; }
 /* ─── SIDEBAR (Estilo Glassmorphism) ─── */
 .admin-sidebar {
   width: var(--sidebar-width);
-  background: var(--surface);
-  backdrop-filter: var(--blur-lg);
-  -webkit-backdrop-filter: var(--blur-lg);
+  max-width: 85vw; /* Prevent it from being too wide on very small phones */
+  background: var(--surface-solid); /* Use solid background to avoid transparency issues */
   border-right: 1px solid var(--border);
   border-radius: 0;
   padding: var(--space-5) var(--space-4);
-  position: sticky;
+  position: fixed;
+  left: calc(-1 * var(--sidebar-width));
   top: 0;
   height: 100vh;
+  height: 100dvh; /* Better for mobile browsers */
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
   box-shadow: var(--shadow-lg);
   overflow-y: auto;
-  z-index: 40;
+  z-index: 100;
+  transition: left var(--transition-smooth);
+}
+
+
+
+.admin-sidebar--open {
+  left: 0;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 90;
+  animation: fadeIn var(--transition-fast);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .admin-sidebar__brand { padding: 0 var(--space-2); }
@@ -278,6 +301,26 @@ button, input, select, textarea { font: inherit; }
 }
 
 .admin-header__left { display: flex; align-items: center; gap: var(--space-3); }
+
+.hamburger-btn {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  margin-right: var(--space-2);
+}
+
+.hamburger-btn:hover {
+  background: var(--surface-2);
+  color: var(--accent);
+}
+
 
 .admin-header__title {
   font-size: var(--text-base);
@@ -997,7 +1040,8 @@ input[type="time"].input {
 @media (max-width: 1024px) {
   .admin-shell { padding: 0; gap: 0; }
   .admin-sidebar { 
-    display: none; /* Idealmente aquí iría un drawer o sidebar móvil */
+    /* The sidebar is now an off-canvas drawer by default, so we want it to display */
+    display: flex; 
   }
   .admin-header { border-radius: 0; top: 0; }
   .admin-content { padding: var(--space-4); }
