@@ -1,6 +1,5 @@
-// app/reservas/page.tsx
 import { getAppointments, getCustomers, getBusinesses } from '@/lib/api';
-import BookingsClient from '../bookings/BookingsClient'; 
+import ReservacionesSimple from './ReservacionesSimple';
 import ErrorView from '@/components/ErrorView';
 
 export default async function ReservasPage() {
@@ -12,20 +11,11 @@ export default async function ReservasPage() {
     ]);
 
     return (
-      <main className="page-stack">
-        <div className="page-hero">
-          <div>
-            <h2>Gestión de Reservas</h2>
-            <p>Listado completo de todas las citas.</p>
-          </div>
-        </div>
-
-        <BookingsClient 
-          initialBookings={appointments} 
-          initialCustomers={customers}
-          initialBusinesses={businesses}
-        />
-      </main>
+      <ReservacionesSimple
+        initialBookings={appointments}
+        initialCustomers={customers}
+        initialBusinesses={businesses}
+      />
     );
   } catch (error) {
     console.error("Error loading reservas:", error);
