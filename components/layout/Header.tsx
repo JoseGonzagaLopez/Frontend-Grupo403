@@ -25,7 +25,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
       </div>
       <div className="admin-header__actions">
         <ThemeToggle />
-        <div className="admin-avatar" aria-hidden="true">BF</div>
+        <img src="/favicon.ico" alt="Avatar" className="admin-avatar" />
       </div>
     </header>
   );
