@@ -148,19 +148,31 @@ export type Business = {
   Nombre: string;
   Localicacion?: string;
   Telefono?: string;
+  Correo?: string;
+  descripcion?: string;
+  tipoNegocio?: string;
+  fotoUrl?: string;
+  bannerUrl?: string;
 };
 
 export type CreateBusinessDto = {
   Nombre: string;
   Localicacion?: string;
   Telefono?: string;
+  Correo?: string;
+  password?: string;
+  descripcion?: string;
+  tipoNegocio?: string;
+  fotoUrl?: string;
+  bannerUrl?: string;
 };
 
 export type UpdateBusinessDto = Partial<CreateBusinessDto>;
 
 export type RegisterBusinessDto = {
   Nombre: string;
-  Telefono: string;
+  Telefono?: string;
+  Correo: string;
   Localicacion?: string;
   password?: string;
 };
@@ -278,21 +290,21 @@ export async function registerCustomer(data: CreateCustomerDto): Promise<Custome
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    let msg = "Error al registrar el cliente. Quizás el correo ya exista.";
+    let msg = "Error al registrar el cliente. Quiz\u00e1s el correo ya exista.";
     try { const body = await res.json(); msg = body.message || msg; } catch {}
     throw new Error(msg);
   }
   return res.json();
 }
 
-export async function loginBusiness(Telefono: string, password: string): Promise<Business> {
+export async function loginBusiness(Correo: string, password: string): Promise<Business> {
   const res = await fetch(`${API_URL}/negocios/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ Telefono, password }),
+    body: JSON.stringify({ Correo, password }),
   });
   if (!res.ok) {
-    let msg = "Credenciales incorrectas. Verifica tu teléfono y contraseña.";
+    let msg = "Credenciales incorrectas. Verifica tu correo y contrase\u00f1a.";
     try { const body = await res.json(); msg = body.message || msg; } catch {}
     throw new Error(msg);
   }
@@ -306,7 +318,7 @@ export async function registerBusiness(data: RegisterBusinessDto): Promise<Busin
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    let msg = "Error al registrar el negocio. Quizás el teléfono ya exista.";
+    let msg = "Error al registrar el negocio. Quiz\u00e1s el correo ya exista.";
     try { const body = await res.json(); msg = body.message || msg; } catch {}
     throw new Error(msg);
   }
@@ -350,7 +362,7 @@ export async function deleteService(id: number): Promise<void> {
 
 export async function getResenas(businessId: number): Promise<Resena[]> {
   const res = await fetch(`${API_URL}/resenas?businessId=${businessId}`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Error al obtener las reseñas");
+  if (!res.ok) throw new Error("Error al obtener las rese\u00f1as");
   return res.json();
 }
 
