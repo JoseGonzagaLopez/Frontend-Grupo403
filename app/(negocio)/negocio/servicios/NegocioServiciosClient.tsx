@@ -3,6 +3,49 @@ import { useState, useEffect } from "react";
 import { getServices, createService, updateService, deleteService } from "@/lib/api";
 import type { Service } from "@/lib/api";
 
+type FormState = { nombre: string; precio: string; duracion: string; descripcion: string };
+
+function FormPanel({
+  onSubmit, title, onCancel, form, setForm, saving,
+}: {
+  onSubmit: (e: React.FormEvent) => void;
+  title: string;
+  onCancel: () => void;
+  form: FormState;
+  setForm: (f: FormState) => void;
+  saving: boolean;
+}) {
+  return (
+    <section className="section-card">
+      <div className="panel-title-row">
+        <h3 className="panel-title">{title}</h3>
+        <button className="secondary-btn" type="button" onClick={onCancel}>Cancelar</button>
+      </div>
+      <form onSubmit={onSubmit} className="form-grid" style={{ gap: 16, alignItems: "end" }}>
+        <div>
+          <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Nombre del servicio *</label>
+          <input className="input" required value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} placeholder="Ej. Corte de pelo" />
+        </div>
+        <div>
+          <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Precio (€) *</label>
+          <input className="input" type="number" required min="0" step="0.01" value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} placeholder="Ej. 25.00" />
+        </div>
+        <div>
+          <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Duración (min)</label>
+          <input className="input" type="number" min="0" value={form.duracion} onChange={(e) => setForm({ ...form, duracion: e.target.value })} placeholder="Ej. 60" />
+        </div>
+        <div>
+          <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Descripción</label>
+          <input className="input" value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} placeholder="Opcional" />
+        </div>
+        <div>
+          <button className="primary-btn" type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
+        </div>
+      </form>
+    </section>
+  );
+}
+
 export default function NegocioServiciosClient({ businessId }: { businessId: number }) {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,8 +54,8 @@ export default function NegocioServiciosClient({ businessId }: { businessId: num
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState(false);
-  const emptyForm = { nombre: "", precio: "", duracion: "", descripcion: "" };
-  const [form, setForm] = useState(emptyForm);
+  const emptyForm: FormState = { nombre: "", precio: "", duracion: "", descripcion: "" };
+  const [form, setForm] = useState<FormState>(emptyForm);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -69,36 +112,6 @@ export default function NegocioServiciosClient({ businessId }: { businessId: num
     setForm({ nombre: s.nombre, precio: String(s.precio), duracion: String(s.duracion || ""), descripcion: s.descripcion || "" });
   }
 
-  const FormPanel = ({ onSubmit, title, onCancel }: { onSubmit: (e: React.FormEvent) => void; title: string; onCancel: () => void }) => (
-    <section className="section-card">
-      <div className="panel-title-row">
-        <h3 className="panel-title">{title}</h3>
-        <button className="secondary-btn" type="button" onClick={onCancel}>Cancelar</button>
-      </div>
-      <form onSubmit={onSubmit} className="form-grid" style={{ gap: 16, alignItems: "end" }}>
-        <div>
-          <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Nombre del servicio *</label>
-          <input className="input" required value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} placeholder="Ej. Corte de pelo" />
-        </div>
-        <div>
-          <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Precio (€) *</label>
-          <input className="input" type="number" required min="0" step="0.01" value={form.precio} onChange={(e) => setForm({ ...form, precio: e.target.value })} placeholder="Ej. 25.00" />
-        </div>
-        <div>
-          <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Duración (min)</label>
-          <input className="input" type="number" min="0" value={form.duracion} onChange={(e) => setForm({ ...form, duracion: e.target.value })} placeholder="Ej. 60" />
-        </div>
-        <div>
-          <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Descripción</label>
-          <input className="input" value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} placeholder="Opcional" />
-        </div>
-        <div>
-          <button className="primary-btn" type="submit" disabled={saving}>{saving ? "Guardando..." : "Guardar"}</button>
-        </div>
-      </form>
-    </section>
-  );
-
   return (
     <div className="page-stack">
       <section className="page-hero">
@@ -114,8 +127,26 @@ export default function NegocioServiciosClient({ businessId }: { businessId: num
       {success && <div className="message-success">{success}</div>}
       {error && <div className="message-error">{error}</div>}
 
-      {isCreating && <FormPanel title="Nuevo servicio" onSubmit={handleCreate} onCancel={() => { setIsCreating(false); setForm(emptyForm); }} />}
-      {editingId !== null && <FormPanel title={`Editar servicio #${editingId}`} onSubmit={handleUpdate} onCancel={() => { setEditingId(null); setForm(emptyForm); }} />}
+      {isCreating && (
+        <FormPanel
+          title="Nuevo servicio"
+          onSubmit={handleCreate}
+          onCancel={() => { setIsCreating(false); setForm(emptyForm); }}
+          form={form}
+          setForm={setForm}
+          saving={saving}
+        />
+      )}
+      {editingId !== null && (
+        <FormPanel
+          title={`Editar servicio #${editingId}`}
+          onSubmit={handleUpdate}
+          onCancel={() => { setEditingId(null); setForm(emptyForm); }}
+          form={form}
+          setForm={setForm}
+          saving={saving}
+        />
+      )}
 
       {deleteTargetId !== null && (
         <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setDeleteTargetId(null); }}>
