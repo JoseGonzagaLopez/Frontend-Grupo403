@@ -300,7 +300,7 @@ export async function loginBusiness(Telefono: string, password: string): Promise
 }
 
 export async function registerBusiness(data: RegisterBusinessDto): Promise<Business> {
-  const res = await fetch(`${API_URL}/negocios/register`, {
+  const res = await fetch(`${API_URL}/negocios`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
