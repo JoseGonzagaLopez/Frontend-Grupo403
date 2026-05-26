@@ -1,4 +1,4 @@
-export type BookingStatus = "pending" | "confirmed" | "paid";
+export type BookingStatus = "pending" | "confirmed" | "paid" | "completed" | "no_show";
 
 export interface Booking {
   id: number;
@@ -55,6 +55,42 @@ export type CreatePagoDto = {
 };
 
 export type UpdatePagoDto = Partial<CreatePagoDto>;
+
+export type Service = {
+  id: number;
+  nombre: string;
+  precio: number;
+  duracion?: number;
+  descripcion?: string;
+  businessId: number;
+};
+
+export type CreateServiceDto = {
+  nombre: string;
+  precio: number;
+  duracion?: number;
+  descripcion?: string;
+  businessId: number;
+};
+
+export type UpdateServiceDto = Partial<Omit<CreateServiceDto, "businessId">>;
+
+export type Resena = {
+  id?: number;
+  clienteNombre?: string;
+  puntuacion?: number;
+  comentario?: string;
+  fecha?: string;
+  businessId?: number;
+};
+
+export type ProfileChangeRequest = {
+  id: number;
+  businessId: number;
+  cambios: Record<string, any>;
+  estado: "pending" | "approved" | "rejected";
+  createdAt?: string;
+};
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -249,8 +285,6 @@ export async function registerCustomer(data: CreateCustomerDto): Promise<Custome
   return res.json();
 }
 
-// ── NEGOCIOS AUTH ──────────────────────────────────────────────────────────────
-
 export async function loginBusiness(Telefono: string, password: string): Promise<Business> {
   const res = await fetch(`${API_URL}/negocios/login`, {
     method: "POST",
@@ -277,4 +311,76 @@ export async function registerBusiness(data: RegisterBusinessDto): Promise<Busin
     throw new Error(msg);
   }
   return res.json();
+}
+
+// ── SERVICIOS ─────────────────────────────────────────────────────────────────
+
+export async function getServices(businessId: number): Promise<Service[]> {
+  const res = await fetch(`${API_URL}/servicios?businessId=${businessId}`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener los servicios");
+  return res.json();
+}
+
+export async function createService(data: CreateServiceDto): Promise<Service> {
+  const res = await fetch(`${API_URL}/servicios`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al crear el servicio");
+  return res.json();
+}
+
+export async function updateService(id: number, data: UpdateServiceDto): Promise<Service> {
+  const res = await fetch(`${API_URL}/servicios/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al actualizar el servicio");
+  return res.json();
+}
+
+export async function deleteService(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/servicios/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar el servicio");
+}
+
+// ── RESEÑAS ───────────────────────────────────────────────────────────────────
+
+export async function getResenas(businessId: number): Promise<Resena[]> {
+  const res = await fetch(`${API_URL}/resenas?businessId=${businessId}`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener las reseñas");
+  return res.json();
+}
+
+// ── SOLICITUDES DE CAMBIO DE PERFIL ───────────────────────────────────────────
+
+export async function submitProfileChange(businessId: number, cambios: Record<string, any>): Promise<void> {
+  const res = await fetch(`${API_URL}/negocios/${businessId}/solicitudes-perfil`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cambios }),
+  });
+  if (!res.ok) {
+    let msg = "Error al enviar la solicitud.";
+    try { const body = await res.json(); msg = body.message || msg; } catch {}
+    throw new Error(msg);
+  }
+}
+
+export async function getPendingProfileChanges(): Promise<ProfileChangeRequest[]> {
+  const res = await fetch(`${API_URL}/solicitudes-perfil?estado=pending`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener las solicitudes");
+  return res.json();
+}
+
+export async function approveProfileChange(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/solicitudes-perfil/${id}/aprobar`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Error al aprobar el cambio");
+}
+
+export async function rejectProfileChange(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/solicitudes-perfil/${id}/rechazar`, { method: "PATCH" });
+  if (!res.ok) throw new Error("Error al rechazar el cambio");
 }
