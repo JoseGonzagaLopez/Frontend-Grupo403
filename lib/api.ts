@@ -157,6 +157,13 @@ export type CreateBusinessDto = {
 
 export type UpdateBusinessDto = Partial<CreateBusinessDto>;
 
+export type RegisterBusinessDto = {
+  Nombre: string;
+  Telefono: string;
+  Localicacion?: string;
+  password?: string;
+};
+
 export type CreateCustomerDto = {
   Nombre: string;
   Telefono: string;
@@ -228,6 +235,7 @@ export async function deletePago(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/pagos/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Error al eliminar el pago");
 }
+
 export async function getBusinesses(): Promise<Business[]> {
   const res = await fetch(`${API_URL}/negocios`, {
     cache: 'no-store',
@@ -282,5 +290,27 @@ export async function registerCustomer(data: CreateCustomerDto): Promise<Custome
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Error al registrar el cliente. Quizás el correo ya exista.");
+  return res.json();
+}
+
+// ── NEGOCIOS AUTH ─────────────────────────────────────────────────────────────
+
+export async function loginBusiness(Telefono: string, password: string): Promise<Business> {
+  const res = await fetch(`${API_URL}/negocios/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ Telefono, password }),
+  });
+  if (!res.ok) throw new Error("Credenciales incorrectas. Verifica tu teléfono y contraseña.");
+  return res.json();
+}
+
+export async function registerBusiness(data: RegisterBusinessDto): Promise<Business> {
+  const res = await fetch(`${API_URL}/negocios/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al registrar el negocio. Quizás el teléfono ya exista.");
   return res.json();
 }
