@@ -8,10 +8,12 @@ import type {
   UpdateBookingDto,
   Customer,
   Business,
+  Service,
 } from "@/lib/api";
 import {
   createAppointment,
   deleteAppointment,
+  getServices,
   updateAppointment,
 } from "@/lib/api";
 import { useEffect, useRef } from "react";
@@ -40,7 +42,13 @@ function formatDate(date: string) {
   }
 }
 
-type BookingForm = Omit<CreateBookingDto, 'importe'> & {
+type BookingForm = {
+  date: string;
+  time: string;
+  status: BookingStatus;
+  customerId: number | "";
+  businessId: number | "";
+  serviceName: string;
   importe: number | "";
 };
 
@@ -224,6 +232,10 @@ export default function BookingsClient({
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [customers] = useState<Customer[]>(initialCustomers);
   const [businesses] = useState<Business[]>(initialBusinesses);
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
+  const [loadingServices, setLoadingServices] = useState(false);
+  const [selectedCreateServiceId, setSelectedCreateServiceId] = useState<number | "">("");
+  const [selectedEditServiceId, setSelectedEditServiceId] = useState<number | "">("");
 
   const emptyForm: BookingForm = {
     date: "",
@@ -272,9 +284,9 @@ export default function BookingsClient({
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
   const paidCount = bookings.filter((b) => b.status === "paid").length;
 
-  function updateCreateForm<K extends keyof CreateBookingDto>(
+  function updateCreateForm<K extends keyof BookingForm>(
     key: K,
-    value: CreateBookingDto[K]
+    value: BookingForm[K]
   ) {
     setCreateForm((prev) => ({
       ...prev,
@@ -282,13 +294,105 @@ export default function BookingsClient({
     }));
   }
 
-  function updateEditForm<K extends keyof CreateBookingDto>(
+  function updateEditForm<K extends keyof BookingForm>(
     key: K,
-    value: CreateBookingDto[K]
+    value: BookingForm[K]
   ) {
     setEditForm((prev) => ({
       ...prev,
       [key]: value,
+    }));
+  }
+
+  useEffect(() => {
+    const businessId =
+      editingBookingId !== null
+        ? editForm.businessId
+        : isCreateOpen
+        ? createForm.businessId
+        : "";
+
+    if (businessId === "") {
+      setAvailableServices([]);
+      return;
+    }
+
+    setLoadingServices(true);
+    getServices(businessId)
+      .then(setAvailableServices)
+      .catch(() => setAvailableServices([]))
+      .finally(() => setLoadingServices(false));
+  }, [createForm.businessId, editForm.businessId, editingBookingId, isCreateOpen]);
+
+  useEffect(() => {
+    if (editingBookingId === null) return;
+    const matchingService = availableServices.find(
+      (service) => service.nombre === editForm.serviceName
+    );
+    setSelectedEditServiceId(matchingService?.id ?? "");
+  }, [availableServices, editingBookingId, editForm.businessId, editForm.serviceName]);
+
+  function handleCreateBusinessChange(id: number | "") {
+    setCreateForm((prev) => ({
+      ...prev,
+      businessId: id,
+      serviceName: "",
+      importe: "",
+    }));
+    setSelectedCreateServiceId("");
+  }
+
+  function handleEditBusinessChange(id: number | "") {
+    setEditForm((prev) => ({
+      ...prev,
+      businessId: id,
+      serviceName: "",
+      importe: "",
+    }));
+    setSelectedEditServiceId("");
+  }
+
+  function handleCreateServiceChange(id: number | "") {
+    if (id === "") {
+      setSelectedCreateServiceId("");
+      setCreateForm((prev) => ({
+        ...prev,
+        serviceName: "",
+        importe: "",
+      }));
+      return;
+    }
+
+    const service = availableServices.find((item) => item.id === id);
+    if (!service) return;
+
+    setSelectedCreateServiceId(id);
+    setCreateForm((prev) => ({
+      ...prev,
+      serviceName: service.nombre,
+      importe: service.precio,
+    }));
+  }
+
+  function handleEditServiceChange(id: number | "") {
+    if (id === "") {
+      setSelectedEditServiceId("");
+      setEditForm((prev) => ({
+        ...prev,
+        serviceName: "",
+        importe: "",
+      }));
+      return;
+    }
+
+    const service = availableServices.find((item) => item.id === id);
+    if (!service) return;
+
+    setSelectedEditServiceId(id);
+    setEditForm((prev) => ({
+      ...prev,
+      serviceName: service.nombre,
+      importe: service.precio,
     }));
   }
 
@@ -570,27 +674,61 @@ export default function BookingsClient({
                   label: b.Nombre || (b as any).nombre || `Empresa ${b.id}`,
                 }))}
                 value={createForm.businessId}
-                onChange={(id) => updateCreateForm("businessId", id as number)}
+                onChange={handleCreateBusinessChange}
                 placeholder="Seleccionar Empresa"
               />
-              <input
-                className="input"
-                type="number"
-                min={0}
-                step={0.01}
-                value={createForm.importe}
-                onChange={(e) => updateCreateForm("importe", Number(e.target.value))}
-                placeholder="Importe"
-                required
-              />
-              <input
-                className="input input--full"
-                type="text"
-                value={createForm.serviceName}
-                onChange={(e) => updateCreateForm("serviceName", e.target.value)}
-                placeholder="Servicio"
-                required
-              />
+              {createForm.businessId === "" ? (
+                <div className="input" style={{ color: "var(--text-faint)", cursor: "not-allowed" }}>
+                  Selecciona un negocio primero
+                </div>
+              ) : loadingServices ? (
+                <div className="input" style={{ color: "var(--text-secondary)" }}>
+                  Cargando servicios...
+                </div>
+              ) : availableServices.length > 0 ? (
+                <>
+                  <SearchableSelect
+                    options={availableServices.map((service) => ({
+                      id: service.id,
+                      label: `${service.nombre} — ${formatImporte(service.precio)}`,
+                    }))}
+                    value={selectedCreateServiceId}
+                    onChange={handleCreateServiceChange}
+                    placeholder="Seleccionar Servicio"
+                  />
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={createForm.importe}
+                    readOnly
+                    placeholder="Importe"
+                    required
+                  />
+                </>
+              ) : (
+                <>
+                  <input
+                    className="input"
+                    type="text"
+                    value={createForm.serviceName}
+                    onChange={(e) => updateCreateForm("serviceName", e.target.value)}
+                    placeholder="Servicio"
+                    required
+                  />
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={createForm.importe}
+                    onChange={(e) => updateCreateForm("importe", Number(e.target.value))}
+                    placeholder="Importe"
+                    required
+                  />
+                </>
+              )}
             </div>
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
@@ -657,27 +795,61 @@ export default function BookingsClient({
                   label: b.Nombre || (b as any).nombre || `Empresa ${b.id}`,
                 }))}
                 value={editForm.businessId}
-                onChange={(id) => updateEditForm("businessId", id as number)}
+                onChange={handleEditBusinessChange}
                 placeholder="Seleccionar Empresa"
               />
-              <input
-                className="input"
-                type="number"
-                min={0}
-                step={0.01}
-                value={editForm.importe}
-                onChange={(e) => updateEditForm("importe", Number(e.target.value))}
-                placeholder="Importe"
-                required
-              />
-              <input
-                className="input input--full"
-                type="text"
-                value={editForm.serviceName}
-                onChange={(e) => updateEditForm("serviceName", e.target.value)}
-                placeholder="Servicio"
-                required
-              />
+              {editForm.businessId === "" ? (
+                <div className="input" style={{ color: "var(--text-faint)", cursor: "not-allowed" }}>
+                  Selecciona un negocio primero
+                </div>
+              ) : loadingServices ? (
+                <div className="input" style={{ color: "var(--text-secondary)" }}>
+                  Cargando servicios...
+                </div>
+              ) : availableServices.length > 0 ? (
+                <>
+                  <SearchableSelect
+                    options={availableServices.map((service) => ({
+                      id: service.id,
+                      label: `${service.nombre} — ${formatImporte(service.precio)}`,
+                    }))}
+                    value={selectedEditServiceId}
+                    onChange={handleEditServiceChange}
+                    placeholder="Seleccionar Servicio"
+                  />
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={editForm.importe}
+                    readOnly
+                    placeholder="Importe"
+                    required
+                  />
+                </>
+              ) : (
+                <>
+                  <input
+                    className="input"
+                    type="text"
+                    value={editForm.serviceName}
+                    onChange={(e) => updateEditForm("serviceName", e.target.value)}
+                    placeholder="Servicio"
+                    required
+                  />
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={editForm.importe}
+                    onChange={(e) => updateEditForm("importe", Number(e.target.value))}
+                    placeholder="Importe"
+                    required
+                  />
+                </>
+              )}
             </div>
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
