@@ -5,7 +5,6 @@ import type { Business, Customer, Service } from "@/lib/api";
 import { createAppointment, getServices } from "@/lib/api";
 import { CustomDatePicker } from "@/components/CustomDatePicker";
 import Header from "@/components/layout/Header";
-import { CheckCircle2 } from "lucide-react";
 import { logOutCustomer } from "@/lib/actions";
 
 function SearchableSelect({
@@ -91,7 +90,6 @@ export default function ReservarClient({
 
   const businessOptions = initialBusinesses.map((b) => ({ id: b.id, label: b.Nombre || `Empresa ${b.id}` }));
 
-  // Cargar servicios al cambiar negocio
   useEffect(() => {
     if (form.businessId === "") { setServices([]); setForm((f) => ({ ...f, serviceName: "" })); return; }
     setLoadingServices(true);
@@ -117,19 +115,108 @@ export default function ReservarClient({
   };
 
   if (isSuccess) {
+    const selectedBusiness = businessOptions.find((b) => b.id === form.businessId)?.label;
+    const dateFormatted = form.date
+      ? new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(form.date + "T12:00:00"))
+      : "";
+
     return (
-      <div className="public-page min-h-screen flex items-center justify-center p-4">
-        <div className="public-card text-center flex flex-col items-center max-w-md w-full">
-          <div className="public-success-icon mb-6"><CheckCircle2 size={64} color="var(--success-text)" /></div>
-          <h2 className="text-2xl font-bold mb-2">¡Reserva Confirmada!</h2>
-          <p className="mb-8" style={{ color: "var(--text-secondary)" }}>Tu reserva ha sido registrada correctamente.</p>
-          <div className="p-4 rounded-lg text-left w-full" style={{ background: "var(--surface-2)" }}>
-            <p><strong>Negocio:</strong> {businessOptions.find((b) => b.id === form.businessId)?.label}</p>
-            <p><strong>Servicio:</strong> {form.serviceName}</p>
-            <p><strong>Fecha:</strong> {new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(form.date + "T12:00:00"))}</p>
-            <p><strong>Hora:</strong> {form.time}</p>
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--bg)",
+        padding: "var(--space-4)",
+      }}>
+        <div style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-xl)",
+          boxShadow: "0 12px 40px rgba(0,0,0,0.10)",
+          padding: "clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 2.5rem)",
+          maxWidth: 480,
+          width: "100%",
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "var(--space-4)",
+        }}>
+          {/* Icono pendiente */}
+          <div style={{
+            width: 72,
+            height: 72,
+            borderRadius: "50%",
+            background: "rgba(150,66,25,0.1)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: "var(--space-1)",
+          }}>
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none"
+              stroke="var(--warning, #964219)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
           </div>
-          <button className="primary-btn mt-6" onClick={() => { setForm({ businessId: "", serviceName: "", date: "", time: "" }); setIsSuccess(false); }}>Hacer otra reserva</button>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+            <h2 style={{ fontSize: "var(--text-xl)", fontWeight: 700, margin: 0 }}>Reserva enviada</h2>
+            <p style={{ color: "var(--text-secondary)", margin: 0, maxWidth: "34ch", lineHeight: 1.6 }}>
+              Tu reserva está <strong>pendiente de confirmación</strong> por parte del negocio.
+            </p>
+          </div>
+
+          {/* Detalle reserva */}
+          <div style={{
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-lg)",
+            padding: "var(--space-4) var(--space-5)",
+            width: "100%",
+            textAlign: "left",
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)",
+          }}>
+            {selectedBusiness && <p style={{ margin: 0 }}><strong>Negocio:</strong> {selectedBusiness}</p>}
+            <p style={{ margin: 0 }}><strong>Servicio:</strong> {form.serviceName}</p>
+            <p style={{ margin: 0 }}><strong>Fecha:</strong> {dateFormatted}</p>
+            <p style={{ margin: 0 }}><strong>Hora:</strong> {form.time}</p>
+            <p style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+              <strong>Estado:</strong>
+              <span style={{
+                background: "rgba(150,66,25,0.12)",
+                color: "var(--warning, #964219)",
+                padding: "2px 12px",
+                borderRadius: "var(--radius-full)",
+                fontSize: "var(--text-sm)",
+                fontWeight: 600,
+              }}>Pendiente</span>
+            </p>
+          </div>
+
+          {/* Botones */}
+          <div style={{ display: "flex", gap: "var(--space-3)", width: "100%", marginTop: "var(--space-1)" }}>
+            <button
+              className="secondary-btn"
+              style={{ flex: 1 }}
+              onClick={() => window.history.back()}
+            >
+              ← Volver
+            </button>
+            <button
+              className="primary-btn"
+              style={{ flex: 1 }}
+              onClick={() => {
+                setForm({ businessId: "", serviceName: "", date: "", time: "" });
+                setIsSuccess(false);
+              }}
+            >
+              Nueva reserva
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -157,7 +244,6 @@ export default function ReservarClient({
             <form onSubmit={handleSubmit} className="page-stack" style={{ gap: 24 }}>
               {error && <div className="message-error">{error}</div>}
               <div className="form-grid">
-                {/* Negocio */}
                 <div>
                   <label className="block text-sm font-semibold mb-1">Selecciona el Negocio <span style={{ color: "var(--danger)" }}>*</span></label>
                   <SearchableSelect
@@ -167,7 +253,6 @@ export default function ReservarClient({
                     placeholder="Busca y selecciona un negocio..."
                   />
                 </div>
-                {/* Servicio — desplegable si hay servicios, input si no */}
                 <div>
                   <label className="block text-sm font-semibold mb-1">Servicio <span style={{ color: "var(--danger)" }}>*</span></label>
                   {form.businessId === "" ? (
