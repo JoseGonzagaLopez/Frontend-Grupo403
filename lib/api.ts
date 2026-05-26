@@ -59,75 +59,40 @@ export type UpdatePagoDto = Partial<CreatePagoDto>;
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 export async function getAppointments(): Promise<Booking[]> {
-  const res = await fetch(`${API_URL}/appointments`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error("Error al obtener las reservas");
-  }
-
+  const res = await fetch(`${API_URL}/appointments`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener las reservas");
   return res.json();
 }
 
 export async function getPagos(): Promise<Pago[]> {
-  const res = await fetch(`${API_URL}/pagos`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error("Error al obtener los pagos");
-  }
-
+  const res = await fetch(`${API_URL}/pagos`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener los pagos");
   return res.json();
 }
 
 export async function createAppointment(data: CreateBookingDto): Promise<Booking> {
   const res = await fetch(`${API_URL}/appointments`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  if (!res.ok) {
-    throw new Error("Error al crear la reserva");
-  }
-
+  if (!res.ok) throw new Error("Error al crear la reserva");
   return res.json();
 }
 
-export async function updateAppointment(
-  id: number,
-  data: UpdateBookingDto
-): Promise<Booking> {
+export async function updateAppointment(id: number, data: UpdateBookingDto): Promise<Booking> {
   const res = await fetch(`${API_URL}/appointments/${id}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
-  if (!res.ok) {
-    throw new Error("Error al editar la reserva");
-  }
-
+  if (!res.ok) throw new Error("Error al editar la reserva");
   return res.json();
 }
 
-export async function deleteAppointment(
-  id: number
-): Promise<{ message: string }> {
-  const res = await fetch(`${API_URL}/appointments/${id}`, {
-    method: "DELETE",
-  });
-
-  if (!res.ok) {
-    throw new Error("Error al eliminar la reserva");
-  }
-
+export async function deleteAppointment(id: number): Promise<{ message: string }> {
+  const res = await fetch(`${API_URL}/appointments/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar la reserva");
   return res.json();
 }
 
@@ -173,16 +138,9 @@ export type CreateCustomerDto = {
 
 export type UpdateCustomerDto = Partial<CreateCustomerDto>;
 
-// Funciones API (ajusta la URL a tu backend)
 export async function getCustomers(): Promise<Customer[]> {
-  const res = await fetch(`${API_URL}/clientes`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error("Error al obtener los clientes");
-  }
-
+  const res = await fetch(`${API_URL}/clientes`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener los clientes");
   return res.json();
 }
 
@@ -237,14 +195,8 @@ export async function deletePago(id: number): Promise<void> {
 }
 
 export async function getBusinesses(): Promise<Business[]> {
-  const res = await fetch(`${API_URL}/negocios`, {
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    throw new Error('Error al obtener los negocios');
-  }
-
+  const res = await fetch(`${API_URL}/negocios`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Error al obtener los negocios');
   return res.json();
 }
 
@@ -289,11 +241,15 @@ export async function registerCustomer(data: CreateCustomerDto): Promise<Custome
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Error al registrar el cliente. Quizás el correo ya exista.");
+  if (!res.ok) {
+    let msg = "Error al registrar el cliente. Quizás el correo ya exista.";
+    try { const body = await res.json(); msg = body.message || msg; } catch {}
+    throw new Error(msg);
+  }
   return res.json();
 }
 
-// ── NEGOCIOS AUTH ─────────────────────────────────────────────────────────────
+// ── NEGOCIOS AUTH ──────────────────────────────────────────────────────────────
 
 export async function loginBusiness(Telefono: string, password: string): Promise<Business> {
   const res = await fetch(`${API_URL}/negocios/login`, {
@@ -301,7 +257,11 @@ export async function loginBusiness(Telefono: string, password: string): Promise
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ Telefono, password }),
   });
-  if (!res.ok) throw new Error("Credenciales incorrectas. Verifica tu teléfono y contraseña.");
+  if (!res.ok) {
+    let msg = "Credenciales incorrectas. Verifica tu teléfono y contraseña.";
+    try { const body = await res.json(); msg = body.message || msg; } catch {}
+    throw new Error(msg);
+  }
   return res.json();
 }
 
@@ -311,6 +271,10 @@ export async function registerBusiness(data: RegisterBusinessDto): Promise<Busin
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Error al registrar el negocio. Quizás el teléfono ya exista.");
+  if (!res.ok) {
+    let msg = "Error al registrar el negocio. Quizás el teléfono ya exista.";
+    try { const body = await res.json(); msg = body.message || msg; } catch {}
+    throw new Error(msg);
+  }
   return res.json();
 }

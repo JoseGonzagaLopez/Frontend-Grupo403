@@ -213,7 +213,6 @@ export default function ReservarClient({
     setError("");
 
     try {
-      // Create appointment
       await createAppointment({
         date: form.date,
         time: form.time,
@@ -221,7 +220,7 @@ export default function ReservarClient({
         customerId: loggedCustomer.id,
         businessId: form.businessId as number,
         serviceName: form.serviceName,
-        importe: 0, // Admin can set this later
+        importe: 0,
       });
 
       setIsSuccess(true);
@@ -283,7 +282,7 @@ export default function ReservarClient({
         userRole="Cliente"
         onLogout={async () => {
           await logOutCustomer();
-          window.location.href = '/cliente/login';
+          window.location.href = '/login';
         }}
         hideHamburger={true}
       />
