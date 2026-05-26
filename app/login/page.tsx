@@ -93,17 +93,19 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5 flex-1">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 flex-1" autoComplete="off">
             <div className="flex flex-col gap-2">
               <label style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text)' }}>
                 Usuario
               </label>
               <input
                 type="text"
+                name="username"
                 value="admin"
                 disabled
                 className="input opacity-70 cursor-not-allowed"
                 style={{ backgroundColor: 'var(--surface-2)' }}
+                autoComplete="off"
               />
             </div>
 
@@ -113,11 +115,13 @@ export default function LoginPage() {
               </label>
               <input
                 type="password"
+                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input"
                 placeholder="••••••••"
                 required
+                autoComplete="new-password"
               />
             </div>
 

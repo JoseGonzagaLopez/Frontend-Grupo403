@@ -10,7 +10,6 @@ export async function authenticate(password: string) {
     cookieStore.set("admin_auth_token", "authenticated", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 7, // 1 semana
       path: "/",
     });
     return { success: true };
