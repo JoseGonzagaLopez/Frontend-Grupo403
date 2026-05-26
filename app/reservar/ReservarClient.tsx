@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import type { Business, Customer } from "@/lib/api";
 import { createAppointment, createCustomer } from "@/lib/api";
 import { CustomDatePicker } from "@/components/CustomDatePicker";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import Header from "@/components/layout/Header";
 import { CheckCircle2, LogOut } from "lucide-react";
 import { logOutCustomer } from "@/lib/actions";
 
@@ -276,32 +276,17 @@ export default function ReservarClient({
 
   return (
     <div className="public-page min-h-screen flex flex-col">
-      <header className="public-header p-4 flex justify-between items-center border-b border-var(--border) bg-var(--surface) backdrop-blur-md sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <img src="/favicon.ico" alt="BookFlow" className="w-8 h-8 rounded-full" />
-          <h1 className="font-bold text-lg hidden sm:block">BookFlow</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          {loggedCustomer && (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-var(--text-secondary) hidden sm:block">
-                Hola, {loggedCustomer.Nombre.split(' ')[0]}
-              </span>
-              <button 
-                onClick={async () => {
-                  await logOutCustomer();
-                  window.location.href = '/cliente/login';
-                }}
-                className="flex items-center gap-1 text-sm text-var(--danger) hover:opacity-80"
-                title="Cerrar sesión"
-              >
-                <LogOut size={16} />
-              </button>
-            </div>
-          )}
-          <ThemeToggle />
-        </div>
-      </header>
+      <Header
+        title="BookFlow"
+        subtitle="Solicita tu cita de forma rápida y sencilla"
+        userName={loggedCustomer ? loggedCustomer.Nombre : "Cliente"}
+        userRole="Cliente"
+        onLogout={async () => {
+          await logOutCustomer();
+          window.location.href = '/cliente/login';
+        }}
+        hideHamburger={true}
+      />
 
       <main className="flex-1 p-4 sm:p-8" style={{ maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
         <div className="page-stack">

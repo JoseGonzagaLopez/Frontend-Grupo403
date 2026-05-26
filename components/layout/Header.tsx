@@ -7,15 +7,33 @@ import { LogOut } from "lucide-react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
+  title?: string;
+  subtitle?: string;
+  userName?: string;
+  userRole?: string;
+  onLogout?: () => Promise<void>;
+  hideHamburger?: boolean;
 }
 
-export default function Header({ onMenuClick }: HeaderProps) {
+export default function Header({
+  onMenuClick,
+  title = "BookFlow Admin",
+  subtitle = "Plataforma de gestión de reservas y cobros",
+  userName = "Administrador",
+  userRole = "Administrador",
+  onLogout,
+  hideHamburger = false,
+}: HeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
-    await logOut();
-    window.location.href = "/login";
+    if (onLogout) {
+      await onLogout();
+    } else {
+      await logOut();
+      window.location.href = "/login";
+    }
   };
 
   useEffect(() => {
@@ -33,20 +51,22 @@ export default function Header({ onMenuClick }: HeaderProps) {
   return (
     <header className="admin-header">
       <div className="admin-header__left">
-        <button 
-          className="hamburger-btn" 
-          onClick={onMenuClick} 
-          aria-label="Abrir menú"
-          title="Abrir menú"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-        <span className="admin-header__title">BookFlow Admin</span>
-        <span className="admin-header__subtitle">Plataforma de gestión de reservas y cobros</span>
+        {!hideHamburger && (
+          <button 
+            className="hamburger-btn" 
+            onClick={onMenuClick} 
+            aria-label="Abrir menú"
+            title="Abrir menú"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        )}
+        <span className="admin-header__title">{title}</span>
+        <span className="admin-header__subtitle">{subtitle}</span>
       </div>
       <div className="admin-header__actions">
         <ThemeToggle />
@@ -78,7 +98,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
               }}
             >
               <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ color: 'var(--text)', fontWeight: 600, fontSize: '14px' }}>Administrador</p>
+                <p style={{ color: 'var(--text)', fontWeight: 600, fontSize: '14px' }}>{userName}</p>
                 <p style={{ color: 'var(--success-text)', fontSize: '12px', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 500 }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--success-text)', display: 'inline-block' }}></span>
                   Sesión activa

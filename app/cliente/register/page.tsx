@@ -152,6 +152,7 @@ export default function ClienteRegisterPage() {
                 placeholder="Mínimo 6 caracteres"
                 required
                 minLength={6}
+                autoComplete="new-password"
               />
             </div>
 

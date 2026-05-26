@@ -102,6 +102,7 @@ export default function ClienteLoginPage() {
                 className="input"
                 placeholder="ejemplo@correo.com"
                 required
+                autoComplete="new-email"
               />
             </div>
 
@@ -116,6 +117,7 @@ export default function ClienteLoginPage() {
                 className="input"
                 placeholder="••••••••"
                 required
+                autoComplete="new-password"
               />
             </div>
 

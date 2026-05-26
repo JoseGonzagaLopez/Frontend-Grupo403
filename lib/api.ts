@@ -161,6 +161,7 @@ export type CreateCustomerDto = {
   Nombre: string;
   Telefono: string;
   Correo: string;
+  password?: string;
 };
 
 export type UpdateCustomerDto = Partial<CreateCustomerDto>;
