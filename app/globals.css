@@ -1056,3 +1056,54 @@ input[type="time"].input {
   .search-row { flex-direction: column; align-items: stretch; }
   .surface-card, .section-card { padding: var(--space-4); border-radius: var(--radius-lg); }
 }
+
+/* ─── PUBLIC BOOKING PAGE ─── */
+.public-page {
+  background-color: var(--bg-color);
+}
+
+.public-header {
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.public-card {
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-top: 1px solid var(--border-glow);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+.public-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 640px) {
+  .public-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .public-card {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+  }
+}
+
+.public-success-icon {
+  animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

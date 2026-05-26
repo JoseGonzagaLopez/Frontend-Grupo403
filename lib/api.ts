@@ -263,3 +263,23 @@ export async function deleteBusiness(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/negocios/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error("Error al eliminar el negocio");
 }
+
+export async function loginCustomer(Correo: string, password?: string): Promise<Customer> {
+  const res = await fetch(`${API_URL}/clientes/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ Correo, password }),
+  });
+  if (!res.ok) throw new Error("Error en el login. Verifica tus credenciales.");
+  return res.json();
+}
+
+export async function registerCustomer(data: CreateCustomerDto): Promise<Customer> {
+  const res = await fetch(`${API_URL}/clientes/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al registrar el cliente. Quizás el correo ya exista.");
+  return res.json();
+}

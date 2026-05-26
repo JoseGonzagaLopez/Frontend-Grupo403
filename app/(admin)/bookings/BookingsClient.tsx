@@ -353,8 +353,8 @@ export default function BookingsClient({
     if (
       !createForm.date ||
       !createForm.time ||
-      createForm.customerId === "" ||
-      createForm.businessId === "" ||
+      (createForm.customerId as any) === "" ||
+      (createForm.businessId as any) === "" ||
       !createForm.serviceName ||
       createForm.importe === ""
     ) {
@@ -368,11 +368,11 @@ export default function BookingsClient({
 
     try {
       const importeValue =
-        createForm.importe === ""
+        (createForm.importe as any) === ""
           ? NaN
           : Number(createForm.importe);
 
-      if (createForm.importe === "" || Number.isNaN(importeValue)) {
+      if ((createForm.importe as any) === "" || Number.isNaN(importeValue)) {
         throw new Error("Importe inválido");
       }
 
@@ -398,8 +398,8 @@ export default function BookingsClient({
     if (
       !editForm.date ||
       !editForm.time ||
-      editForm.customerId === "" ||
-      editForm.businessId === "" ||
+      (editForm.customerId as any) === "" ||
+      (editForm.businessId as any) === "" ||
       !editForm.serviceName ||
       editForm.importe === ""
     ) {
@@ -414,11 +414,11 @@ export default function BookingsClient({
 
     try {
       const importeValue =
-        editForm.importe === ""
+        (editForm.importe as any) === ""
           ? NaN
           : Number(editForm.importe);
 
-      if (editForm.importe === "" || Number.isNaN(importeValue)) {
+      if ((editForm.importe as any) === "" || Number.isNaN(importeValue)) {
         throw new Error("Importe inválido");
       }
 

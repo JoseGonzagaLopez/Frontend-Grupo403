@@ -21,3 +21,24 @@ export async function logOut() {
   const cookieStore = await cookies();
   cookieStore.delete("admin_auth_token");
 }
+
+export async function loginCustomerAction(customerId: number) {
+  const cookieStore = await cookies();
+  cookieStore.set("customer_auth_token", String(customerId), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7, // 1 semana
+  });
+}
+
+export async function logOutCustomer() {
+  const cookieStore = await cookies();
+  cookieStore.delete("customer_auth_token");
+}
+
+export async function getCustomerSession() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("customer_auth_token");
+  return token ? Number(token.value) : null;
+}
