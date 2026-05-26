@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock } from "lucide-react";
 import { authenticate } from "@/lib/actions";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,69 +19,125 @@ export default function LoginPage() {
     try {
       const result = await authenticate(password);
       if (result.success) {
-        // Forzamos la redirección con window.location para asegurar 
-        // que el middleware detecte la nueva cookie y refresque el layout
-        window.location.href = "/dashboard";
+        setIsSuccess(true);
+        // Esperar a que termine la animación (800ms) antes de redirigir
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 800);
       } else {
         setError("Contraseña incorrecta");
+        setIsLoading(false);
       }
     } catch (err) {
       setError("Ha ocurrido un error al intentar iniciar sesión");
-    } finally {
       setIsLoading(false);
     }
   };
 
+  const cardStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: isSuccess ? '14px' : '50%',
+    left: isSuccess ? 'calc(100vw - 24px - 38px)' : '50%',
+    width: isSuccess ? '38px' : '100%',
+    maxWidth: isSuccess ? '38px' : '400px',
+    height: isSuccess ? '38px' : '480px',
+    borderRadius: isSuccess ? '50%' : 'var(--radius-xl)',
+    transform: isSuccess ? 'translate(0, 0)' : 'translate(-50%, -50%)',
+    overflow: 'hidden',
+    padding: isSuccess ? '0' : 'var(--space-6)',
+    borderWidth: isSuccess ? '2px' : '1px',
+    borderColor: isSuccess ? 'rgb(187, 187, 187)' : 'var(--border)',
+    transition: 'all 0.8s cubic-bezier(0.65, 0, 0.35, 1)',
+    zIndex: 100,
+    background: 'var(--surface-solid)',
+    boxShadow: isSuccess ? '0 4px 10px var(--accent-glow)' : 'var(--shadow-lg)',
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] p-4">
-      <div className="max-w-md w-full bg-[var(--card)] p-8 rounded-xl shadow-lg border border-[var(--border)]">
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-[var(--primary)]/10 p-4 rounded-full mb-4">
-            <Lock className="w-8 h-8 text-[var(--primary)]" />
+    <div className="min-h-screen bg-[var(--bg-color)]">
+      <div className="surface-card" style={cardStyle}>
+        
+        {/* Favicon que hace de Logo y luego de Avatar */}
+        <img 
+          src="/favicon.ico" 
+          alt="Avatar" 
+          style={{
+            position: 'absolute',
+            top: isSuccess ? '0' : '32px',
+            left: isSuccess ? '0' : '50%',
+            transform: isSuccess ? 'none' : 'translateX(-50%)',
+            width: isSuccess ? '100%' : '64px',
+            height: isSuccess ? '100%' : '64px',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            transition: 'all 0.8s cubic-bezier(0.65, 0, 0.35, 1)',
+            zIndex: 10,
+          }}
+        />
+
+        {/* Contenido del formulario que se desvanece */}
+        <div style={{
+          opacity: isSuccess ? 0 : 1,
+          transition: 'opacity 0.3s ease-out',
+          paddingTop: '80px', // Espacio para el logo posicionado absolutamente
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+        }}>
+          <div className="flex flex-col items-center text-center gap-2 mb-6">
+            <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em' }}>
+              Acceso Admin
+            </h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>
+              Introduce tus credenciales para acceder
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">Panel de Administración</h1>
-          <p className="text-[var(--muted-foreground)] mt-2">Introduce tus credenciales para acceder</p>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 flex-1">
+            <div className="flex flex-col gap-2">
+              <label style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text)' }}>
+                Usuario
+              </label>
+              <input
+                type="text"
+                value="admin"
+                disabled
+                className="input opacity-70 cursor-not-allowed"
+                style={{ backgroundColor: 'var(--surface-2)' }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--text)' }}>
+                Contraseña
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="message-error mt-2">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-auto pt-4">
+              <button
+                type="submit"
+                className="primary-btn w-full flex justify-center items-center"
+                disabled={isLoading}
+              >
+                {isLoading ? "Verificando..." : "Acceder"}
+              </button>
+            </div>
+          </form>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-              Usuario
-            </label>
-            <input
-              type="text"
-              value="admin"
-              disabled
-              className="w-full px-4 py-3 rounded-lg border border-[var(--border)] bg-[var(--muted)] text-[var(--muted-foreground)] cursor-not-allowed font-medium opacity-70"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-              Contraseña
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-[var(--border)] bg-[var(--background)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:border-transparent transition-all"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          {error && (
-            <p className="text-red-500 text-sm font-medium text-center bg-red-500/10 py-2 rounded-lg">{error}</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-[var(--primary)] text-[var(--primary-foreground)] font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {isLoading ? "Verificando..." : "Acceder"}
-          </button>
-        </form>
       </div>
     </div>
   );
