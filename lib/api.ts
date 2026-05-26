@@ -86,7 +86,7 @@ export type Resena = {
 
 export type ProfileChangeRequest = {
   id: number;
-  businessId: number;
+  businessId: number | null;
   cambios: Record<string, any>;
   estado: "pending" | "approved" | "rejected";
   createdAt?: string;
@@ -311,7 +311,11 @@ export async function loginBusiness(Correo: string, password: string): Promise<B
   return res.json();
 }
 
-export async function registerBusiness(data: RegisterBusinessDto): Promise<Business> {
+export type RegisterBusinessResponse = {
+  message: string;
+};
+
+export async function registerBusiness(data: RegisterBusinessDto): Promise<RegisterBusinessResponse> {
   const res = await fetch(`${API_URL}/negocios/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -1,4 +1,4 @@
-import { getAppointments, getBusinesses, getPendingProfileChanges } from "@/lib/api";
+import { getPendingProfileChanges } from "@/lib/api";
 import SolicitudesClient from "./SolicitudesClient";
 
 export default async function SolicitudesPage() {

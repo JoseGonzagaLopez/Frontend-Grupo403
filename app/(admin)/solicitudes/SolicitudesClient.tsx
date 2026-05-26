@@ -60,18 +60,51 @@ export default function SolicitudesClient({ initialChanges }: { initialChanges: 
           {changes.map((c) => (
             <div key={c.id} className="section-card">
               <div className="panel-title-row" style={{ marginBottom: 16 }}>
-                <h3 className="panel-title">Negocio #{c.businessId} — Solicitud #{c.id}</h3>
+                <h3 className="panel-title">
+                  {c.businessId != null ? `Negocio #${c.businessId}` : 'Solicitud de registro'} — Solicitud #{c.id}
+                </h3>
                 <span style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)" }}>
                   {c.createdAt ? new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: "short" }).format(new Date(c.createdAt)) : ""}
                 </span>
               </div>
               <div className="form-grid" style={{ gap: 12, marginBottom: 16 }}>
-                {Object.entries(c.cambios || {}).map(([key, value]) => (
-                  <div key={key} style={{ background: "var(--surface-2)", borderRadius: "var(--radius-md)", padding: "10px 14px" }}>
-                    <p style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{key}</p>
-                    <p style={{ fontSize: "var(--text-sm)", color: "var(--text)" }}>{String(value) || <em style={{ opacity: 0.5 }}>vacío</em>}</p>
-                  </div>
-                ))}
+                {c.businessId == null ? (
+                  // Registro: mostrar campos relevantes de forma ordenada y sin exponer contraseña
+                  <>
+                    <div style={{ background: "var(--surface-2)", borderRadius: "var(--radius-md)", padding: "10px 14px" }}>
+                      <p style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Nombre</p>
+                      <p style={{ fontSize: "var(--text-sm)", color: "var(--text)" }}>{c.cambios?.Nombre ?? <em style={{ opacity: 0.5 }}>vacío</em>}</p>
+                    </div>
+                    <div style={{ background: "var(--surface-2)", borderRadius: "var(--radius-md)", padding: "10px 14px" }}>
+                      <p style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Correo</p>
+                      <p style={{ fontSize: "var(--text-sm)", color: "var(--text)" }}>{c.cambios?.Correo ?? <em style={{ opacity: 0.5 }}>vacío</em>}</p>
+                    </div>
+                    <div style={{ background: "var(--surface-2)", borderRadius: "var(--radius-md)", padding: "10px 14px" }}>
+                      <p style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Teléfono</p>
+                      <p style={{ fontSize: "var(--text-sm)", color: "var(--text)" }}>{c.cambios?.Telefono ?? <em style={{ opacity: 0.5 }}>vacío</em>}</p>
+                    </div>
+                    <div style={{ background: "var(--surface-2)", borderRadius: "var(--radius-md)", padding: "10px 14px" }}>
+                      <p style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Localización</p>
+                      <p style={{ fontSize: "var(--text-sm)", color: "var(--text)" }}>{c.cambios?.Localicacion ?? <em style={{ opacity: 0.5 }}>vacío</em>}</p>
+                    </div>
+                    {/* Mostrar campos adicionales si existen (excepto password) */}
+                    {Object.entries(c.cambios || {})
+                      .filter(([k]) => !["Nombre", "Correo", "Telefono", "Localicacion", "password"].includes(k))
+                      .map(([key, value]) => (
+                        <div key={key} style={{ background: "var(--surface-2)", borderRadius: "var(--radius-md)", padding: "10px 14px" }}>
+                          <p style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{key}</p>
+                          <p style={{ fontSize: "var(--text-sm)", color: "var(--text)" }}>{String(value) || <em style={{ opacity: 0.5 }}>vacío</em>}</p>
+                        </div>
+                      ))}
+                  </>
+                ) : (
+                  Object.entries(c.cambios || {}).map(([key, value]) => (
+                    <div key={key} style={{ background: "var(--surface-2)", borderRadius: "var(--radius-md)", padding: "10px 14px" }}>
+                      <p style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{key}</p>
+                      <p style={{ fontSize: "var(--text-sm)", color: "var(--text)" }}>{String(value) || <em style={{ opacity: 0.5 }}>vacío</em>}</p>
+                    </div>
+                  ))
+                )}
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button className="primary-btn" onClick={() => approve(c.id)} disabled={loading === c.id}>

@@ -28,6 +28,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,17 +38,20 @@ export default function LoginPage() {
       if (role === "admin") {
         const result = await authenticate(adminPassword);
         if (!result.success) throw new Error("Contraseña de administrador incorrecta");
+        setSuccessMessage("Acceso concedido");
         setIsSuccess(true);
         setTimeout(() => { window.location.href = "/dashboard"; }, 800);
       } else if (role === "cliente") {
         const customer = await loginCustomer(loginEmail, loginPassword);
         await loginCustomerAction(customer.id);
+        setSuccessMessage("Sesión iniciada");
         setIsSuccess(true);
         setTimeout(() => { window.location.href = "/reservar"; }, 800);
       } else {
         // empresa: usa Correo igual que el cliente
         const business = await loginBusiness(loginEmail, loginPassword);
         await loginBusinessAction(business.id);
+        setSuccessMessage("Sesión iniciada");
         setIsSuccess(true);
         setTimeout(() => { window.location.href = "/negocio"; }, 800);
       }
@@ -70,19 +74,19 @@ export default function LoginPage() {
           password: regForm.password,
         });
         await loginCustomerAction(customer.id);
+        setSuccessMessage("Cuenta creada y sesión iniciada");
         setIsSuccess(true);
         setTimeout(() => { window.location.href = "/reservar"; }, 800);
       } else {
-        const business = await registerBusiness({
+        await registerBusiness({
           Nombre: regForm.Nombre,
           Telefono: regForm.Telefono,
           Correo: regForm.Correo,
           Localicacion: regForm.Localicacion,
           password: regForm.password,
         });
-        await loginBusinessAction(business.id);
+        setSuccessMessage("Su petición ha sido enviada");
         setIsSuccess(true);
-        setTimeout(() => { window.location.href = "/negocio"; }, 800);
       }
     } catch (err: any) {
       setError(err.message || "Error al registrarse");
@@ -241,6 +245,34 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      {isSuccess && successMessage && (
+        <div style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          maxWidth: "400px",
+          textAlign: "center",
+          zIndex: 200,
+          padding: "var(--space-6)",
+          background: "var(--surface-solid)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-xl)",
+          boxShadow: "var(--shadow-lg)",
+        }}>
+          <p style={{ fontSize: "2rem", marginBottom: "var(--space-3)" }}>✓</p>
+          <p style={{ fontSize: "var(--text-lg)", color: "var(--text)", fontWeight: 700, marginBottom: "var(--space-2)" }}>
+            {successMessage}
+          </p>
+          <button
+            onClick={() => { setIsSuccess(false); setSuccessMessage(""); setTab("login"); setRegisterRole("cliente"); setRegForm({ Nombre: "", Telefono: "", Correo: "", password: "", Localicacion: "" }); setIsLoading(false); setError(""); }}
+            style={{ fontSize: "var(--text-sm)", color: "var(--accent)", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", padding: "0", marginTop: "var(--space-3)" }}
+          >
+            Volver al inicio
+          </button>
+        </div>
+      )}
     </div>
   );
 }
