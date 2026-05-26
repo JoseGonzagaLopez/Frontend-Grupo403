@@ -10,7 +10,7 @@ export function middleware(request: NextRequest) {
   const isLoginPage = pathname === '/login'
   const isPublicBooking = pathname === '/reservar'
   const isCustomerArea = pathname.startsWith('/cliente/')
-  const isNegocioArea = pathname.startsWith('/negocio')
+  const isNegocioArea = pathname === '/negocio' || pathname.startsWith('/negocio/')
   const isAdminArea = !isLoginPage && !isPublicBooking && !isCustomerArea && !isNegocioArea
 
   // ── Rutas de empresa ──────────────────────────────────
