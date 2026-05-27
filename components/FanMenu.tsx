@@ -28,11 +28,11 @@ function useReducedMotion() {
   return v;
 }
 
-const R      = 190;  // radio aumentado para más separación entre ítems
-const ARC0   =  12;  // ángulo inicio (grados desde +X) — más horizontal
-const ARC1   =  98;  // ángulo fin — más vertical (amplía el arco total)
+const R      = 190;  // radio
+const ARC0   = -20;  // ángulo inicio: negativo → las opciones bajan más
+const ARC1   =  72;  // ángulo fin: reducido para que el arco baje en conjunto
 const T_SIZE =  58;
-const I_SIZE =  52;  // ítems ligeramente más grandes
+const I_SIZE =  52;
 
 function arcPos(idx: number, total: number) {
   const a = total === 1 ? (ARC0 + ARC1) / 2 : ARC0 + (idx * (ARC1 - ARC0)) / (total - 1);
@@ -44,14 +44,12 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
   const [open, setOpen]       = useState(false);
   const [hover, setHover]     = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
-  // animPhase: "idle" | "opening" | "open" | "closing"
   const [animPhase, setAnimPhase] = useState<"idle" | "opening" | "open" | "closing">("idle");
   const reduced = useReducedMotion();
   const btnRef  = useRef<HTMLButtonElement>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Gestión de fases de animación
   useEffect(() => {
     if (reduced) return;
     if (open) {
@@ -147,7 +145,6 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
           const { x, y } = arcPos(i, items.length);
           const isHov  = hover === i;
           const accent = item.color ?? "#4fd1c5";
-          // stagger más largo y pronunciado al abrir
           const oDelay = reduced ? 0 : i * 65;
           const cDelay = reduced ? 0 : (items.length - 1 - i) * 35;
 
@@ -179,7 +176,6 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
                   ? `0 0 0 7px ${accent}16, 0 10px 30px rgba(0,0,0,0.55)`
                   : "0 4px 20px rgba(0,0,0,0.50)",
                 opacity: open ? 1 : 0,
-                // Animación: entra desde el botón con overshoot springy
                 transform: open
                   ? `translate(${x}px,${y}px) scale(${isHov ? 1.18 : 1}) rotate(0deg)`
                   : "translate(0,0) scale(0.05) rotate(-90deg)",
@@ -189,7 +185,6 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
                 pointerEvents: open ? "auto" : "none",
               }}
             >
-              {/* Icono con animación propia al aparecer */}
               <span
                 style={{
                   display: "flex",
@@ -204,7 +199,6 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
                 {item.icon}
               </span>
 
-              {/* Tooltip label */}
               <span
                 aria-hidden="true"
                 style={{
@@ -252,13 +246,11 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
             boxShadow: open
               ? "0 0 0 9px rgba(79,209,197,0.09), 0 10px 36px rgba(0,0,0,0.55)"
               : "0 4px 22px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.14)",
-            // Rotación + ligero "bounce" al abrir
             transform: open ? "rotate(135deg) scale(1.08)" : "rotate(0deg) scale(1)",
             transition: reduced ? "none"
               : `transform 520ms ${spring}, border-color 300ms ${smooth}, background 300ms ${smooth}, box-shadow 300ms ${smooth}`,
           }}
         >
-          {/* Pulse ring (solo cuando está cerrado) */}
           {!open && (
             <span
               aria-hidden="true"
@@ -271,7 +263,6 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
             />
           )}
 
-          {/* Burst de partículas al abrir */}
           {(animPhase === "opening") && !reduced && (
             <>
               {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
@@ -285,7 +276,6 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
                     background: "rgba(79,209,197,0.75)",
                     pointerEvents: "none",
                     animation: `fanBurst 500ms ${snappy} forwards`,
-                    // cada partícula sale en su dirección
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     ["--deg" as any]: `${deg}deg`,
                   }}
@@ -318,7 +308,6 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
                      translateY(calc(sin(var(--deg)) * 38px))
                      scale(0); }
           }
-          /* next-themes / Next.js debug indicator */
           [data-next-themes-indicator], #__next-themes-indicator,
           nextjs-portal { display: none !important; }
         `}</style>
