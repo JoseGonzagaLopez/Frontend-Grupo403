@@ -33,7 +33,7 @@ export default function NegocioHeader({ onMenuClick }: Props) {
   };
 
   return (
-    <header className="admin-header">
+    <header className="admin-header glass-surface">
       <div className="admin-header__left">
         {/* Abanico radial para el negocio */}
         <FanMenu items={FAN_ITEMS} />

@@ -45,7 +45,7 @@ export default function Header({
   }, []);
 
   return (
-    <header className="admin-header">
+    <header className="admin-header glass-surface">
       <div className="admin-header__left">
         {!hideHamburger && (
           fanItems.length > 0
