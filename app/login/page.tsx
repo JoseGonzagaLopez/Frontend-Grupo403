@@ -48,7 +48,7 @@ export default function LoginPage() {
     document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
   }
 
-  // ── LOGIN UNIFICADO ──────────────────────────────────────────────────────────
+  // ── LOGIN UNIFICADO ────────────────────────────────────────────────────────────────
   // Orden de intento: admin → cliente → negocio
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +91,7 @@ export default function LoginPage() {
     }
   };
 
-  // ── REGISTRO ────────────────────────────────────────────────────────────────
+  // ── REGISTRO ────────────────────────────────────────────────────────────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -152,31 +152,33 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-color)] flex items-center justify-center">
 
-      {/* Toggle modo oscuro — esquina superior derecha */}
-      <button
-        onClick={toggleTheme}
-        aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-        style={{
-          position: "fixed",
-          top: "var(--space-4)",
-          right: "var(--space-4)",
-          zIndex: 200,
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-full)",
-          width: 40,
-          height: 40,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          color: "var(--text)",
-          boxShadow: "var(--shadow-sm)",
-          transition: "all 0.2s ease",
-        }}
-      >
-        {isDark ? <Sun size={18} /> : <Moon size={18} />}
-      </button>
+      {/* Toggle modo oscuro — se oculta en cuanto empieza la animacion de exito */}
+      {!isSuccess && (
+        <button
+          onClick={toggleTheme}
+          aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          style={{
+            position: "fixed",
+            top: "var(--space-4)",
+            right: "var(--space-4)",
+            zIndex: 200,
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-full)",
+            width: 40,
+            height: 40,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: "var(--text)",
+            boxShadow: "var(--shadow-sm)",
+            transition: "all 0.2s ease",
+          }}
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+      )}
 
       <div className="surface-card" style={cardStyle}>
         <img
