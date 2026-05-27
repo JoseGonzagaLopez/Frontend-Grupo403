@@ -1,33 +1,89 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { KeyRound, Eye, EyeOff } from "lucide-react";
 import type { Business, CreateBusinessDto } from "@/lib/api";
 import { createBusiness, deleteBusiness, updateBusiness } from "@/lib/api";
 
-function PasswordCell({ value }: { value?: string }) {
-  const [visible, setVisible] = useState(false);
-  if (!value) return <p className="customer-meta" style={{ color: "var(--text-secondary)" }}>Sin contraseña</p>;
+// ─── Modal reiniciar contraseña ───────────────────────────────────────────────
+function ResetPasswordModal({
+  businessId,
+  businessName,
+  onClose,
+}: {
+  businessId: number;
+  businessName: string;
+  onClose: () => void;
+}) {
+  const [newPassword, setNewPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newPassword.trim()) { setError("Introduce una contrase\u00f1a."); return; }
+    setLoading(true); setError("");
+    try {
+      await updateBusiness(businessId, { password: newPassword });
+      setSuccess(true);
+    } catch {
+      setError("No se pudo reiniciar la contrase\u00f1a.");
+    } finally { setLoading(false); }
+  }
+
   return (
-    <p className="customer-meta" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <span style={{ fontFamily: "monospace", letterSpacing: visible ? 0 : 2 }}>
-        {visible ? value : "•".repeat(Math.min(value.length, 10))}
-      </span>
-      <button
-        type="button"
-        onClick={() => setVisible((v) => !v)}
-        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
-        aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
-      >
-        {visible ? <EyeOff size={14} /> : <Eye size={14} />}
-      </button>
-    </p>
+    <div className="modal-backdrop" role="dialog" aria-modal="true"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal-card">
+        <div className="modal-icon" style={{ background: "var(--primary-light, rgba(1,105,111,0.1))", color: "var(--primary, #01696f)" }}>
+          <KeyRound size={22} />
+        </div>
+        <h3 className="modal-title">Reiniciar contrase\u00f1a</h3>
+        {success ? (
+          <>
+            <p className="modal-text" style={{ color: "var(--success, #437a22)" }}>Contrase\u00f1a actualizada correctamente.</p>
+            <div className="modal-actions">
+              <button type="button" className="primary-btn" onClick={onClose}>Cerrar</button>
+            </div>
+          </>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ width: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
+            <p className="modal-text">Nueva contrase\u00f1a para <strong>{businessName}</strong>:</p>
+            <div style={{ position: "relative" }}>
+              <input
+                className="input"
+                type={showPwd ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Nueva contrase\u00f1a"
+                style={{ paddingRight: 40, width: "100%" }}
+                autoFocus
+              />
+              <button type="button" onClick={() => setShowPwd((v) => !v)}
+                style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
+                aria-label={showPwd ? "Ocultar" : "Mostrar"}>
+                {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {error && <p style={{ color: "var(--danger, #c0392b)", fontSize: "var(--text-sm)", margin: 0 }}>{error}</p>}
+            <div className="modal-actions">
+              <button type="button" className="secondary-btn" onClick={onClose}>Cancelar</button>
+              <button type="submit" className="primary-btn" disabled={loading}>
+                {loading ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
   );
 }
 
+// ─── Componente principal ─────────────────────────────────────────────────────
 export default function NegociosClient({ initialBusinesses }: { initialBusinesses: Business[] }) {
   const [businesses, setBusinesses] = useState<Business[]>(initialBusinesses);
-
   const emptyForm: CreateBusinessDto = { Nombre: "", Localicacion: "", Telefono: "", Correo: "", password: "" };
 
   const [createForm, setCreateForm] = useState<CreateBusinessDto>(emptyForm);
@@ -42,7 +98,7 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [showCreatePassword, setShowCreatePassword] = useState(false);
-  const [showEditPassword, setShowEditPassword] = useState(false);
+  const [resetTarget, setResetTarget] = useState<Business | null>(null);
 
   const filteredBusinesses = businesses.filter((b) =>
     b.Nombre.toLowerCase().includes(search.toLowerCase()) ||
@@ -62,28 +118,15 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
     setEditForm(emptyForm); setIsCreateOpen(true);
     setShowCreatePassword(false);
   }
-  function closeCreateForm() {
-    setErrorMessage(""); setCreateForm(emptyForm); setIsCreateOpen(false);
-  }
+  function closeCreateForm() { setErrorMessage(""); setCreateForm(emptyForm); setIsCreateOpen(false); }
   function openEditForm(business: Business) {
     setErrorMessage(""); setSuccessMessage("");
     setIsCreateOpen(false); setDeleteTargetId(null);
     setEditingBusinessId(business.id);
-    setEditForm({
-      Nombre: business.Nombre,
-      Localicacion: business.Localicacion ?? "",
-      Telefono: business.Telefono ?? "",
-      Correo: (business as any).Correo ?? "",
-      password: (business as any).password ?? "",
-    });
-    setShowEditPassword(false);
+    setEditForm({ Nombre: business.Nombre, Localicacion: business.Localicacion ?? "", Telefono: business.Telefono ?? "", Correo: business.Correo ?? "" });
   }
-  function closeEditForm() {
-    setErrorMessage(""); setEditingBusinessId(null); setEditForm(emptyForm);
-  }
-  function openDeleteModal(id: number) {
-    setErrorMessage(""); setSuccessMessage(""); setDeleteTargetId(id);
-  }
+  function closeEditForm() { setErrorMessage(""); setEditingBusinessId(null); setEditForm(emptyForm); }
+  function openDeleteModal(id: number) { setErrorMessage(""); setSuccessMessage(""); setDeleteTargetId(id); }
   function closeDeleteModal() { setDeleteTargetId(null); }
 
   async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -94,9 +137,8 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
       setBusinesses((prev) => [created, ...prev]);
       setCreateForm(emptyForm); setIsCreateOpen(false);
       setSuccessMessage("Negocio creado correctamente.");
-    } catch {
-      setErrorMessage("No se pudo crear el negocio. Revisa los datos o el backend.");
-    } finally { setLoadingCreate(false); }
+    } catch { setErrorMessage("No se pudo crear el negocio. Revisa los datos o el backend."); }
+    finally { setLoadingCreate(false); }
   }
 
   async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -108,9 +150,8 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
       setBusinesses((prev) => prev.map((b) => (b.id === editingBusinessId ? updated : b)));
       setEditingBusinessId(null); setEditForm(emptyForm);
       setSuccessMessage("Negocio actualizado correctamente.");
-    } catch {
-      setErrorMessage("No se pudo actualizar el negocio.");
-    } finally { setLoadingEdit(false); }
+    } catch { setErrorMessage("No se pudo actualizar el negocio."); }
+    finally { setLoadingEdit(false); }
   }
 
   async function confirmDelete() {
@@ -122,9 +163,8 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
       if (editingBusinessId === deleteTargetId) closeEditForm();
       setSuccessMessage("Negocio eliminado correctamente.");
       closeDeleteModal();
-    } catch {
-      setErrorMessage("No se pudo eliminar el negocio.");
-    } finally { setDeletingBusinessId(null); }
+    } catch { setErrorMessage("No se pudo eliminar el negocio."); }
+    finally { setDeletingBusinessId(null); }
   }
 
   return (
@@ -132,7 +172,7 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
       <section className="page-hero">
         <div>
           <h2>Lista de negocios</h2>
-          <p>Gestión de negocios conectada con la API.</p>
+          <p>Gesti\u00f3n de negocios conectada con la API.</p>
         </div>
         <button className="primary-btn" type="button" onClick={openCreateForm}>Nuevo negocio</button>
       </section>
@@ -160,18 +200,18 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
                 placeholder="Nombre del negocio" required />
               <input className="input" type="text" value={createForm.Localicacion}
                 onChange={(e) => updateCreateForm("Localicacion", e.target.value)}
-                placeholder="Ubicación" />
+                placeholder="Ubicaci\u00f3n" />
               <input className="input" type="tel" value={createForm.Telefono}
                 onChange={(e) => updateCreateForm("Telefono", e.target.value)}
-                placeholder="Teléfono" />
-              <input className="input" type="email" value={createForm.Correo}
+                placeholder="Tel\u00e9fono" />
+              <input className="input" type="email" value={createForm.Correo ?? ""}
                 onChange={(e) => updateCreateForm("Correo", e.target.value)}
-                placeholder="Correo electrónico" />
+                placeholder="Correo electr\u00f3nico" />
               <div style={{ position: "relative" }}>
                 <input className="input" type={showCreatePassword ? "text" : "password"}
-                  value={createForm.password}
+                  value={createForm.password ?? ""}
                   onChange={(e) => updateCreateForm("password", e.target.value)}
-                  placeholder="Contraseña"
+                  placeholder="Contrase\u00f1a inicial"
                   style={{ paddingRight: 40, width: "100%" }} />
                 <button type="button" onClick={() => setShowCreatePassword((v) => !v)}
                   style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
@@ -202,27 +242,15 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
               <input className="input" type="text" value={editForm.Nombre}
                 onChange={(e) => updateEditForm("Nombre", e.target.value)}
                 placeholder="Nombre del negocio" required />
-              <input className="input" type="text" value={editForm.Localicacion}
+              <input className="input" type="text" value={editForm.Localicacion ?? ""}
                 onChange={(e) => updateEditForm("Localicacion", e.target.value)}
-                placeholder="Ubicación" />
-              <input className="input" type="tel" value={editForm.Telefono}
+                placeholder="Ubicaci\u00f3n" />
+              <input className="input" type="tel" value={editForm.Telefono ?? ""}
                 onChange={(e) => updateEditForm("Telefono", e.target.value)}
-                placeholder="Teléfono" />
-              <input className="input" type="email" value={(editForm as any).Correo ?? ""}
-                onChange={(e) => updateEditForm("Correo" as any, e.target.value)}
-                placeholder="Correo electrónico" />
-              <div style={{ position: "relative" }}>
-                <input className="input" type={showEditPassword ? "text" : "password"}
-                  value={(editForm as any).password ?? ""}
-                  onChange={(e) => updateEditForm("password" as any, e.target.value)}
-                  placeholder="Nueva contraseña (dejar vacío para no cambiar)"
-                  style={{ paddingRight: 40, width: "100%" }} />
-                <button type="button" onClick={() => setShowEditPassword((v) => !v)}
-                  style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
-                  aria-label={showEditPassword ? "Ocultar" : "Mostrar"}>
-                  {showEditPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
+                placeholder="Tel\u00e9fono" />
+              <input className="input" type="email" value={editForm.Correo ?? ""}
+                onChange={(e) => updateEditForm("Correo", e.target.value)}
+                placeholder="Correo electr\u00f3nico" />
             </div>
             {errorMessage && <div className="message-error">{errorMessage}</div>}
             <div className="message-row">
@@ -241,7 +269,7 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
           <div className="modal-card">
             <div className="modal-icon">!</div>
             <h3 className="modal-title">Eliminar negocio</h3>
-            <p className="modal-text">¿Seguro que quieres eliminar este negocio? Esta acción no se puede deshacer.</p>
+            <p className="modal-text">¿Seguro que quieres eliminar este negocio? Esta acci\u00f3n no se puede deshacer.</p>
             <div className="modal-actions">
               <button type="button" className="secondary-btn" onClick={closeDeleteModal}>Cancelar</button>
               <button type="button" className="danger-btn" onClick={confirmDelete}
@@ -253,23 +281,29 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
         </div>
       )}
 
+      {/* MODAL REINICIAR CONTRASEÑA */}
+      {resetTarget && (
+        <ResetPasswordModal
+          businessId={resetTarget.id}
+          businessName={resetTarget.Nombre}
+          onClose={() => setResetTarget(null)}
+        />
+      )}
+
       {/* TARJETAS */}
       <section className="customer-grid">
         {filteredBusinesses.map((business) => (
           <div key={business.id} className="customer-card">
             <p className="customer-name">{business.Nombre}</p>
-            {(business as any).Correo && (
-              <p className="customer-meta">{(business as any).Correo}</p>
-            )}
-            {business.Localicacion && (
-              <p className="customer-meta">Ubicación: {business.Localicacion}</p>
-            )}
-            {business.Telefono && (
-              <p className="customer-meta">Tel: {business.Telefono}</p>
-            )}
-            <PasswordCell value={(business as any).password} />
-            <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            {business.Correo && <p className="customer-meta">{business.Correo}</p>}
+            {business.Localicacion && <p className="customer-meta">Ubicaci\u00f3n: {business.Localicacion}</p>}
+            {business.Telefono && <p className="customer-meta">Tel: {business.Telefono}</p>}
+            <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
               <button type="button" className="secondary-btn" onClick={() => openEditForm(business)}>Editar</button>
+              <button type="button" className="secondary-btn" onClick={() => setResetTarget(business)}
+                style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <KeyRound size={14} /> Reiniciar contrase\u00f1a
+              </button>
               <button type="button" className="secondary-btn" onClick={() => openDeleteModal(business.id)}>Eliminar</button>
             </div>
           </div>

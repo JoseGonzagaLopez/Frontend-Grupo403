@@ -1,34 +1,90 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, KeyRound } from "lucide-react";
 import type { Customer, CreateCustomerDto } from "@/lib/api";
 import { createCustomer, deleteCustomer, updateCustomer, getAppointments, deleteAppointment } from "@/lib/api";
 
-function PasswordCell({ value }: { value?: string }) {
-  const [visible, setVisible] = useState(false);
-  if (!value) return <p className="customer-meta" style={{ color: "var(--text-secondary)" }}>Sin contraseña</p>;
+// ─── Modal reiniciar contraseña ───────────────────────────────────────────────
+function ResetPasswordModal({
+  customerId,
+  customerName,
+  onClose,
+}: {
+  customerId: number;
+  customerName: string;
+  onClose: () => void;
+}) {
+  const [newPassword, setNewPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newPassword.trim()) { setError("Introduce una contrase\u00f1a."); return; }
+    setLoading(true); setError("");
+    try {
+      await updateCustomer(customerId, { password: newPassword });
+      setSuccess(true);
+    } catch {
+      setError("No se pudo reiniciar la contrase\u00f1a.");
+    } finally { setLoading(false); }
+  }
+
   return (
-    <p className="customer-meta" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <span style={{ fontFamily: "monospace", letterSpacing: visible ? 0 : 2 }}>
-        {visible ? value : "•".repeat(Math.min(value.length, 10))}
-      </span>
-      <button
-        type="button"
-        onClick={() => setVisible((v) => !v)}
-        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
-        aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
-      >
-        {visible ? <EyeOff size={14} /> : <Eye size={14} />}
-      </button>
-    </p>
+    <div className="modal-backdrop" role="dialog" aria-modal="true"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal-card">
+        <div className="modal-icon" style={{ background: "var(--primary-light, rgba(1,105,111,0.1))", color: "var(--primary, #01696f)" }}>
+          <KeyRound size={22} />
+        </div>
+        <h3 className="modal-title">Reiniciar contrase\u00f1a</h3>
+        {success ? (
+          <>
+            <p className="modal-text" style={{ color: "var(--success, #437a22)" }}>Contrase\u00f1a actualizada correctamente.</p>
+            <div className="modal-actions">
+              <button type="button" className="primary-btn" onClick={onClose}>Cerrar</button>
+            </div>
+          </>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ width: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
+            <p className="modal-text">Nueva contrase\u00f1a para <strong>{customerName}</strong>:</p>
+            <div style={{ position: "relative" }}>
+              <input
+                className="input"
+                type={showPwd ? "text" : "password"}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Nueva contrase\u00f1a"
+                style={{ paddingRight: 40, width: "100%" }}
+                autoFocus
+              />
+              <button type="button" onClick={() => setShowPwd((v) => !v)}
+                style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
+                aria-label={showPwd ? "Ocultar" : "Mostrar"}>
+                {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {error && <p style={{ color: "var(--danger, #c0392b)", fontSize: "var(--text-sm)", margin: 0 }}>{error}</p>}
+            <div className="modal-actions">
+              <button type="button" className="secondary-btn" onClick={onClose}>Cancelar</button>
+              <button type="submit" className="primary-btn" disabled={loading}>
+                {loading ? "Guardando..." : "Guardar"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
   );
 }
 
+// ─── Componente principal ─────────────────────────────────────────────────────
 export default function CustomersClient({ initialCustomers }: { initialCustomers: Customer[] }) {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
-
-  const emptyForm: CreateCustomerDto = { Nombre: "", Telefono: "", Correo: "", password: "" };
+  const emptyForm: CreateCustomerDto = { Nombre: "", Telefono: "", Correo: "" };
 
   const [createForm, setCreateForm] = useState<CreateCustomerDto>(emptyForm);
   const [editForm, setEditForm] = useState<CreateCustomerDto>(emptyForm);
@@ -42,8 +98,7 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   const [search, setSearch] = useState("");
-  const [showCreatePassword, setShowCreatePassword] = useState(false);
-  const [showEditPassword, setShowEditPassword] = useState(false);
+  const [resetTarget, setResetTarget] = useState<Customer | null>(null);
 
   const filteredCustomers = customers.filter((c) => {
     const term = search.toLowerCase();
@@ -65,33 +120,20 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
     setErrorMessage(""); setSuccessMessage("");
     setEditingCustomerId(null); setDeleteTargetId(null);
     setEditForm(emptyForm); setIsCreateOpen(true);
-    setShowCreatePassword(false);
   }
-  function closeCreateForm() {
-    setErrorMessage(""); setCreateForm(emptyForm); setIsCreateOpen(false);
-  }
+  function closeCreateForm() { setErrorMessage(""); setCreateForm(emptyForm); setIsCreateOpen(false); }
   function openEditForm(customer: Customer) {
     setErrorMessage(""); setSuccessMessage("");
     setIsCreateOpen(false); setDeleteTargetId(null);
     setEditingCustomerId(customer.id);
-    setEditForm({
-      Nombre: customer.Nombre,
-      Telefono: customer.Telefono,
-      Correo: customer.Correo,
-      password: (customer as any).password ?? "",
-    });
-    setShowEditPassword(false);
+    setEditForm({ Nombre: customer.Nombre, Telefono: customer.Telefono, Correo: customer.Correo });
   }
-  function closeEditForm() {
-    setErrorMessage(""); setEditingCustomerId(null); setEditForm(emptyForm);
-  }
+  function closeEditForm() { setErrorMessage(""); setEditingCustomerId(null); setEditForm(emptyForm); }
   function openDeleteModal(customer: Customer) {
     setErrorMessage(""); setSuccessMessage("");
     setCustomerToDelete(customer); setDeleteTargetId(customer.id);
   }
-  function closeDeleteModal() {
-    setCustomerToDelete(null); setDeleteTargetId(null);
-  }
+  function closeDeleteModal() { setCustomerToDelete(null); setDeleteTargetId(null); }
 
   async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -101,9 +143,8 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
       setCustomers((prev) => [created, ...prev]);
       setCreateForm(emptyForm); setIsCreateOpen(false);
       setSuccessMessage("Cliente creado correctamente.");
-    } catch {
-      setErrorMessage("No se pudo crear el cliente. Revisa los datos o el backend.");
-    } finally { setLoadingCreate(false); }
+    } catch { setErrorMessage("No se pudo crear el cliente. Revisa los datos o el backend."); }
+    finally { setLoadingCreate(false); }
   }
 
   async function handleEditSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -115,9 +156,8 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
       setCustomers((prev) => prev.map((c) => (c.id === editingCustomerId ? updated : c)));
       setEditingCustomerId(null); setEditForm(emptyForm);
       setSuccessMessage("Cliente actualizado correctamente.");
-    } catch {
-      setErrorMessage("No se pudo actualizar el cliente.");
-    } finally { setLoadingEdit(false); }
+    } catch { setErrorMessage("No se pudo actualizar el cliente."); }
+    finally { setLoadingEdit(false); }
   }
 
   async function confirmDelete() {
@@ -135,9 +175,8 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
       if (editingCustomerId === deleteTargetId) closeEditForm();
       setSuccessMessage("Cliente eliminado correctamente.");
       closeDeleteModal();
-    } catch {
-      setErrorMessage("No se pudo eliminar el cliente o sus reservas.");
-    } finally { setDeletingCustomerId(null); }
+    } catch { setErrorMessage("No se pudo eliminar el cliente o sus reservas."); }
+    finally { setDeletingCustomerId(null); }
   }
 
   return (
@@ -145,7 +184,7 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
       <section className="page-hero">
         <div>
           <h2>Lista de clientes</h2>
-          <p>Gestión de clientes conectada con la API.</p>
+          <p>Gesti\u00f3n de clientes conectada con la API.</p>
         </div>
         <button className="primary-btn" type="button" onClick={openCreateForm}>Nuevo cliente</button>
       </section>
@@ -173,22 +212,10 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
                 placeholder="Nombre completo" required />
               <input className="input" type="tel" value={createForm.Telefono}
                 onChange={(e) => updateCreateForm("Telefono", e.target.value)}
-                placeholder="Teléfono" required />
+                placeholder="Tel\u00e9fono" required />
               <input className="input" type="email" value={createForm.Correo}
                 onChange={(e) => updateCreateForm("Correo", e.target.value)}
-                placeholder="Correo electrónico" required />
-              <div style={{ position: "relative" }}>
-                <input className="input" type={showCreatePassword ? "text" : "password"}
-                  value={createForm.password ?? ""}
-                  onChange={(e) => updateCreateForm("password", e.target.value)}
-                  placeholder="Contraseña"
-                  style={{ paddingRight: 40, width: "100%" }} />
-                <button type="button" onClick={() => setShowCreatePassword((v) => !v)}
-                  style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
-                  aria-label={showCreatePassword ? "Ocultar" : "Mostrar"}>
-                  {showCreatePassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
+                placeholder="Correo electr\u00f3nico" required />
             </div>
             {errorMessage && <div className="message-error">{errorMessage}</div>}
             <div className="message-row">
@@ -214,22 +241,10 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
                 placeholder="Nombre completo" required />
               <input className="input" type="tel" value={editForm.Telefono}
                 onChange={(e) => updateEditForm("Telefono", e.target.value)}
-                placeholder="Teléfono" required />
+                placeholder="Tel\u00e9fono" required />
               <input className="input" type="email" value={editForm.Correo}
                 onChange={(e) => updateEditForm("Correo", e.target.value)}
                 placeholder="Email" required />
-              <div style={{ position: "relative" }}>
-                <input className="input" type={showEditPassword ? "text" : "password"}
-                  value={editForm.password ?? ""}
-                  onChange={(e) => updateEditForm("password", e.target.value)}
-                  placeholder="Nueva contraseña (dejar vacío para no cambiar)"
-                  style={{ paddingRight: 40, width: "100%" }} />
-                <button type="button" onClick={() => setShowEditPassword((v) => !v)}
-                  style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
-                  aria-label={showEditPassword ? "Ocultar" : "Mostrar"}>
-                  {showEditPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
             </div>
             {errorMessage && <div className="message-error">{errorMessage}</div>}
             <div className="message-row">
@@ -250,10 +265,10 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
             <h3 className="modal-title">Eliminar cliente</h3>
             {(customerToDelete.appointments?.length ?? 0) > 0 ? (
               <p className="modal-text">
-                Este usuario tiene {customerToDelete.appointments?.length ?? 0} reserva(s) asociada(s). Si continúas, se borrará el usuario y todas sus reservas. ¿Deseas borrarlas de todas formas?
+                Este usuario tiene {customerToDelete.appointments?.length ?? 0} reserva(s) asociada(s). Si contin\u00faas, se borrar\u00e1 el usuario y todas sus reservas. \u00bfDeseas borrarlas de todas formas?
               </p>
             ) : (
-              <p className="modal-text">¿Seguro que quieres eliminar este cliente? Esta acción no se puede deshacer.</p>
+              <p className="modal-text">\u00bfSeguro que quieres eliminar este cliente? Esta acci\u00f3n no se puede deshacer.</p>
             )}
             <div className="modal-actions">
               <button type="button" className="secondary-btn" onClick={closeDeleteModal}>
@@ -261,11 +276,20 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
               </button>
               <button type="button" className="danger-btn" onClick={confirmDelete}
                 disabled={deletingCustomerId === deleteTargetId}>
-                {deletingCustomerId === deleteTargetId ? "Eliminando..." : ((customerToDelete.appointments?.length ?? 0) > 0 ? "Sí, borrar todo" : "Eliminar")}
+                {deletingCustomerId === deleteTargetId ? "Eliminando..." : ((customerToDelete.appointments?.length ?? 0) > 0 ? "S\u00ed, borrar todo" : "Eliminar")}
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL REINICIAR CONTRASEÑA */}
+      {resetTarget && (
+        <ResetPasswordModal
+          customerId={resetTarget.id}
+          customerName={resetTarget.Nombre}
+          onClose={() => setResetTarget(null)}
+        />
       )}
 
       {/* TARJETAS */}
@@ -279,14 +303,17 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
               <p className="customer-name">{customer.Nombre}</p>
               <p className="customer-meta">{customer.Telefono}</p>
               <p className="customer-meta">{customer.Correo}</p>
-              <PasswordCell value={(customer as any).password} />
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                 {negocios.map((negocio) => (
                   <div key={negocio} className="customer-tag">{negocio}</div>
                 ))}
               </div>
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
                 <button type="button" className="secondary-btn" onClick={() => openEditForm(customer)}>Editar</button>
+                <button type="button" className="secondary-btn" onClick={() => setResetTarget(customer)}
+                  style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <KeyRound size={14} /> Reiniciar contrase\u00f1a
+                </button>
                 <button type="button" className="secondary-btn" onClick={() => openDeleteModal(customer)}>Eliminar</button>
               </div>
             </div>
