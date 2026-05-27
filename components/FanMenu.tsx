@@ -40,7 +40,6 @@ function arcPos(idx: number, total: number) {
   return { x: Math.cos(rad) * R, y: -Math.sin(rad) * R };
 }
 
-// Componente de ítem separado y memoizado para evitar re-renders del padre
 const FanItem = memo(function FanItem({
   item, x, y, open, oDelay, cDelay, reduced,
 }: {
@@ -60,7 +59,6 @@ const FanItem = memo(function FanItem({
     <Link
       href={item.href}
       aria-label={item.label}
-      onClick={() => { /* cierre lo maneja el padre via CSS pointer-events */ }}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       onFocus={() => setHov(true)}
@@ -74,39 +72,52 @@ const FanItem = memo(function FanItem({
         display: "flex", alignItems: "center", justifyContent: "center",
         textDecoration: "none",
         cursor: open ? "pointer" : "default",
-        // Glass estático — no se anima, cero coste GPU extra
+        // Glass completamente estático — nunca cambia
         background: "rgba(255,255,255,0.12)",
         backdropFilter: "blur(24px) saturate(180%)",
         WebkitBackdropFilter: "blur(24px) saturate(180%)",
-        border: `1px solid rgba(255,255,255,0.22)`,
+        border: "1px solid rgba(255,255,255,0.22)",
         boxShadow: "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.18)",
-        // Solo opacity y transform — 100% composited por GPU
+        // Solo opacity + transform — GPU puro
         opacity: open ? 1 : 0,
         transform: open
-          ? `translate(${x}px,${y}px) scale(${hov ? 1.15 : 1})`
+          ? `translate(${x}px,${y}px) scale(${hov ? 1.13 : 1})`
           : "translate(0px,0px) scale(0.1)",
         transition: reduced ? "none" : open
           ? `opacity 350ms ${snappy} ${oDelay}ms, transform 450ms ${spring} ${oDelay}ms`
           : `opacity 200ms ${smooth} ${cDelay}ms, transform 230ms ${smooth} ${cDelay}ms`,
         willChange: "transform, opacity",
         pointerEvents: open ? "auto" : "none",
-        // Color del icono via filter para no triggear repaint
+        // color fijo — el cambio de color lo hace una capa encima via opacity
         color: "rgba(232,232,248,0.95)",
       }}
     >
-      {/* Overlay de hover: sólo opacity cambia, sin repaint */}
+      {/* Capa de color base (siempre visible, baja opacidad) */}
       <span
         aria-hidden="true"
         style={{
           position: "absolute", inset: 0, borderRadius: "50%",
-          background: `radial-gradient(circle at 40% 35%, ${accent}30, ${accent}08)`,
-          border: `1.5px solid ${accent}55`,
-          opacity: hov ? 1 : 0,
-          transition: reduced ? "none" : `opacity 160ms ease`,
-          willChange: "opacity",
+          background: `radial-gradient(circle at 40% 35%, ${accent}18, transparent 70%)`,
+          opacity: 1,
+          pointerEvents: "none",
         }}
       />
-      {/* Highlight especular fijo — da el efecto liquid glass */}
+
+      {/* Capa de hover — solo opacity anima, sin repaint */}
+      <span
+        aria-hidden="true"
+        style={{
+          position: "absolute", inset: 0, borderRadius: "50%",
+          background: `radial-gradient(circle at 40% 35%, ${accent}40, ${accent}10 70%)`,
+          border: `1.5px solid ${accent}50`,
+          opacity: hov ? 1 : 0,
+          transition: reduced ? "none" : "opacity 140ms ease",
+          willChange: "opacity",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Highlight especular fijo — liquid glass */}
       <span
         aria-hidden="true"
         style={{
@@ -117,12 +128,35 @@ const FanItem = memo(function FanItem({
           background: "linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 100%)",
           filter: "blur(2px)",
           pointerEvents: "none",
+          zIndex: 1,
         }}
       />
 
-      <span style={{ position: "relative", zIndex: 1, display: "flex", color: hov ? accent : "rgba(232,232,248,0.95)",
-        transition: reduced ? "none" : `color 160ms ease` }}>
-        {item.icon}
+      {/* Icono: dos capas superpuestas, color neutro y color accent
+          El cambio es solo opacity — cero repaint */}
+      <span style={{ position: "relative", zIndex: 2, display: "flex" }}>
+        {/* Capa neutra (siempre visible cuando no hay hover) */}
+        <span style={{
+          position: "absolute", inset: 0, display: "flex",
+          alignItems: "center", justifyContent: "center",
+          color: "rgba(232,232,248,0.95)",
+          opacity: hov ? 0 : 1,
+          transition: reduced ? "none" : "opacity 140ms ease",
+          willChange: "opacity",
+        }}>
+          {item.icon}
+        </span>
+        {/* Capa accent (solo visible en hover) */}
+        <span style={{
+          display: "flex",
+          alignItems: "center", justifyContent: "center",
+          color: accent,
+          opacity: hov ? 1 : 0,
+          transition: reduced ? "none" : "opacity 140ms ease",
+          willChange: "opacity",
+        }}>
+          {item.icon}
+        </span>
       </span>
 
       {/* Tooltip */}
@@ -142,7 +176,7 @@ const FanItem = memo(function FanItem({
           padding: "4px 12px", borderRadius: 99,
           pointerEvents: "none",
           opacity: hov ? 1 : 0,
-          transition: reduced ? "none" : "opacity 160ms ease, transform 180ms ease",
+          transition: reduced ? "none" : "opacity 150ms ease, transform 170ms ease",
           willChange: "opacity, transform",
           boxShadow: "0 4px 16px rgba(0,0,0,0.45)",
         }}
@@ -154,7 +188,7 @@ const FanItem = memo(function FanItem({
 });
 
 export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProps) {
-  const [open, setOpen]   = useState(false);
+  const [open, setOpen]       = useState(false);
   const [mounted, setMounted] = useState(false);
   const reduced = useReducedMotion();
   const btnRef  = useRef<HTMLButtonElement>(null);
@@ -238,7 +272,7 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
           );
         })}
 
-        {/* Botón trigger — liquid glass */}
+        {/* Botón trigger */}
         <button
           ref={btnRef}
           type="button"
@@ -251,22 +285,17 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
             width: T_SIZE, height: T_SIZE, borderRadius: "50%",
             cursor: "pointer", padding: 0, overflow: "hidden",
             display: "flex", alignItems: "center", justifyContent: "center",
-            // Glass estático en el botón
             background: "rgba(255,255,255,0.13)",
             backdropFilter: "blur(32px) saturate(200%)",
             WebkitBackdropFilter: "blur(32px) saturate(200%)",
             border: "1.5px solid rgba(255,255,255,0.28)",
-            boxShadow: open
-              ? "0 0 0 8px rgba(79,209,197,0.10), 0 12px 40px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.30)"
-              : "0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.25)",
-            // Solo transform anima — GPU
+            boxShadow: "0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.25)",
             transform: open ? "rotate(135deg) scale(1.06)" : "rotate(0deg) scale(1)",
-            transition: reduced ? "none"
-              : `transform 480ms ${spring}, box-shadow 300ms ${smooth}`,
+            transition: reduced ? "none" : `transform 480ms ${spring}`,
             willChange: "transform",
           }}
         >
-          {/* Highlight especular del botón */}
+          {/* Highlight especular */}
           <span
             aria-hidden="true"
             style={{
@@ -278,9 +307,9 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
               filter: "blur(3px)",
               pointerEvents: "none",
               zIndex: 2,
-              // counter-rota para que el brillo no gire con el botón
               transform: open ? "rotate(-135deg)" : "rotate(0deg)",
               transition: reduced ? "none" : `transform 480ms ${spring}`,
+              willChange: "transform",
             }}
           />
 
@@ -317,8 +346,6 @@ export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProp
             0%,100% { opacity:.28; transform:scale(1); }
             50%      { opacity:.9;  transform:scale(1.22); }
           }
-          /* Fuerza capa GPU en todos los ítems del fan */
-          [data-fanmenu] * { -webkit-transform: translateZ(0); transform: translateZ(0); }
           [data-next-themes-indicator],#__next-themes-indicator,nextjs-portal{display:none!important}
         `}</style>
       </div>
