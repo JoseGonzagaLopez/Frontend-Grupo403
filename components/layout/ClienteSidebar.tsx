@@ -1,27 +1,22 @@
 "use client";
+
 import { useRouter, usePathname } from "next/navigation";
-import { CalendarDays, CalendarPlus, Home } from "lucide-react";
+import Link from "next/link";
+import { Home, CalendarPlus, CalendarDays } from "lucide-react";
 import FanMenu from "@/components/FanMenu";
 
 const menuItems = [
-  { label: "Inicio",        href: "/inicio",      icon: <Home        size={22} />, color: "#4fd1c5" },
-  { label: "Hacer reserva", href: "/reservar",     icon: <CalendarPlus size={22} />, color: "#a78bfa" },
-  { label: "Mis reservas",  href: "/mis-reservas", icon: <CalendarDays size={22} />, color: "#6c3fc4" },
+  { label: "Inicio",        href: "/inicio",      icon: <Home         size={20} />, fanIcon: <Home         size={22} />, color: "#4fd1c5" },
+  { label: "Hacer reserva", href: "/reservar",     icon: <CalendarPlus size={20} />, fanIcon: <CalendarPlus size={22} />, color: "#a78bfa" },
+  { label: "Mis reservas",  href: "/mis-reservas", icon: <CalendarDays size={20} />, fanIcon: <CalendarDays size={22} />, color: "#6c3fc4" },
 ];
 
 export default function ClienteSidebar() {
   const pathname = usePathname();
   const router   = useRouter();
 
-  function handleNav(e: React.MouseEvent, href: string) {
-    e.preventDefault();
-    e.stopPropagation();
-    router.push(href);
-  }
-
   return (
     <>
-      {/* ── Desktop sidebar ──────────────────────────── */}
       <aside className="admin-sidebar glass-surface sidebar">
         <div className="admin-sidebar__brand">
           <h2 className="admin-sidebar__title">Buk-A</h2>
@@ -29,27 +24,27 @@ export default function ClienteSidebar() {
         </div>
         <nav className="admin-sidebar__nav">
           {menuItems.map(({ href, label, icon }) => {
-            const isActive = pathname === href || pathname.startsWith(href + "/");
+            const active = pathname === href || pathname.startsWith(href + "/");
             return (
-              <a
+              <Link
                 key={href}
                 href={href}
-                onClick={(e) => handleNav(e, href)}
-                className={`admin-sidebar__link ${
-                  isActive ? "admin-sidebar__link--active" : ""
-                }`}
+                onClick={(e) => { e.preventDefault(); router.push(href); }}
+                className={`admin-sidebar__link${active ? " admin-sidebar__link--active" : ""}`}
               >
                 {icon}
                 <span>{label}</span>
-              </a>
+              </Link>
             );
           })}
         </nav>
       </aside>
 
-      {/* ── Mobile FanMenu ────────────────────────────── */}
       <div className="fan-menu-container">
-        <FanMenu items={menuItems} logoSrc="/favicon.ico" />
+        <FanMenu
+          items={menuItems.map(({ href, label, fanIcon, color }) => ({ href, label, icon: fanIcon, color }))}
+          logoSrc="/favicon.ico"
+        />
       </div>
     </>
   );
