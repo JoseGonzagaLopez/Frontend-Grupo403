@@ -5,7 +5,6 @@ import { CalendarDays, CalendarPlus } from "lucide-react";
 const menuItems = [
   { label: "Hacer reserva", href: "/reservar", icon: CalendarPlus },
   { label: "Mis reservas", href: "/mis-reservas", icon: CalendarDays },
-  { label: "Pollas", href: "/mispollas", icon: CalendarDays },
 
 ];
 
