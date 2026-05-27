@@ -3,23 +3,21 @@ import { useState, useMemo } from "react";
 import type { Booking, Business } from "@/lib/api";
 import { updateAppointment, deleteAppointment } from "@/lib/api";
 
-type ExtendedStatus = "pending" | "confirmed" | "completed" | "no_show";
+type ExtendedStatus = "pending" | "confirmed" | "paid";
 
 const STATUS_LABELS: Record<ExtendedStatus, string> = {
   pending: "Pendiente",
   confirmed: "Confirmada",
-  completed: "Terminada",
-  no_show: "No presentada",
+  paid: "Pagado",
 };
 
 const STATUS_COLORS: Record<ExtendedStatus, string> = {
   pending: "#e8a800",
   confirmed: "var(--accent)",
-  completed: "var(--success-text)",
-  no_show: "var(--danger)",
+  paid: "var(--success-text)",
 };
 
-const EDITABLE_STATUSES: ExtendedStatus[] = ["pending", "confirmed"];
+const EDITABLE_STATUSES: ExtendedStatus[] = ["pending", "confirmed", "paid"];
 
 function isEditable(status: string): boolean {
   return EDITABLE_STATUSES.includes(status as ExtendedStatus);
