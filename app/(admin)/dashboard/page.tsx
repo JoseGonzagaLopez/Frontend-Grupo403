@@ -1,4 +1,4 @@
-import { getAppointments, getCustomers, type Booking, type BookingStatus } from '@/lib/api';
+import { getAppointments, getCustomers, getBusinesses, type Booking, type BookingStatus, type Business } from '@/lib/api';
 import Link from 'next/link';
 import ExportButton from "./ExportButton";
 import ErrorView from '@/components/ErrorView';
@@ -68,6 +68,8 @@ export default async function DashboardPage() {
     const now = new Date();
 
     const sortedAppointments = [...appointments].sort(sortByDateTime);
+    const businesses = await getBusinesses();
+    const businessMap = new Map<number, Business>(businesses.map((b) => [b.id, b]));
     const appointmentsToday = sortedAppointments.filter((appointment) => appointment.date === today);
     const upcomingAppointments = sortedAppointments.filter((appointment) => parseBookingDate(appointment) >= now);
     const appointmentsNext = upcomingAppointments.slice(0, 5);
@@ -88,9 +90,13 @@ export default async function DashboardPage() {
     }, {});
 
     const topBusinessEntry = Object.entries(businessCountsToday).sort(([, aCount], [, bCount]) => bCount - aCount)[0];
-    const topBusinessLabel = topBusinessEntry
-      ? `Comercio #${topBusinessEntry[0]}`
-      : 'Sin actividad hoy';
+    const topBusinessId = topBusinessEntry ? Number(topBusinessEntry[0]) : null;
+    const topBusiness = topBusinessId !== null ? businessMap.get(topBusinessId) : undefined;
+    const topBusinessLabel = topBusiness
+      ? topBusiness.Nombre
+      : topBusinessId
+        ? `Comercio #${topBusinessId}`
+        : 'Sin actividad hoy';
     const topBusinessSubtitle = topBusinessEntry
       ? `${topBusinessEntry[1]} reserva${topBusinessEntry[1] === 1 ? '' : 's'} hoy`
       : 'No hay reservas en el día';
@@ -100,7 +106,7 @@ export default async function DashboardPage() {
       ? `${nextBooking.serviceName}`
       : 'No hay reservas pendientes';
     const nextBookingMeta = nextBooking
-      ? `${nextBooking.time} · Comercio #${nextBooking.businessId}`
+      ? `${nextBooking.time} · ${businessMap.get(nextBooking.businessId)?.Nombre || `Comercio #${nextBooking.businessId}`}`
       : 'Agrega nuevas reservas para que aparezcan aquí';
 
     const infoReminderText = pendingToday > 0
