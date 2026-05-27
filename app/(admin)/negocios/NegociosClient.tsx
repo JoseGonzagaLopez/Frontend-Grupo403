@@ -5,7 +5,6 @@ import { KeyRound, Eye, EyeOff } from "lucide-react";
 import type { Business, CreateBusinessDto } from "@/lib/api";
 import { createBusiness, deleteBusiness, updateBusiness } from "@/lib/api";
 
-// ─── Modal reiniciar contraseña ───────────────────────────────────────────────
 function ResetPasswordModal({
   businessId,
   businessName,
@@ -23,13 +22,13 @@ function ResetPasswordModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!newPassword.trim()) { setError("Introduce una contrase\u00f1a."); return; }
+    if (!newPassword.trim()) { setError("Introduce una contraseña."); return; }
     setLoading(true); setError("");
     try {
       await updateBusiness(businessId, { password: newPassword });
       setSuccess(true);
     } catch {
-      setError("No se pudo reiniciar la contrase\u00f1a.");
+      setError("No se pudo reiniciar la contraseña.");
     } finally { setLoading(false); }
   }
 
@@ -40,24 +39,24 @@ function ResetPasswordModal({
         <div className="modal-icon" style={{ background: "var(--primary-light, rgba(1,105,111,0.1))", color: "var(--primary, #01696f)" }}>
           <KeyRound size={22} />
         </div>
-        <h3 className="modal-title">Reiniciar contrase\u00f1a</h3>
+        <h3 className="modal-title">Reiniciar contraseña</h3>
         {success ? (
           <>
-            <p className="modal-text" style={{ color: "var(--success, #437a22)" }}>Contrase\u00f1a actualizada correctamente.</p>
+            <p className="modal-text" style={{ color: "var(--success, #437a22)" }}>Contraseña actualizada correctamente.</p>
             <div className="modal-actions">
               <button type="button" className="primary-btn" onClick={onClose}>Cerrar</button>
             </div>
           </>
         ) : (
           <form onSubmit={handleSubmit} style={{ width: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
-            <p className="modal-text">Nueva contrase\u00f1a para <strong>{businessName}</strong>:</p>
+            <p className="modal-text">Nueva contraseña para <strong>{businessName}</strong>:</p>
             <div style={{ position: "relative" }}>
               <input
                 className="input"
                 type={showPwd ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Nueva contrase\u00f1a"
+                placeholder="Nueva contraseña"
                 style={{ paddingRight: 40, width: "100%" }}
                 autoFocus
               />
@@ -81,7 +80,6 @@ function ResetPasswordModal({
   );
 }
 
-// ─── Componente principal ─────────────────────────────────────────────────────
 export default function NegociosClient({ initialBusinesses }: { initialBusinesses: Business[] }) {
   const [businesses, setBusinesses] = useState<Business[]>(initialBusinesses);
   const emptyForm: CreateBusinessDto = { Nombre: "", Localicacion: "", Telefono: "", Correo: "", password: "" };
@@ -172,7 +170,7 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
       <section className="page-hero">
         <div>
           <h2>Lista de negocios</h2>
-          <p>Gesti\u00f3n de negocios conectada con la API.</p>
+          <p>Gestión de negocios conectada con la API.</p>
         </div>
         <button className="primary-btn" type="button" onClick={openCreateForm}>Nuevo negocio</button>
       </section>
@@ -186,7 +184,6 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
         </div>
       </section>
 
-      {/* FORMULARIO CREAR */}
       {isCreateOpen && (
         <section className="section-card">
           <div className="panel-title-row">
@@ -200,18 +197,18 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
                 placeholder="Nombre del negocio" required />
               <input className="input" type="text" value={createForm.Localicacion}
                 onChange={(e) => updateCreateForm("Localicacion", e.target.value)}
-                placeholder="Ubicaci\u00f3n" />
+                placeholder="Ubicación" />
               <input className="input" type="tel" value={createForm.Telefono}
                 onChange={(e) => updateCreateForm("Telefono", e.target.value)}
-                placeholder="Tel\u00e9fono" />
+                placeholder="Teléfono" />
               <input className="input" type="email" value={createForm.Correo ?? ""}
                 onChange={(e) => updateCreateForm("Correo", e.target.value)}
-                placeholder="Correo electr\u00f3nico" />
+                placeholder="Correo electrónico" />
               <div style={{ position: "relative" }}>
                 <input className="input" type={showCreatePassword ? "text" : "password"}
                   value={createForm.password ?? ""}
                   onChange={(e) => updateCreateForm("password", e.target.value)}
-                  placeholder="Contrase\u00f1a inicial"
+                  placeholder="Contraseña inicial"
                   style={{ paddingRight: 40, width: "100%" }} />
                 <button type="button" onClick={() => setShowCreatePassword((v) => !v)}
                   style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
@@ -230,7 +227,6 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
         </section>
       )}
 
-      {/* FORMULARIO EDITAR */}
       {editingBusinessId !== null && (
         <section className="section-card">
           <div className="panel-title-row">
@@ -244,13 +240,13 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
                 placeholder="Nombre del negocio" required />
               <input className="input" type="text" value={editForm.Localicacion ?? ""}
                 onChange={(e) => updateEditForm("Localicacion", e.target.value)}
-                placeholder="Ubicaci\u00f3n" />
+                placeholder="Ubicación" />
               <input className="input" type="tel" value={editForm.Telefono ?? ""}
                 onChange={(e) => updateEditForm("Telefono", e.target.value)}
-                placeholder="Tel\u00e9fono" />
+                placeholder="Teléfono" />
               <input className="input" type="email" value={editForm.Correo ?? ""}
                 onChange={(e) => updateEditForm("Correo", e.target.value)}
-                placeholder="Correo electr\u00f3nico" />
+                placeholder="Correo electrónico" />
             </div>
             {errorMessage && <div className="message-error">{errorMessage}</div>}
             <div className="message-row">
@@ -262,14 +258,13 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
         </section>
       )}
 
-      {/* MODAL ELIMINAR */}
       {deleteTargetId !== null && (
         <div className="modal-backdrop" role="dialog" aria-modal="true"
           onClick={(e) => { if (e.target === e.currentTarget) closeDeleteModal(); }}>
           <div className="modal-card">
             <div className="modal-icon">!</div>
             <h3 className="modal-title">Eliminar negocio</h3>
-            <p className="modal-text">¿Seguro que quieres eliminar este negocio? Esta acci\u00f3n no se puede deshacer.</p>
+            <p className="modal-text">¿Seguro que quieres eliminar este negocio? Esta acción no se puede deshacer.</p>
             <div className="modal-actions">
               <button type="button" className="secondary-btn" onClick={closeDeleteModal}>Cancelar</button>
               <button type="button" className="danger-btn" onClick={confirmDelete}
@@ -281,7 +276,6 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
         </div>
       )}
 
-      {/* MODAL REINICIAR CONTRASEÑA */}
       {resetTarget && (
         <ResetPasswordModal
           businessId={resetTarget.id}
@@ -290,19 +284,18 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
         />
       )}
 
-      {/* TARJETAS */}
       <section className="customer-grid">
         {filteredBusinesses.map((business) => (
           <div key={business.id} className="customer-card">
             <p className="customer-name">{business.Nombre}</p>
             {business.Correo && <p className="customer-meta">{business.Correo}</p>}
-            {business.Localicacion && <p className="customer-meta">Ubicaci\u00f3n: {business.Localicacion}</p>}
+            {business.Localicacion && <p className="customer-meta">Ubicación: {business.Localicacion}</p>}
             {business.Telefono && <p className="customer-meta">Tel: {business.Telefono}</p>}
             <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
               <button type="button" className="secondary-btn" onClick={() => openEditForm(business)}>Editar</button>
               <button type="button" className="secondary-btn" onClick={() => setResetTarget(business)}
                 style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <KeyRound size={14} /> Reiniciar contrase\u00f1a
+                <KeyRound size={14} /> Reiniciar contraseña
               </button>
               <button type="button" className="secondary-btn" onClick={() => openDeleteModal(business.id)}>Eliminar</button>
             </div>

@@ -5,7 +5,6 @@ import { Eye, EyeOff, KeyRound } from "lucide-react";
 import type { Customer, CreateCustomerDto } from "@/lib/api";
 import { createCustomer, deleteCustomer, updateCustomer, getAppointments, deleteAppointment } from "@/lib/api";
 
-// ─── Modal reiniciar contraseña ───────────────────────────────────────────────
 function ResetPasswordModal({
   customerId,
   customerName,
@@ -23,13 +22,13 @@ function ResetPasswordModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!newPassword.trim()) { setError("Introduce una contrase\u00f1a."); return; }
+    if (!newPassword.trim()) { setError("Introduce una contraseña."); return; }
     setLoading(true); setError("");
     try {
       await updateCustomer(customerId, { password: newPassword });
       setSuccess(true);
     } catch {
-      setError("No se pudo reiniciar la contrase\u00f1a.");
+      setError("No se pudo reiniciar la contraseña.");
     } finally { setLoading(false); }
   }
 
@@ -40,24 +39,24 @@ function ResetPasswordModal({
         <div className="modal-icon" style={{ background: "var(--primary-light, rgba(1,105,111,0.1))", color: "var(--primary, #01696f)" }}>
           <KeyRound size={22} />
         </div>
-        <h3 className="modal-title">Reiniciar contrase\u00f1a</h3>
+        <h3 className="modal-title">Reiniciar contraseña</h3>
         {success ? (
           <>
-            <p className="modal-text" style={{ color: "var(--success, #437a22)" }}>Contrase\u00f1a actualizada correctamente.</p>
+            <p className="modal-text" style={{ color: "var(--success, #437a22)" }}>Contraseña actualizada correctamente.</p>
             <div className="modal-actions">
               <button type="button" className="primary-btn" onClick={onClose}>Cerrar</button>
             </div>
           </>
         ) : (
           <form onSubmit={handleSubmit} style={{ width: "100%", display: "flex", flexDirection: "column", gap: 12 }}>
-            <p className="modal-text">Nueva contrase\u00f1a para <strong>{customerName}</strong>:</p>
+            <p className="modal-text">Nueva contraseña para <strong>{customerName}</strong>:</p>
             <div style={{ position: "relative" }}>
               <input
                 className="input"
                 type={showPwd ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Nueva contrase\u00f1a"
+                placeholder="Nueva contraseña"
                 style={{ paddingRight: 40, width: "100%" }}
                 autoFocus
               />
@@ -81,7 +80,6 @@ function ResetPasswordModal({
   );
 }
 
-// ─── Componente principal ─────────────────────────────────────────────────────
 export default function CustomersClient({ initialCustomers }: { initialCustomers: Customer[] }) {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const emptyForm: CreateCustomerDto = { Nombre: "", Telefono: "", Correo: "" };
@@ -184,7 +182,7 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
       <section className="page-hero">
         <div>
           <h2>Lista de clientes</h2>
-          <p>Gesti\u00f3n de clientes conectada con la API.</p>
+          <p>Gestión de clientes conectada con la API.</p>
         </div>
         <button className="primary-btn" type="button" onClick={openCreateForm}>Nuevo cliente</button>
       </section>
@@ -198,7 +196,6 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
         </div>
       </section>
 
-      {/* FORMULARIO CREAR */}
       {isCreateOpen && (
         <section className="section-card">
           <div className="panel-title-row">
@@ -212,10 +209,10 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
                 placeholder="Nombre completo" required />
               <input className="input" type="tel" value={createForm.Telefono}
                 onChange={(e) => updateCreateForm("Telefono", e.target.value)}
-                placeholder="Tel\u00e9fono" required />
+                placeholder="Teléfono" required />
               <input className="input" type="email" value={createForm.Correo}
                 onChange={(e) => updateCreateForm("Correo", e.target.value)}
-                placeholder="Correo electr\u00f3nico" required />
+                placeholder="Correo electrónico" required />
             </div>
             {errorMessage && <div className="message-error">{errorMessage}</div>}
             <div className="message-row">
@@ -227,7 +224,6 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
         </section>
       )}
 
-      {/* FORMULARIO EDITAR */}
       {editingCustomerId !== null && (
         <section className="section-card">
           <div className="panel-title-row">
@@ -241,7 +237,7 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
                 placeholder="Nombre completo" required />
               <input className="input" type="tel" value={editForm.Telefono}
                 onChange={(e) => updateEditForm("Telefono", e.target.value)}
-                placeholder="Tel\u00e9fono" required />
+                placeholder="Teléfono" required />
               <input className="input" type="email" value={editForm.Correo}
                 onChange={(e) => updateEditForm("Correo", e.target.value)}
                 placeholder="Email" required />
@@ -256,7 +252,6 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
         </section>
       )}
 
-      {/* MODAL ELIMINAR */}
       {deleteTargetId !== null && customerToDelete !== null && (
         <div className="modal-backdrop" role="dialog" aria-modal="true"
           onClick={(e) => { if (e.target === e.currentTarget) closeDeleteModal(); }}>
@@ -265,10 +260,10 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
             <h3 className="modal-title">Eliminar cliente</h3>
             {(customerToDelete.appointments?.length ?? 0) > 0 ? (
               <p className="modal-text">
-                Este usuario tiene {customerToDelete.appointments?.length ?? 0} reserva(s) asociada(s). Si contin\u00faas, se borrar\u00e1 el usuario y todas sus reservas. \u00bfDeseas borrarlas de todas formas?
+                Este usuario tiene {customerToDelete.appointments?.length ?? 0} reserva(s) asociada(s). Si continúas, se borrará el usuario y todas sus reservas. ¿Deseas borrarlas de todas formas?
               </p>
             ) : (
-              <p className="modal-text">\u00bfSeguro que quieres eliminar este cliente? Esta acci\u00f3n no se puede deshacer.</p>
+              <p className="modal-text">¿Seguro que quieres eliminar este cliente? Esta acción no se puede deshacer.</p>
             )}
             <div className="modal-actions">
               <button type="button" className="secondary-btn" onClick={closeDeleteModal}>
@@ -276,14 +271,13 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
               </button>
               <button type="button" className="danger-btn" onClick={confirmDelete}
                 disabled={deletingCustomerId === deleteTargetId}>
-                {deletingCustomerId === deleteTargetId ? "Eliminando..." : ((customerToDelete.appointments?.length ?? 0) > 0 ? "S\u00ed, borrar todo" : "Eliminar")}
+                {deletingCustomerId === deleteTargetId ? "Eliminando..." : ((customerToDelete.appointments?.length ?? 0) > 0 ? "Sí, borrar todo" : "Eliminar")}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL REINICIAR CONTRASEÑA */}
       {resetTarget && (
         <ResetPasswordModal
           customerId={resetTarget.id}
@@ -292,7 +286,6 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
         />
       )}
 
-      {/* TARJETAS */}
       <section className="customer-grid">
         {filteredCustomers.map((customer) => {
           const negocios = [...new Set(
@@ -312,7 +305,7 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
                 <button type="button" className="secondary-btn" onClick={() => openEditForm(customer)}>Editar</button>
                 <button type="button" className="secondary-btn" onClick={() => setResetTarget(customer)}
                   style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <KeyRound size={14} /> Reiniciar contrase\u00f1a
+                  <KeyRound size={14} /> Reiniciar contraseña
                 </button>
                 <button type="button" className="secondary-btn" onClick={() => openDeleteModal(customer)}>Eliminar</button>
               </div>
