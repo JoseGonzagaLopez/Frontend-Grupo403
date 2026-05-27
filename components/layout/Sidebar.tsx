@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const menuItems = [
-  { label: "Panel de control", href: "/dashboard", icon: "◫" },
-  { label: "Reservas", href: "/bookings", icon: "☰" },
-  { label: "Clientes", href: "/customers", icon: "◎" },
-  { label: "Pagos", href: "/payments", icon: "◌" },
-  { label: "Negocios", href: "/negocios", icon: "❖" },
-  { label: "Solicitudes perfil", href: "/solicitudes", icon: "⚑" },
+  { label: "Panel de control", href: "/dashboard", icon: "⬜" },
+  { label: "Reservas",         href: "/bookings",  icon: "☰" },
+  { label: "Clientes",         href: "/customers", icon: "◎" },
+  { label: "Pagos",            href: "/payments",  icon: "◌" },
+  { label: "Negocios",         href: "/negocios",  icon: "✦" },
+  { label: "Solicitudes",      href: "/solicitudes", icon: "⚑" },
 ];
 
 interface SidebarProps {
@@ -28,21 +28,19 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       </div>
 
       <nav className="admin-sidebar__nav">
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href;
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setIsOpen && setIsOpen(false)}
-              className={`admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""}`}
-            >
-              <span>{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+        {menuItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => setIsOpen && setIsOpen(false)}
+            className={`admin-sidebar__link ${
+              pathname === item.href ? "admin-sidebar__link--active" : ""
+            }`}
+          >
+            <span>{item.icon}</span>
+            <span>{item.label}</span>
+          </Link>
+        ))}
       </nav>
     </aside>
   );

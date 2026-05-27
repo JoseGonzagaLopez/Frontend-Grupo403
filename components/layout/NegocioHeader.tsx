@@ -4,6 +4,14 @@ import { logOutBusiness } from "@/lib/actions";
 import { useState, useRef, useEffect } from "react";
 import { LogOut, User } from "lucide-react";
 import Link from "next/link";
+import FanMenu, { type FanMenuItem } from "./FanMenu";
+import { Calendar, Scissors, Star } from "lucide-react";
+
+const FAN_ITEMS: FanMenuItem[] = [
+  { label: "Reservas",  href: "/negocio/reservas",  icon: <Calendar size={20} /> },
+  { label: "Servicios", href: "/negocio/servicios", icon: <Scissors size={20} /> },
+  { label: "Reseñas",   href: "/negocio/resenas",   icon: <Star     size={20} /> },
+];
 
 interface Props { onMenuClick?: () => void; }
 
@@ -27,24 +35,27 @@ export default function NegocioHeader({ onMenuClick }: Props) {
   return (
     <header className="admin-header">
       <div className="admin-header__left">
-        <button className="hamburger-btn" onClick={onMenuClick} aria-label="Abrir menú">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
+        {/* Abanico radial para el negocio */}
+        <FanMenu items={FAN_ITEMS} />
         <span className="admin-header__title">Buk-A</span>
         <span className="admin-header__subtitle">Portal de negocio</span>
       </div>
+
       <div className="admin-header__actions">
         <ThemeToggle />
         <div className="relative" ref={ref}>
           <button
             onClick={() => setOpen(!open)}
             style={{
-              width: 36, height: 36, borderRadius: "50%",
-              background: "var(--accent)", color: "#fff",
+              width: 38, height: 38, borderRadius: "50%",
+              background: "linear-gradient(135deg, var(--accent), var(--teal))",
+              color: "#fff",
               display: "flex", alignItems: "center", justifyContent: "center",
-              border: "none", cursor: "pointer", fontSize: 18,
+              border: "2px solid var(--border-glow)",
+              cursor: "pointer",
+              fontSize: 18,
+              boxShadow: "0 0 16px var(--accent-glow)",
+              transition: "all var(--transition-spring)",
             }}
             aria-label="Menú de usuario"
           >
@@ -52,14 +63,22 @@ export default function NegocioHeader({ onMenuClick }: Props) {
           </button>
           {open && (
             <div style={{
-              position: "absolute", top: "100%", right: 0, zIndex: 100,
-              background: "var(--surface-solid)", border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)", boxShadow: "var(--shadow-lg)",
-              marginTop: 6, width: 220, overflow: "hidden",
+              position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 100,
+              background: "var(--surface)",
+              backdropFilter: "blur(28px) saturate(200%)",
+              WebkitBackdropFilter: "blur(28px) saturate(200%)",
+              border: "1px solid var(--border-strong)",
+              borderRadius: "var(--radius-lg)",
+              boxShadow: "var(--shadow-float)",
+              marginTop: 0, width: 220, overflow: "hidden",
+              animation: "fadeSlideUp 250ms var(--ease-out) both",
             }}>
               <div style={{ padding: "10px 14px", borderBottom: "1px solid var(--border)" }}>
                 <p style={{ fontWeight: 600, fontSize: "var(--text-sm)", color: "var(--text)" }}>Mi negocio</p>
-                <p style={{ fontSize: "var(--text-xs)", color: "var(--accent)", marginTop: 2, fontWeight: 500 }}>● Sesión activa</p>
+                <p style={{ fontSize: "var(--text-xs)", color: "var(--teal)", marginTop: 2, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--teal)", display: "inline-block" }} />
+                  Sesión activa
+                </p>
               </div>
               <Link
                 href="/negocio/perfil"

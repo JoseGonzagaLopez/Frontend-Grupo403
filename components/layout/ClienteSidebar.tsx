@@ -3,16 +3,16 @@ import { useRouter, usePathname } from "next/navigation";
 import { CalendarDays, CalendarPlus, Home } from "lucide-react";
 
 const menuItems = [
-  { label: "Inicio", href: "/inicio", icon: Home },
-  { label: "Hacer reserva", href: "/reservar", icon: CalendarPlus },
-  { label: "Mis reservas", href: "/mis-reservas", icon: CalendarDays },
+  { label: "Inicio",        href: "/inicio",        icon: Home },
+  { label: "Hacer reserva", href: "/reservar",       icon: CalendarPlus },
+  { label: "Mis reservas",  href: "/mis-reservas",   icon: CalendarDays },
 ];
 
 interface Props { isOpen?: boolean; setIsOpen?: (v: boolean) => void; }
 
 export default function ClienteSidebar({ isOpen, setIsOpen }: Props) {
   const pathname = usePathname();
-  const router = useRouter();
+  const router   = useRouter();
 
   function handleNav(e: React.MouseEvent, href: string) {
     e.preventDefault();
