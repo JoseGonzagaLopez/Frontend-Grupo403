@@ -4,8 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import type { Business, Customer, Service } from "@/lib/api";
 import { createAppointment, getServices } from "@/lib/api";
 import { CustomDatePicker } from "@/components/CustomDatePicker";
-import Header from "@/components/layout/Header";
-import { logOutCustomer } from "@/lib/actions";
 
 function SearchableSelect({
   options,
@@ -223,90 +221,78 @@ export default function ReservarClient({
   }
 
   return (
-    <div className="public-page min-h-screen flex flex-col">
-      <Header
-        title="BookFlow"
-        subtitle="Solicita tu cita de forma rápida y sencilla"
-        userName={loggedCustomer ? loggedCustomer.Nombre : "Cliente"}
-        userRole="Cliente"
-        onLogout={async () => { await logOutCustomer(); window.location.href = '/login'; }}
-        hideHamburger={true}
-      />
-      <main className="flex-1 p-4 sm:p-8" style={{ maxWidth: "1000px", margin: "0 auto", width: "100%" }}>
-        <div className="page-stack">
-          <section className="page-hero">
-            <div>
-              <h2>Reserva tu cita</h2>
-              <p>Completa el formulario a continuación para solicitar una reserva.</p>
-            </div>
-          </section>
-          <section className="section-card">
-            <form onSubmit={handleSubmit} className="page-stack" style={{ gap: 24 }}>
-              {error && <div className="message-error">{error}</div>}
-              <div className="form-grid">
-                <div>
-                  <label className="block text-sm font-semibold mb-1">Selecciona el Negocio <span style={{ color: "var(--danger)" }}>*</span></label>
-                  <SearchableSelect
-                    options={businessOptions}
-                    value={form.businessId}
-                    onChange={(id) => setForm((f) => ({ ...f, businessId: id }))}
-                    placeholder="Busca y selecciona un negocio..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1">Servicio <span style={{ color: "var(--danger)" }}>*</span></label>
-                  {form.businessId === "" ? (
-                    <div className="input" style={{ color: "var(--text-faint)", cursor: "not-allowed", display: "flex", alignItems: "center" }}>
-                      Primero selecciona un negocio
-                    </div>
-                  ) : loadingServices ? (
-                    <div className="input" style={{ color: "var(--text-secondary)", display: "flex", alignItems: "center" }}>Cargando servicios...</div>
-                  ) : services.length > 0 ? (
-                    <select
-                      className="input"
-                      value={form.serviceName}
-                      onChange={(e) => setForm((f) => ({ ...f, serviceName: e.target.value }))}
-                      required
-                    >
-                      <option value="">Selecciona un servicio...</option>
-                      {services.map((s) => (
-                        <option key={s.id} value={s.nombre}>
-                          {s.nombre}{s.precio ? ` — ${s.precio}€` : ""}{s.duracion ? ` (${s.duracion} min)` : ""}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      className="input"
-                      placeholder="Este negocio no tiene servicios definidos, escribe el servicio..."
-                      value={form.serviceName}
-                      onChange={(e) => setForm((f) => ({ ...f, serviceName: e.target.value }))}
-                      required
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="form-grid">
-                <div>
-                  <label className="block text-sm font-semibold mb-1">Fecha <span style={{ color: "var(--danger)" }}>*</span></label>
-                  <CustomDatePicker value={form.date} onChange={(date) => setForm((f) => ({ ...f, date }))} />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1">Hora <span style={{ color: "var(--danger)" }}>*</span></label>
-                  <input type="time" className="input" value={form.time} onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))} required
-                    onClick={(e) => { if ("showPicker" in HTMLInputElement.prototype) (e.currentTarget as any).showPicker(); }} />
-                </div>
-              </div>
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-                <button type="submit" className="primary-btn" disabled={isLoading} style={{ minWidth: 200 }}>
-                  {isLoading ? "Procesando..." : "Confirmar reserva"}
-                </button>
-              </div>
-            </form>
-          </section>
+    <div className="page-stack" style={{ maxWidth: 800, margin: "0 auto", width: "100%" }}>
+      <section className="page-hero">
+        <div>
+          <h2>Reserva tu cita</h2>
+          <p>Completa el formulario a continuación para solicitar una reserva.</p>
         </div>
-      </main>
+      </section>
+      <section className="section-card">
+        <form onSubmit={handleSubmit} className="page-stack" style={{ gap: 24 }}>
+          {error && <div className="message-error">{error}</div>}
+          <div className="form-grid">
+            <div>
+              <label className="block text-sm font-semibold mb-1">Selecciona el Negocio <span style={{ color: "var(--danger)" }}>*</span></label>
+              <SearchableSelect
+                options={businessOptions}
+                value={form.businessId}
+                onChange={(id) => setForm((f) => ({ ...f, businessId: id }))}
+                placeholder="Busca y selecciona un negocio..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Servicio <span style={{ color: "var(--danger)" }}>*</span></label>
+              {form.businessId === "" ? (
+                <div className="input" style={{ color: "var(--text-faint)", cursor: "not-allowed", display: "flex", alignItems: "center" }}>
+                  Primero selecciona un negocio
+                </div>
+              ) : loadingServices ? (
+                <div className="input" style={{ color: "var(--text-secondary)", display: "flex", alignItems: "center" }}>Cargando servicios...</div>
+              ) : services.length > 0 ? (
+                <select
+                  className="input"
+                  value={form.serviceName}
+                  onChange={(e) => setForm((f) => ({ ...f, serviceName: e.target.value }))}
+                  required
+                >
+                  <option value="">Selecciona un servicio...</option>
+                  {services.map((s) => (
+                    <option key={s.id} value={s.nombre}>
+                      {s.nombre}{s.precio ? ` — ${s.precio}€` : ""}{s.duracion ? ` (${s.duracion} min)` : ""}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Este negocio no tiene servicios definidos, escribe el servicio..."
+                  value={form.serviceName}
+                  onChange={(e) => setForm((f) => ({ ...f, serviceName: e.target.value }))}
+                  required
+                />
+              )}
+            </div>
+          </div>
+          <div className="form-grid">
+            <div>
+              <label className="block text-sm font-semibold mb-1">Fecha <span style={{ color: "var(--danger)" }}>*</span></label>
+              <CustomDatePicker value={form.date} onChange={(date) => setForm((f) => ({ ...f, date }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Hora <span style={{ color: "var(--danger)" }}>*</span></label>
+              <input type="time" className="input" value={form.time} onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))} required
+                onClick={(e) => { if ("showPicker" in HTMLInputElement.prototype) (e.currentTarget as any).showPicker(); }} />
+            </div>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+            <button type="submit" className="primary-btn" disabled={isLoading} style={{ minWidth: 200 }}>
+              {isLoading ? "Procesando..." : "Confirmar reserva"}
+            </button>
+          </div>
+        </form>
+      </section>
     </div>
   );
 }

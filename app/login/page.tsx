@@ -2,20 +2,20 @@
 
 import { useState } from "react";
 import { authenticate } from "@/lib/actions";
-import { loginCustomer, registerCustomer, loginBusiness, registerBusiness } from "@/lib/api";
+import { loginCustomer, loginBusiness, registerCustomer, registerBusiness } from "@/lib/api";
 import { loginCustomerAction, loginBusinessAction } from "@/lib/actions";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type Tab = "login" | "register";
-type Role = "cliente" | "empresa" | "admin";
 
 export default function LoginPage() {
   const [tab, setTab] = useState<Tab>("login");
-  const [role, setRole] = useState<Role>("cliente");
 
+  // Login state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
 
+  // Register state
   const [registerRole, setRegisterRole] = useState<"cliente" | "empresa">("cliente");
   const [regForm, setRegForm] = useState({
     Nombre: "",
@@ -35,26 +35,40 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
     try {
-      if (role === "admin") {
-        const result = await authenticate(adminPassword);
-        if (!result.success) throw new Error("Contraseña de administrador incorrecta");
-        setSuccessMessage("Acceso concedido");
-        setIsSuccess(true);
-        setTimeout(() => { window.location.href = "/dashboard"; }, 800);
-      } else if (role === "cliente") {
+      // 1. Intentar como cliente
+      try {
         const customer = await loginCustomer(loginEmail, loginPassword);
         await loginCustomerAction(customer.id);
         setSuccessMessage("Sesión iniciada");
         setIsSuccess(true);
-        setTimeout(() => { window.location.href = "/reservar"; }, 800);
-      } else {
-        // empresa: usa Correo igual que el cliente
+        setTimeout(() => { window.location.href = "/cliente"; }, 800);
+        return;
+      } catch {
+        // no es cliente, intentar como negocio
+      }
+
+      // 2. Intentar como negocio
+      try {
         const business = await loginBusiness(loginEmail, loginPassword);
         await loginBusinessAction(business.id);
         setSuccessMessage("Sesión iniciada");
         setIsSuccess(true);
-        setTimeout(() => { window.location.href = "/negocio"; }, 800);
+        setTimeout(() => { window.location.href = "/negocio/dashboard"; }, 800);
+        return;
+      } catch {
+        // no es negocio tampoco
       }
+
+      // 3. Intentar como admin (contraseña sin email)
+      const adminResult = await authenticate(loginPassword);
+      if (adminResult.success) {
+        setSuccessMessage("Acceso de administrador concedido");
+        setIsSuccess(true);
+        setTimeout(() => { window.location.href = "/dashboard"; }, 800);
+        return;
+      }
+
+      throw new Error("Credenciales incorrectas. Verifica tu correo y contraseña.");
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión");
       setIsLoading(false);
@@ -74,9 +88,9 @@ export default function LoginPage() {
           password: regForm.password,
         });
         await loginCustomerAction(customer.id);
-        setSuccessMessage("Cuenta creada y sesión iniciada");
+        setSuccessMessage("Cuenta creada. ¡Bienvenido/a!");
         setIsSuccess(true);
-        setTimeout(() => { window.location.href = "/reservar"; }, 800);
+        setTimeout(() => { window.location.href = "/cliente"; }, 800);
       } else {
         await registerBusiness({
           Nombre: regForm.Nombre,
@@ -85,7 +99,7 @@ export default function LoginPage() {
           Localicacion: regForm.Localicacion,
           password: regForm.password,
         });
-        setSuccessMessage("Su petición ha sido enviada");
+        setSuccessMessage("Solicitud enviada. Un administrador revisará tu cuenta.");
         setIsSuccess(true);
       }
     } catch (err: any) {
@@ -115,6 +129,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-color)] flex items-center justify-center">
+
+      {/* ThemeToggle en esquina superior derecha */}
+      <div style={{ position: "fixed", top: 16, right: 16, zIndex: 200 }}>
+        <ThemeToggle />
+      </div>
+
       <div className="surface-card" style={cardStyle}>
 
         <img
@@ -143,6 +163,7 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {/* Tabs login / register */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", background: "var(--surface-2)", borderRadius: "var(--radius-md)", padding: "3px", marginBottom: "var(--space-5)" }}>
             {(["login", "register"] as Tab[]).map((t) => (
               <button key={t} type="button" onClick={() => { setTab(t); setError(""); }}
@@ -156,39 +177,38 @@ export default function LoginPage() {
           {tab === "login" && (
             <form onSubmit={handleLogin} className="flex flex-col gap-4" autoComplete="off">
               <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Tipo de cuenta</label>
-                <select value={role} onChange={(e) => { setRole(e.target.value as Role); setError(""); setLoginEmail(""); setLoginPassword(""); }} className="input">
-                  <option value="cliente">👤 Cliente</option>
-                  <option value="empresa">🏢 Empresa / Negocio</option>
-                  <option value="admin">🔐 Administrador</option>
-                </select>
+                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Correo o Usuario (admin)</label>
+                <input
+                  type="text"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="input"
+                  placeholder="ejemplo@correo.com o admin"
+                  required
+                  autoComplete="username"
+                />
               </div>
-
-              {role === "admin" && (
-                <div className="flex flex-col gap-1">
-                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Contraseña de administrador</label>
-                  <input type="password" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className="input" placeholder="••••••••" required autoComplete="new-password" />
-                </div>
-              )}
-
-              {/* Correo + contraseña igual para cliente Y empresa */}
-              {role !== "admin" && (
-                <>
-                  <div className="flex flex-col gap-1">
-                    <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Correo electrónico</label>
-                    <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="input" placeholder="ejemplo@correo.com" required />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Contraseña</label>
-                    <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="input" placeholder="••••••••" required autoComplete="current-password" />
-                  </div>
-                </>
-              )}
+              <div className="flex flex-col gap-1">
+                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Contraseña</label>
+                <input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="input"
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+              </div>
 
               {error && <div className="message-error">{error}</div>}
               <button type="submit" className="primary-btn w-full flex justify-center items-center mt-1" disabled={isLoading}>
                 {isLoading ? "Verificando..." : "Entrar"}
               </button>
+
+              <p style={{ textAlign: "center", fontSize: "var(--text-xs)", color: "var(--text-secondary)", marginTop: 4 }}>
+                ¿Eres administrador? Usa tu contraseña de acceso en el campo de contraseña.
+              </p>
             </form>
           )}
 
@@ -208,19 +228,16 @@ export default function LoginPage() {
                 <input type="text" value={regForm.Nombre} onChange={(e) => setRegForm({ ...regForm, Nombre: e.target.value })} className="input" placeholder={registerRole === "cliente" ? "Ej. María López" : "Ej. Peluquería Carmen"} required />
               </div>
 
-              {/* Correo — ambos tipos */}
               <div className="flex flex-col gap-1">
                 <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Correo electrónico</label>
                 <input type="email" value={regForm.Correo} onChange={(e) => setRegForm({ ...regForm, Correo: e.target.value })} className="input" placeholder="ejemplo@correo.com" required />
               </div>
 
-              {/* Teléfono — ambos tipos */}
               <div className="flex flex-col gap-1">
                 <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Teléfono</label>
                 <input type="tel" value={regForm.Telefono} onChange={(e) => setRegForm({ ...regForm, Telefono: e.target.value })} className="input" placeholder="Ej. 600000000" pattern="[0-9]{9}" title="Debe contener 9 números" />
               </div>
 
-              {/* Dirección — solo empresa */}
               {registerRole === "empresa" && (
                 <div className="flex flex-col gap-1">
                   <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Dirección / Localización</label>

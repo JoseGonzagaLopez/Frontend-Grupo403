@@ -1,12 +1,15 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, Scissors, Star, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Calendar, Scissors, Clock, Star, UserCircle } from "lucide-react";
 
 const menuItems = [
+  { label: "Inicio", href: "/negocio/dashboard", icon: LayoutDashboard },
   { label: "Reservas", href: "/negocio/reservas", icon: Calendar },
   { label: "Servicios", href: "/negocio/servicios", icon: Scissors },
+  { label: "Disponibilidad", href: "/negocio/disponibilidad", icon: Clock },
   { label: "Reseñas", href: "/negocio/resenas", icon: Star },
+  { label: "Perfil", href: "/negocio/perfil", icon: UserCircle },
 ];
 
 interface Props { isOpen?: boolean; setIsOpen?: (v: boolean) => void; }
@@ -23,7 +26,9 @@ export default function NegocioSidebar({ isOpen, setIsOpen }: Props) {
 
       <nav className="admin-sidebar__nav">
         {menuItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+          const isActive = item.href === "/negocio/dashboard"
+            ? pathname === item.href || pathname === "/negocio"
+            : pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
             <Link

@@ -5,8 +5,14 @@ import type { Booking } from "@/lib/api";
 
 export default async function MisReservasPage() {
   const cookieStore = await cookies();
-  const customerRaw = cookieStore.get("loggedCustomer")?.value;
-  const customer = customerRaw ? JSON.parse(customerRaw) : null;
+  const customerAuthToken = cookieStore.get("customer_auth_token")?.value;
+  
+  let customer = null;
+  if (customerAuthToken) {
+    try {
+      customer = { id: parseInt(customerAuthToken, 10), Nombre: "Cliente" };
+    } catch {}
+  }
 
   let allAppointments: Booking[] = [];
   try {

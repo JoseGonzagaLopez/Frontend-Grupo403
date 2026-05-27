@@ -18,7 +18,7 @@ export default function ClienteLayout({ children }: { children: React.ReactNode 
           title="BookFlow"
           subtitle="Portal de cliente"
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          userName="Cliente"
+          userName="Mi cuenta"
           userRole="Cliente"
           onLogout={async () => {
             await logOutCustomer();

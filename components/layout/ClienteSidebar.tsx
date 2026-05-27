@@ -1,11 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, Home } from "lucide-react";
+import { Home, CalendarDays, Compass, UserCircle } from "lucide-react";
 
 const menuItems = [
-  { label: "Hacer reserva", href: "/reservar", icon: Home },
-  { label: "Mis reservas", href: "/cliente/mis-reservas", icon: CalendarDays },
+  { label: "Inicio", href: "/cliente", icon: Home, exact: true },
+  { label: "Reservas", href: "/cliente/mis-reservas", icon: CalendarDays },
+  { label: "Descubrir", href: "/cliente/descubrir", icon: Compass },
+  { label: "Mi perfil", href: "/cliente/perfil", icon: UserCircle },
 ];
 
 interface Props { isOpen?: boolean; setIsOpen?: (v: boolean) => void; }
@@ -22,7 +24,9 @@ export default function ClienteSidebar({ isOpen, setIsOpen }: Props) {
 
       <nav className="admin-sidebar__nav">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/reservar" && pathname.startsWith(item.href));
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
             <Link

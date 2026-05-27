@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LayoutDashboard, Building2, Users, FileCheck } from "lucide-react";
 
 const menuItems = [
-  { label: "Panel de control", href: "/dashboard", icon: "◫" },
-  { label: "Reservas", href: "/bookings", icon: "☰" },
-  { label: "Clientes", href: "/customers", icon: "◎" },
-  { label: "Pagos", href: "/payments", icon: "◌" },
-  { label: "Negocios", href: "/negocios", icon: "❖" },
-  { label: "Solicitudes perfil", href: "/solicitudes", icon: "⚑" },
+  { label: "Inicio", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Negocios", href: "/negocios", icon: Building2 },
+  { label: "Usuarios", href: "/customers", icon: Users },
+  { label: "Solicitudes", href: "/solicitudes", icon: FileCheck },
 ];
 
 interface SidebarProps {
@@ -24,12 +23,13 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     <aside className={`admin-sidebar ${isOpen ? "admin-sidebar--open" : ""}`}>
       <div className="admin-sidebar__brand">
         <h2 className="admin-sidebar__title">BookFlow</h2>
-        <p className="admin-sidebar__subtitle">Admin workspace</p>
+        <p className="admin-sidebar__subtitle">Panel de administración</p>
       </div>
 
       <nav className="admin-sidebar__nav">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          const Icon = item.icon;
 
           return (
             <Link
@@ -38,7 +38,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               onClick={() => setIsOpen && setIsOpen(false)}
               className={`admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""}`}
             >
-              <span>{item.icon}</span>
+              <Icon size={18} />
               <span>{item.label}</span>
             </Link>
           );

@@ -482,6 +482,8 @@ export default function BookingsClient({
 
       const created = await createAppointment({
         ...createForm,
+        customerId: createForm.customerId as number,
+        businessId: createForm.businessId as number,
         importe: importeValue,
       });
       setBookings((prev) => [created, ...prev]);
@@ -530,8 +532,8 @@ export default function BookingsClient({
         date: editForm.date,
         time: editForm.time,
         status: editForm.status,
-        customerId: editForm.customerId,
-        businessId: editForm.businessId,
+        customerId: editForm.customerId as number,
+        businessId: editForm.businessId as number,
         serviceName: editForm.serviceName,
         importe: importeValue,
       };
