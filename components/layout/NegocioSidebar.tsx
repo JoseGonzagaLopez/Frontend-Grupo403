@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, Scissors, Star, ChevronRight } from "lucide-react";
+import { Calendar, Scissors, Star } from "lucide-react";
 
 const menuItems = [
   { label: "Reservas", href: "/negocio/reservas", icon: Calendar },
@@ -17,7 +17,7 @@ export default function NegocioSidebar({ isOpen, setIsOpen }: Props) {
   return (
     <aside className={`admin-sidebar ${isOpen ? "admin-sidebar--open" : ""}`}>
       <div className="admin-sidebar__brand">
-        <h2 className="admin-sidebar__title">BookFlow</h2>
+        <h2 className="admin-sidebar__title">Buk-A</h2>
         <p className="admin-sidebar__subtitle">Portal de negocio</p>
       </div>
 

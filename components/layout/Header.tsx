@@ -17,7 +17,7 @@ interface HeaderProps {
 
 export default function Header({
   onMenuClick,
-  title = "BookFlow Admin",
+  title = "Buk-A Admin",
   subtitle = "Plataforma de gestión de reservas y cobros",
   userName = "Administrador",
   userRole = "Administrador",

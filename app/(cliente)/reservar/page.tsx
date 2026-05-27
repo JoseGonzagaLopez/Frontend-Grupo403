@@ -3,8 +3,8 @@ import { getBusinesses, getCustomers } from "@/lib/api";
 import { getCustomerSession } from "@/lib/actions";
 
 export const metadata = {
-  title: "Reservar Cita — BookFlow",
-  description: "Reserva tu cita de forma rápida y sencilla con BookFlow.",
+  title: "Reservar Cita — Buk-A",
+  description: "Reserva tu cita de forma rápida y sencilla con Buk-A.",
 };
 
 export default async function ReservarPage() {

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "BookFlow — Bookings Admin",
+  title: "Buk-A — Bookings Admin",
   description: "Panel de administración de reservas, clientes y cobros",
 };
 

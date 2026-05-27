@@ -32,7 +32,7 @@ export default function NegocioHeader({ onMenuClick }: Props) {
             <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
-        <span className="admin-header__title">BookFlow</span>
+        <span className="admin-header__title">Buk-A</span>
         <span className="admin-header__subtitle">Portal de negocio</span>
       </div>
       <div className="admin-header__actions">

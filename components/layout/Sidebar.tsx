@@ -23,7 +23,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   return (
     <aside className={`admin-sidebar ${isOpen ? "admin-sidebar--open" : ""}`}>
       <div className="admin-sidebar__brand">
-        <h2 className="admin-sidebar__title">BookFlow</h2>
+        <h2 className="admin-sidebar__title">Buk-A</h2>
         <p className="admin-sidebar__subtitle">Admin workspace</p>
       </div>
 

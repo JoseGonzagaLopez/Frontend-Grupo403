@@ -21,7 +21,7 @@ export default function ClienteLayoutClient({
       <ClienteSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       <div className="admin-main">
         <Header
-          title="BookFlow"
+          title="Buk-A"
           subtitle="Portal de cliente"
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
           userName={customerName}

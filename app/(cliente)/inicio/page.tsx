@@ -3,8 +3,8 @@ import { getCustomerSession } from "@/lib/actions";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "Inicio — BookFlow",
-  description: "Panel de inicio del cliente en BookFlow.",
+  title: "Inicio — Buk-A",
+  description: "Panel de inicio del cliente en Buk-A.",
 };
 
 export default async function ClienteInicioPage() {

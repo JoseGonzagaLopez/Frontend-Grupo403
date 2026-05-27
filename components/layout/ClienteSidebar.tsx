@@ -24,7 +24,7 @@ export default function ClienteSidebar({ isOpen, setIsOpen }: Props) {
   return (
     <aside className={`admin-sidebar ${isOpen ? "admin-sidebar--open" : ""}`}>
       <div className="admin-sidebar__brand">
-        <h2 className="admin-sidebar__title">BookFlow</h2>
+        <h2 className="admin-sidebar__title">Buk-A</h2>
         <p className="admin-sidebar__subtitle">Portal de cliente</p>
       </div>
       <nav className="admin-sidebar__nav">
