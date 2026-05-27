@@ -1,256 +1,324 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
 export interface FanMenuItem {
   icon: React.ReactNode;
   label: string;
   href: string;
+  /** Optional accent color for the glow, defaults to teal */
+  color?: string;
 }
 
 export interface FanMenuProps {
   items: FanMenuItem[];
-  logoSrc: string;
+  logoSrc?: string;
 }
 
-// ─── Hook: prefers-reduced-motion ───────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Hook
+// ─────────────────────────────────────────────────────────────────────────────
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReduced(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
+    const h = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
   }, []);
   return reduced;
 }
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-const START_ANGLE = 30;   // degrees
-const END_ANGLE   = 150;  // degrees
-const RADIUS      = 100;  // px
+// ─────────────────────────────────────────────────────────────────────────────
+// Geometry — arc from bottom-left origin
+// Arc sweeps from 0° (right) to 90° (up), fan opens toward upper-right
+// ─────────────────────────────────────────────────────────────────────────────
+const RADIUS   = 110;     // px — distance from trigger center to item center
+const ARC_FROM = 15;      // degrees from X-axis
+const ARC_TO   = 95;      // degrees from X-axis
+const TRIGGER_SIZE = 58;  // px
+const ITEM_SIZE    = 50;  // px
 
-// ─── Component ──────────────────────────────────────────────────────────────
-export default function FanMenu({ items, logoSrc }: FanMenuProps) {
-  const [open, setOpen] = useState(false);
-  const reduced = usePrefersReducedMotion();
+function itemPosition(index: number, total: number) {
+  const angle = total === 1
+    ? (ARC_FROM + ARC_TO) / 2
+    : ARC_FROM + (index * (ARC_TO - ARC_FROM)) / (total - 1);
+  const rad = (angle * Math.PI) / 180;
+  return {
+    x:  Math.cos(rad) * RADIUS,
+    y: -Math.sin(rad) * RADIUS, // CSS y grows downward, so negate
+  };
+}
 
-  // Close on Escape
-  const handleKeyDown = useCallback(
+// ─────────────────────────────────────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────────────────────────────────────
+export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProps) {
+  const [open, setOpen]           = useState(false);
+  const [hovered, setHovered]     = useState<number | null>(null);
+  const reduced                   = usePrefersReducedMotion();
+  const triggerRef                = useRef<HTMLButtonElement>(null);
+
+  /* close on Escape */
+  const onKey = useCallback(
     (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); },
     []
   );
   useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onKey]);
 
-  // Lock body scroll when open
+  /* prevent background scroll when open */
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  // Position for each item along the arc
-  function getItemPosition(index: number): { x: number; y: number } {
-    const angle =
-      items.length === 1
-        ? (START_ANGLE + END_ANGLE) / 2
-        : START_ANGLE + (index * (END_ANGLE - START_ANGLE)) / (items.length - 1);
-    const rad = (angle * Math.PI) / 180;
-    return {
-      x: Math.cos(rad) * RADIUS,
-      y: Math.sin(rad) * RADIUS,
-    };
-  }
+  const spring  = `cubic-bezier(0.34,1.56,0.64,1)`;
+  const smooth  = `cubic-bezier(0.25,0.46,0.45,0.94)`;
+  const fast    = `cubic-bezier(0.16,1,0.30,1)`;
 
-  // ── Styles ────────────────────────────────────────────────────────────────
-  const wrapperStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 16,
-    left: 16,
-    zIndex: 300,
-    width: 60,
-    height: 60,
-  };
-
-  const overlayStyle: React.CSSProperties = {
-    position: "fixed",
-    inset: 0,
-    zIndex: 290,
-    background: "rgba(0,0,0,0.30)",
-    backdropFilter: "blur(4px)",
-    WebkitBackdropFilter: "blur(4px)",
-    opacity: open ? 1 : 0,
-    pointerEvents: open ? "auto" : "none",
-    transition: reduced ? "none" : "opacity 200ms ease",
-  };
-
-  const triggerStyle: React.CSSProperties = {
-    position: "relative",
-    zIndex: 310,
-    width: 60,
-    height: 60,
-    borderRadius: "50%",
-    overflow: "hidden",
-    border: "2px solid rgba(255,255,255,0.25)",
-    cursor: "pointer",
-    background: "rgba(255,255,255,0.10)",
-    backdropFilter: "blur(20px)",
-    WebkitBackdropFilter: "blur(20px)",
-    boxShadow: open
-      ? "0 8px 32px rgba(0,0,0,0.40), 0 0 20px var(--color-teal-glow)"
-      : "0 4px 20px rgba(0,0,0,0.30)",
-    transform: open ? "rotate(15deg)" : "rotate(0deg)",
-    transition: reduced
-      ? "none"
-      : `transform var(--duration-normal, 350ms) var(--ease-spring, cubic-bezier(0.34,1.56,0.64,1)),
-         box-shadow var(--duration-fast, 200ms) var(--ease-smooth, cubic-bezier(0.25,0.46,0.45,0.94))`,
-    padding: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  };
-
-  const logoStyle: React.CSSProperties = {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    borderRadius: "50%",
-    pointerEvents: "none",
-    userSelect: "none",
-  };
-
-  // ── Fan items ─────────────────────────────────────────────────────────────
   return (
     <>
-      {/* Overlay */}
+      {/* ── Backdrop overlay ─────────────────────────────── */}
       <div
         aria-hidden="true"
-        style={overlayStyle}
         onClick={() => setOpen(false)}
+        style={{
+          position: "fixed", inset: 0, zIndex: 290,
+          background: open ? "rgba(5,5,16,0.45)" : "transparent",
+          backdropFilter: open ? "blur(6px) saturate(120%)" : "none",
+          WebkitBackdropFilter: open ? "blur(6px) saturate(120%)" : "none",
+          pointerEvents: open ? "auto" : "none",
+          transition: reduced ? "none" : `background 300ms ${smooth}, backdrop-filter 300ms ${smooth}`,
+        }}
       />
 
-      {/* Container */}
-      <div style={wrapperStyle} aria-label="Menú de navegación rápida">
-
-        {/* Fan items */}
-        {items.map((item, index) => {
-          const { x, y } = getItemPosition(index);
-          // Stagger: open → delay per item, close → all at once
-          const delay = open
-            ? reduced ? 0 : index * 60
-            : 0;
-
-          const itemStyle: React.CSSProperties = {
+      {/* ── Menu root — anchored top-left ─────────────────── */}
+      <div
+        role="navigation"
+        aria-label="Menú principal"
+        style={{
+          position: "fixed", top: 20, left: 20,
+          zIndex: 310,
+          width: TRIGGER_SIZE, height: TRIGGER_SIZE,
+        }}
+      >
+        {/* ── Arc ring hint (decorative, shows when open) ── */}
+        <svg
+          aria-hidden="true"
+          style={{
             position: "absolute",
-            // Anchor at center of trigger button (30px = 60/2)
-            top: 30,
-            left: 30,
-            width: 52,
-            height: 52,
-            marginTop: -26, // half of item size
-            marginLeft: -26,
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.10)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            border: "1px solid rgba(255,255,255,0.20)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 305,
-            cursor: "pointer",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
-            // Animation
-            opacity: open ? 1 : 0,
-            transform: open
-              ? `translate(${x}px, ${-y}px) scale(1)`   // y is inverted (CSS top grows down)
-              : `translate(0px, 0px) scale(0.5)`,
-            transition: reduced
-              ? "none"
-              : open
-                ? `opacity var(--duration-normal, 350ms) var(--ease-spring, cubic-bezier(0.34,1.56,0.64,1)) ${delay}ms,
-                   transform var(--duration-normal, 350ms) var(--ease-spring, cubic-bezier(0.34,1.56,0.64,1)) ${delay}ms`
-                : `opacity var(--duration-fast, 200ms) var(--ease-smooth, cubic-bezier(0.25,0.46,0.45,0.94)),
-                   transform var(--duration-fast, 200ms) var(--ease-smooth, cubic-bezier(0.25,0.46,0.45,0.94))`,
-            pointerEvents: open ? "auto" : "none",
-          };
-
-          const tooltipStyle: React.CSSProperties = {
-            position: "absolute",
-            top: "50%",
-            left: "calc(100% + 10px)",
-            transform: "translateY(-50%)",
-            background: "rgba(10,10,40,0.85)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            border: "1px solid rgba(120,100,255,0.20)",
-            color: "#e8e8f8",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            padding: "4px 10px",
-            borderRadius: 8,
-            whiteSpace: "nowrap",
+            top: TRIGGER_SIZE / 2, left: TRIGGER_SIZE / 2,
+            width: (RADIUS + ITEM_SIZE) * 2,
+            height: (RADIUS + ITEM_SIZE) * 2,
+            transform: `translate(-50%, -50%)`,
             pointerEvents: "none",
-            opacity: 0,
-            transition: "opacity 150ms ease",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
-          };
+            opacity: open ? 0.18 : 0,
+            transition: reduced ? "none" : `opacity 250ms ${smooth}`,
+          }}
+        >
+          <circle
+            cx={RADIUS + ITEM_SIZE}
+            cy={RADIUS + ITEM_SIZE}
+            r={RADIUS}
+            fill="none"
+            stroke="rgba(79,209,197,0.9)"
+            strokeWidth="1"
+            strokeDasharray="4 6"
+          />
+        </svg>
+
+        {/* ── Fan items ──────────────────────────────────── */}
+        {items.map((item, i) => {
+          const { x, y } = itemPosition(i, items.length);
+          const delay = open ? (reduced ? 0 : i * 55) : (reduced ? 0 : (items.length - 1 - i) * 30);
+          const isHovered = hovered === i;
+          const accentColor = item.color ?? "#4fd1c5";
 
           return (
             <Link
               key={item.href}
               href={item.href}
               aria-label={item.label}
-              title={item.label}
-              style={itemStyle}
               onClick={() => setOpen(false)}
-              // Tooltip via CSS sibling trick using onMouseEnter/Leave on Link
-              onMouseEnter={(e) => {
-                const tooltip = e.currentTarget.querySelector<HTMLElement>(".fan-tooltip");
-                if (tooltip) tooltip.style.opacity = "1";
-              }}
-              onMouseLeave={(e) => {
-                const tooltip = e.currentTarget.querySelector<HTMLElement>(".fan-tooltip");
-                if (tooltip) tooltip.style.opacity = "0";
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={() => setHovered(i)}
+              onBlur={() => setHovered(null)}
+              style={{
+                /* ─ positioning ─ */
+                position: "absolute",
+                top:  TRIGGER_SIZE / 2 - ITEM_SIZE / 2,
+                left: TRIGGER_SIZE / 2 - ITEM_SIZE / 2,
+                width:  ITEM_SIZE,
+                height: ITEM_SIZE,
+                borderRadius: "50%",
+                zIndex: 305,
+
+                /* ─ glass surface ─ */
+                background: isHovered
+                  ? `rgba(79,209,197,0.18)`
+                  : `rgba(255,255,255,0.08)`,
+                backdropFilter: "blur(20px) saturate(180%)",
+                WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                border: isHovered
+                  ? `1px solid ${accentColor}55`
+                  : `1px solid rgba(255,255,255,0.18)`,
+                boxShadow: isHovered
+                  ? `0 0 0 4px ${accentColor}22, 0 8px 32px rgba(0,0,0,0.50)`
+                  : `0 4px 18px rgba(0,0,0,0.40)`,
+
+                /* ─ layout ─ */
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: isHovered ? accentColor : "rgba(232,232,248,0.85)",
+                fontSize: 20,
+                textDecoration: "none",
+                cursor: "pointer",
+
+                /* ─ animation ─ */
+                opacity:   open ? 1 : 0,
+                transform: open
+                  ? `translate(${x}px, ${y}px) scale(${isHovered ? 1.18 : 1})`
+                  : `translate(0,0) scale(0.3)`,
+                transition: reduced ? "none" : open
+                  ? `opacity  350ms ${spring} ${delay}ms,
+                     transform 400ms ${spring} ${delay}ms,
+                     background 180ms ${fast},
+                     border-color 180ms ${fast},
+                     box-shadow 180ms ${fast},
+                     color 180ms ${fast}`
+                  : `opacity  200ms ${smooth} ${delay}ms,
+                     transform 220ms ${smooth} ${delay}ms,
+                     background 180ms ${fast},
+                     border-color 180ms ${fast},
+                     box-shadow 180ms ${fast},
+                     color 180ms ${fast}`,
+                pointerEvents: open ? "auto" : "none",
               }}
             >
-              {/* Icon */}
+              {/* icon */}
+              {item.icon}
+
+              {/* floating label pill */}
               <span
+                aria-hidden="true"
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  position: "absolute",
+                  /* position label to the right of item, but above item when item is almost vertical */
+                  left: "calc(100% + 10px)",
+                  top: "50%",
+                  transform: `translateY(-50%) scale(${isHovered ? 1 : 0.85})`,
+                  transformOrigin: "left center",
+                  whiteSpace: "nowrap",
+                  background: "rgba(8,5,28,0.88)",
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  border: `1px solid rgba(120,100,255,0.25)`,
                   color: "#e8e8f8",
-                  fontSize: 22,
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  letterSpacing: "0.03em",
+                  padding: "4px 11px",
+                  borderRadius: 99,
+                  pointerEvents: "none",
+                  opacity: isHovered ? 1 : 0,
+                  transition: reduced ? "none" : `opacity 160ms ${fast}, transform 200ms ${spring}`,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.45)",
                 }}
               >
-                {item.icon}
-              </span>
-
-              {/* Tooltip */}
-              <span className="fan-tooltip" style={tooltipStyle} aria-hidden="true">
                 {item.label}
               </span>
             </Link>
           );
         })}
 
-        {/* Trigger button */}
+        {/* ── Trigger button ─────────────────────────────── */}
         <button
+          ref={triggerRef}
           type="button"
           aria-expanded={open}
-          aria-label={open ? "Cerrar menú" : "Abrir menú de navegación"}
-          style={triggerStyle}
-          onClick={() => setOpen((v) => !v)}
+          aria-haspopup="menu"
+          aria-label={open ? "Cerrar menú" : "Abrir menú"}
+          onClick={() => setOpen(v => !v)}
+          style={{
+            position: "relative",
+            zIndex: 315,
+            width: TRIGGER_SIZE, height: TRIGGER_SIZE,
+            borderRadius: "50%",
+            border: open
+              ? "2px solid rgba(79,209,197,0.55)"
+              : "2px solid rgba(255,255,255,0.22)",
+            background: open
+              ? "rgba(79,209,197,0.12)"
+              : "rgba(255,255,255,0.10)",
+            backdropFilter: "blur(24px) saturate(200%)",
+            WebkitBackdropFilter: "blur(24px) saturate(200%)",
+            boxShadow: open
+              ? `0 0 0 6px rgba(79,209,197,0.12), 0 8px 32px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.18)`
+              : `0 4px 20px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.14)`,
+            cursor: "pointer",
+            padding: 0,
+            overflow: "hidden",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transform: open ? "rotate(15deg) scale(1.05)" : "rotate(0deg) scale(1)",
+            transition: reduced ? "none" :
+              `transform 420ms ${spring},
+               border-color 250ms ${smooth},
+               background 250ms ${smooth},
+               box-shadow 250ms ${smooth}`,
+          }}
         >
-          <img src={logoSrc} alt="Buk-A" style={logoStyle} />
+          {/* glow ring pulse when closed */}
+          {!open && (
+            <span
+              aria-hidden="true"
+              style={{
+                position: "absolute", inset: -6,
+                borderRadius: "50%",
+                border: "1.5px solid rgba(79,209,197,0.25)",
+                animation: reduced ? "none" : "fanPulse 2.5s ease-in-out infinite",
+                pointerEvents: "none",
+              }}
+            />
+          )}
+
+          {/* favicon / logo */}
+          <Image
+            src={logoSrc}
+            alt="Buk-A"
+            width={TRIGGER_SIZE}
+            height={TRIGGER_SIZE}
+            style={{
+              width: "100%", height: "100%",
+              objectFit: "cover",
+              borderRadius: "50%",
+              pointerEvents: "none",
+              userSelect: "none",
+            }}
+            draggable={false}
+            priority
+          />
         </button>
 
+        {/* ── Keyframe injection ─────────────────────────── */}
+        <style>{`
+          @keyframes fanPulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50%       { opacity: 1;   transform: scale(1.15); }
+          }
+        `}</style>
       </div>
     </>
   );

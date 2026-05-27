@@ -4,16 +4,10 @@ import { CalendarDays, CalendarPlus, Home } from "lucide-react";
 import FanMenu from "@/components/FanMenu";
 
 const menuItems = [
-  { label: "Inicio",        href: "/inicio",      Icon: Home },
-  { label: "Hacer reserva", href: "/reservar",     Icon: CalendarPlus },
-  { label: "Mis reservas",  href: "/mis-reservas", Icon: CalendarDays },
+  { label: "Inicio",        href: "/inicio",      icon: <Home        size={22} />, color: "#4fd1c5" },
+  { label: "Hacer reserva", href: "/reservar",     icon: <CalendarPlus size={22} />, color: "#a78bfa" },
+  { label: "Mis reservas",  href: "/mis-reservas", icon: <CalendarDays size={22} />, color: "#6c3fc4" },
 ];
-
-const fanItems = menuItems.map((item) => ({
-  icon: <item.Icon size={20} />,
-  label: item.label,
-  href: item.href,
-}));
 
 export default function ClienteSidebar() {
   const pathname = usePathname();
@@ -27,16 +21,15 @@ export default function ClienteSidebar() {
 
   return (
     <>
-      {/* ── Desktop sidebar (≥1024px) ── */}
+      {/* ── Desktop sidebar ──────────────────────────── */}
       <aside className="admin-sidebar glass-surface sidebar">
         <div className="admin-sidebar__brand">
           <h2 className="admin-sidebar__title">Buk-A</h2>
           <p className="admin-sidebar__subtitle">Portal de cliente</p>
         </div>
         <nav className="admin-sidebar__nav">
-          {menuItems.map(({ href, label, Icon }) => {
-            const isActive =
-              pathname === href || pathname.startsWith(href + "/");
+          {menuItems.map(({ href, label, icon }) => {
+            const isActive = pathname === href || pathname.startsWith(href + "/");
             return (
               <a
                 key={href}
@@ -46,7 +39,7 @@ export default function ClienteSidebar() {
                   isActive ? "admin-sidebar__link--active" : ""
                 }`}
               >
-                <Icon size={18} />
+                {icon}
                 <span>{label}</span>
               </a>
             );
@@ -54,9 +47,9 @@ export default function ClienteSidebar() {
         </nav>
       </aside>
 
-      {/* ── Mobile FanMenu (<1024px) ── */}
+      {/* ── Mobile FanMenu ────────────────────────────── */}
       <div className="fan-menu-container">
-        <FanMenu items={fanItems} logoSrc="/favicon.ico" />
+        <FanMenu items={menuItems} logoSrc="/favicon.ico" />
       </div>
     </>
   );
