@@ -15,9 +15,11 @@ export default function ClienteSidebar({ isOpen, setIsOpen }: Props) {
   const pathname = usePathname();
   const router = useRouter();
 
-  function handleNav(href: string) {
+  function handleNav(e: React.MouseEvent, href: string) {
+    e.preventDefault();
+    e.stopPropagation();
     if (setIsOpen) setIsOpen(false);
-    router.push(href);
+    setTimeout(() => router.push(href), 0);
   }
 
   return (
@@ -31,15 +33,15 @@ export default function ClienteSidebar({ isOpen, setIsOpen }: Props) {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
           return (
-            <button
+            <a
               key={item.href}
-              onClick={() => handleNav(item.href)}
+              href={item.href}
+              onClick={(e) => handleNav(e, item.href)}
               className={`admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""}`}
-              style={{ width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer" }}
             >
               <Icon size={18} />
               <span>{item.label}</span>
-            </button>
+            </a>
           );
         })}
       </nav>
