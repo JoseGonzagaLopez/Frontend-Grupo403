@@ -288,11 +288,12 @@ export async function deleteBusiness(id: number): Promise<void> {
   if (!res.ok) throw new Error("Error al eliminar el negocio");
 }
 
+// Login cliente: acepta username O correo electronico
 export async function loginCustomer(identifier: string, password?: string): Promise<Customer> {
   const res = await fetch(`${API_URL}/clientes/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ Correo: identifier, password }),
+    body: JSON.stringify({ identifier, password }),
   });
   if (!res.ok) throw new Error("Credenciales incorrectas.");
   return res.json();
@@ -344,7 +345,7 @@ export async function registerBusiness(data: RegisterBusinessDto): Promise<Regis
   return res.json();
 }
 
-// ── SERVICIOS ─────────────────────────────────────────────────────────────────
+// ── SERVICIOS ─────────────────────────────────────────────────────────────────────────────────
 
 export async function getServices(businessId: number): Promise<Service[]> {
   const res = await fetch(`${API_URL}/servicios?businessId=${businessId}`, { cache: "no-store" });
@@ -377,7 +378,7 @@ export async function deleteService(id: number): Promise<void> {
   if (!res.ok) throw new Error("Error al eliminar el servicio");
 }
 
-// ── RESENAS ───────────────────────────────────────────────────────────────────
+// ── RESENAS ───────────────────────────────────────────────────────────────────────────────────
 
 export async function getResenas(businessId?: number): Promise<Resena[]> {
   const url = businessId
@@ -410,7 +411,7 @@ export async function deleteResena(id: number): Promise<void> {
   if (!res.ok) throw new Error("Error al eliminar la resena");
 }
 
-// ── SOLICITUDES DE CAMBIO DE PERFIL ───────────────────────────────────────────
+// ── SOLICITUDES DE CAMBIO DE PERFIL ────────────────────────────────────────────────────
 
 export async function submitProfileChange(businessId: number, cambios: Record<string, any>): Promise<void> {
   const res = await fetch(`${API_URL}/negocios/${businessId}/solicitudes-perfil`, {
