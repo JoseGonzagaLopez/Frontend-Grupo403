@@ -49,7 +49,7 @@ export default function LoginPage() {
         await loginCustomerAction(customer.id);
         setSuccessMessage("Sesión iniciada");
         setIsSuccess(true);
-        setTimeout(() => { window.location.href = "/reservar"; }, 800);
+        setTimeout(() => { window.location.href = "/inicio"; }, 800);
       } else {
         // empresa: usa Correo igual que el cliente
         const business = await loginBusiness(loginEmail, loginPassword);
@@ -79,7 +79,7 @@ export default function LoginPage() {
         await loginCustomerAction(customer.id);
         setSuccessMessage("Cuenta creada y sesión iniciada");
         setIsSuccess(true);
-        setTimeout(() => { window.location.href = "/reservar"; }, 800);
+        setTimeout(() => { window.location.href = "/inicio"; }, 800);
       } else {
         await registerBusiness({
           Nombre: regForm.Nombre,

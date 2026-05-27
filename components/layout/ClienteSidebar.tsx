@@ -1,11 +1,11 @@
 "use client";
 import { useRouter, usePathname } from "next/navigation";
-import { CalendarDays, CalendarPlus } from "lucide-react";
+import { CalendarDays, CalendarPlus, Home } from "lucide-react";
 
 const menuItems = [
+  { label: "Inicio", href: "/inicio", icon: Home },
   { label: "Hacer reserva", href: "/reservar", icon: CalendarPlus },
   { label: "Mis reservas", href: "/mis-reservas", icon: CalendarDays },
-
 ];
 
 interface Props { isOpen?: boolean; setIsOpen?: (v: boolean) => void; }
