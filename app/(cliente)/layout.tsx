@@ -5,7 +5,7 @@ import ClienteLayoutClient from "./ClienteLayoutClient";
 
 export default async function ClienteLayout({ children }: { children: React.ReactNode }) {
   const customerId = await getCustomerSession();
-  if (!customerId) redirect("/login");
+  if (!customerId) redirect("/cliente/login");
 
   let customerName = "Cliente";
   try {
