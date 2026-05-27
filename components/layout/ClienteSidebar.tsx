@@ -1,49 +1,63 @@
 "use client";
 import { useRouter, usePathname } from "next/navigation";
 import { CalendarDays, CalendarPlus, Home } from "lucide-react";
+import FanMenu from "@/components/FanMenu";
 
 const menuItems = [
-  { label: "Inicio",        href: "/inicio",        icon: Home },
-  { label: "Hacer reserva", href: "/reservar",       icon: CalendarPlus },
-  { label: "Mis reservas",  href: "/mis-reservas",   icon: CalendarDays },
+  { label: "Inicio",        href: "/inicio",      Icon: Home },
+  { label: "Hacer reserva", href: "/reservar",     Icon: CalendarPlus },
+  { label: "Mis reservas",  href: "/mis-reservas", Icon: CalendarDays },
 ];
 
-interface Props { isOpen?: boolean; setIsOpen?: (v: boolean) => void; }
+const fanItems = menuItems.map((item) => ({
+  icon: <item.Icon size={20} />,
+  label: item.label,
+  href: item.href,
+}));
 
-export default function ClienteSidebar({ isOpen, setIsOpen }: Props) {
+export default function ClienteSidebar() {
   const pathname = usePathname();
   const router   = useRouter();
 
   function handleNav(e: React.MouseEvent, href: string) {
     e.preventDefault();
     e.stopPropagation();
-    if (setIsOpen) setIsOpen(false);
-    setTimeout(() => router.push(href), 0);
+    router.push(href);
   }
 
   return (
-    <aside className={`admin-sidebar ${isOpen ? "admin-sidebar--open" : ""}`}>
-      <div className="admin-sidebar__brand">
-        <h2 className="admin-sidebar__title">Buk-A</h2>
-        <p className="admin-sidebar__subtitle">Portal de cliente</p>
+    <>
+      {/* ── Desktop sidebar (≥1024px) ── */}
+      <aside className="admin-sidebar glass-surface sidebar">
+        <div className="admin-sidebar__brand">
+          <h2 className="admin-sidebar__title">Buk-A</h2>
+          <p className="admin-sidebar__subtitle">Portal de cliente</p>
+        </div>
+        <nav className="admin-sidebar__nav">
+          {menuItems.map(({ href, label, Icon }) => {
+            const isActive =
+              pathname === href || pathname.startsWith(href + "/");
+            return (
+              <a
+                key={href}
+                href={href}
+                onClick={(e) => handleNav(e, href)}
+                className={`admin-sidebar__link ${
+                  isActive ? "admin-sidebar__link--active" : ""
+                }`}
+              >
+                <Icon size={18} />
+                <span>{label}</span>
+              </a>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* ── Mobile FanMenu (<1024px) ── */}
+      <div className="fan-menu-container">
+        <FanMenu items={fanItems} logoSrc="/favicon.ico" />
       </div>
-      <nav className="admin-sidebar__nav">
-        {menuItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-          const Icon = item.icon;
-          return (
-            <a
-              key={item.href}
-              href={item.href}
-              onClick={(e) => handleNav(e, item.href)}
-              className={`admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""}`}
-            >
-              <Icon size={18} />
-              <span>{item.label}</span>
-            </a>
-          );
-        })}
-      </nav>
-    </aside>
+    </>
   );
 }

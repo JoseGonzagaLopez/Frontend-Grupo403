@@ -2,40 +2,51 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Calendar, Scissors, Star } from "lucide-react";
+import FanMenu from "@/components/FanMenu";
 
 const menuItems = [
-  { label: "Reservas",  href: "/negocio/reservas",  icon: Calendar },
-  { label: "Servicios", href: "/negocio/servicios", icon: Scissors },
-  { label: "Reseñas",   href: "/negocio/resenas",   icon: Star },
+  { label: "Reservas",  href: "/negocio/reservas",  Icon: Calendar },
+  { label: "Servicios", href: "/negocio/servicios", Icon: Scissors },
+  { label: "Reseñas",   href: "/negocio/resenas",   Icon: Star },
 ];
 
-interface Props { isOpen?: boolean; setIsOpen?: (v: boolean) => void; }
+const fanItems = menuItems.map((item) => ({
+  icon: <item.Icon size={20} />,
+  label: item.label,
+  href: item.href,
+}));
 
-export default function NegocioSidebar({ isOpen, setIsOpen }: Props) {
+export default function NegocioSidebar() {
   const pathname = usePathname();
+
   return (
-    <aside className={`admin-sidebar ${isOpen ? "admin-sidebar--open" : ""}`}>
-      <div className="admin-sidebar__brand">
-        <h2 className="admin-sidebar__title">Buk-A</h2>
-        <p className="admin-sidebar__subtitle">Portal de negocio</p>
-      </div>
-      <nav className="admin-sidebar__nav">
-        {menuItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          const Icon = item.icon;
-          return (
+    <>
+      {/* ── Desktop sidebar (≥1024px) ── */}
+      <aside className="admin-sidebar glass-surface sidebar">
+        <div className="admin-sidebar__brand">
+          <h2 className="admin-sidebar__title">Buk-A</h2>
+          <p className="admin-sidebar__subtitle">Portal de negocio</p>
+        </div>
+        <nav className="admin-sidebar__nav">
+          {menuItems.map(({ href, label, Icon }) => (
             <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setIsOpen && setIsOpen(false)}
-              className={`admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""}`}
+              key={href}
+              href={href}
+              className={`admin-sidebar__link ${
+                pathname.startsWith(href) ? "admin-sidebar__link--active" : ""
+              }`}
             >
               <Icon size={18} />
-              <span>{item.label}</span>
+              <span>{label}</span>
             </Link>
-          );
-        })}
-      </nav>
-    </aside>
+          ))}
+        </nav>
+      </aside>
+
+      {/* ── Mobile FanMenu (<1024px) ── */}
+      <div className="fan-menu-container">
+        <FanMenu items={fanItems} logoSrc="/favicon.ico" />
+      </div>
+    </>
   );
 }

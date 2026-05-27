@@ -73,6 +73,7 @@
   --radius-lg: 18px;
   --radius-xl: 24px;
   --radius-2xl:32px;
+  --radius-full: 9999px;
 
   --blur-sm:  blur(8px)  saturate(160%);
   --blur-md:  blur(16px) saturate(180%);
@@ -160,6 +161,7 @@
   --shadow-lg:   0 8px 32px rgba(15,10,60,0.12), inset 0 1px 0 rgba(255,255,255,0.70);
   --shadow-float:0 20px 60px rgba(15,10,60,0.15),inset 0 1px 0 rgba(255,255,255,0.80);
   --shadow-glow: 0 0 30px var(--teal-glow);
+  --radius-full: 9999px;
 }
 
 /* ─── RESET ─── */
@@ -266,6 +268,19 @@ button, input, select, textarea { font: inherit; }
   box-shadow: var(--shadow-lg);
 }
 
+/* ─── RESPONSIVE SIDEBAR / FAN MENU ─── */
+/* Mobile: ocultar sidebar lateral, mostrar FanMenu */
+@media (max-width: 1023px) {
+  .sidebar { display: none !important; }
+  .fan-menu-container { display: block; }
+}
+/* Desktop: mostrar sidebar, ocultar FanMenu */
+@media (min-width: 1024px) {
+  .fan-menu-container { display: none; }
+  /* Restaurar sidebar desktop (anulada por la regla mobile) */
+  .admin-sidebar.sidebar { display: flex !important; }
+}
+
 /* ─── LAYOUT SHELL ─── */
 .admin-shell {
   display: flex;
@@ -283,8 +298,8 @@ button, input, select, textarea { font: inherit; }
   -webkit-backdrop-filter: var(--blur-lg);
   border-right: 1px solid var(--border);
   padding: var(--space-5) var(--space-4);
-  position: fixed;
-  left: calc(-1 * var(--sidebar-width));
+  /* Desktop: fijo en el lado izquierdo */
+  position: sticky;
   top: 0;
   height: 100vh;
   height: 100dvh;
@@ -294,9 +309,8 @@ button, input, select, textarea { font: inherit; }
   box-shadow: var(--shadow-lg);
   overflow-y: auto;
   z-index: 100;
-  transition: left var(--transition-smooth);
+  flex-shrink: 0;
 }
-.admin-sidebar--open { left: 0; }
 
 .sidebar-overlay {
   position: fixed;
@@ -402,20 +416,6 @@ button, input, select, textarea { font: inherit; }
 }
 
 .admin-header__left { display: flex; align-items: center; gap: var(--space-3); }
-
-.hamburger-btn {
-  background: transparent;
-  border: none;
-  color: var(--text);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-}
-.hamburger-btn:hover { background: var(--surface-2); }
 
 .admin-header__title {
   font-size: var(--text-base);
@@ -688,34 +688,13 @@ button, input, select, textarea { font: inherit; }
   -webkit-backdrop-filter: blur(8px);
   color: var(--text);
 }
-/* Variantes semánticas glass */
-.badge--pending   {
-  background: rgba(251,191,36,0.12);
-  color: var(--warning-text);
-  border-color: rgba(251,191,36,0.25);
-}
+.badge--pending   { background: rgba(251,191,36,0.12);  color: var(--warning-text); border-color: rgba(251,191,36,0.25); }
 .badge--confirmed,
-.badge--success   {
-  background: rgba(79,209,197,0.12);
-  color: var(--success-text);
-  border-color: rgba(79,209,197,0.25);
-}
-.badge--paid      {
-  background: rgba(108,63,196,0.15);
-  color: var(--paid-text);
-  border-color: rgba(108,63,196,0.25);
-}
+.badge--success   { background: rgba(79,209,197,0.12);  color: var(--success-text); border-color: rgba(79,209,197,0.25); }
+.badge--paid      { background: rgba(108,63,196,0.15);  color: var(--paid-text);    border-color: rgba(108,63,196,0.25); }
 .badge--cancelled,
-.badge--error     {
-  background: rgba(248,113,113,0.12);
-  color: var(--danger);
-  border-color: rgba(248,113,113,0.25);
-}
-.badge--warning   {
-  background: rgba(251,191,36,0.12);
-  color: var(--warning-text);
-  border-color: rgba(251,191,36,0.20);
-}
+.badge--error     { background: rgba(248,113,113,0.12); color: var(--danger);       border-color: rgba(248,113,113,0.25); }
+.badge--warning   { background: rgba(251,191,36,0.12);  color: var(--warning-text); border-color: rgba(251,191,36,0.20); }
 
 /* ─── INFO STACK ─── */
 .info-stack { display: flex; flex-direction: column; gap: var(--space-3); }
@@ -838,7 +817,6 @@ button, input, select, textarea { font: inherit; }
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  border: none;
   background: rgba(248, 113, 113, 0.15);
   color: var(--danger);
   border: 1px solid rgba(248, 113, 113, 0.30);
@@ -1127,7 +1105,6 @@ textarea::placeholder { color: var(--text-tertiary); }
   position: relative;
   overflow: hidden;
 }
-/* grid tenue sobre el fondo de login */
 .login-page::after {
   content: '';
   position: absolute;
