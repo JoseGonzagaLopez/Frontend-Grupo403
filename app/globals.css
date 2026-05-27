@@ -8,44 +8,51 @@
 /* ─── TOKENS MODO OSCURO (principal) ─── */
 :root,
 [data-theme="dark"] {
-  /* Fondos */
-  --bg-color:        #050510;
+  /* ── Paleta Liquid Glass ── */
+  --color-bg:          #050510;
+  --color-surface:     rgba(10, 10, 40, 0.55);
+  --color-surface-2:   rgba(20, 10, 60, 0.45);
+  --color-border:      rgba(120, 100, 255, 0.18);
+  --color-text:        #e8e8f8;
+  --color-text-muted:  rgba(200, 195, 240, 0.65);
+  --color-primary:     #2d1b8e;
+  --color-accent:      #6c3fc4;
+  --color-teal:        #4fd1c5;
+  --color-teal-glow:   rgba(79, 209, 197, 0.25);
+  --color-glow-primary:rgba(45, 27, 142, 0.40);
+  --color-glow-accent: rgba(108, 63, 196, 0.35);
+
+  /* ── Aliases internos (usados por componentes) ── */
+  --bg-color:        var(--color-bg);
   --bg-grid:         rgba(120, 100, 255, 0.04);
 
-  /* Superficies glass */
-  --surface:         rgba(10, 10, 40, 0.55);
+  --surface:         var(--color-surface);
   --surface-solid:   rgba(14, 12, 45, 0.80);
   --surface-hover:   rgba(20, 15, 60, 0.70);
-  --surface-2:       rgba(20, 10, 60, 0.45);
+  --surface-2:       var(--color-surface-2);
 
-  /* Bordes */
-  --border:          rgba(120, 100, 255, 0.18);
+  --border:          var(--color-border);
   --border-strong:   rgba(140, 120, 255, 0.30);
   --border-glow:     rgba(79, 209, 197, 0.20);
 
-  /* Texto */
-  --text:            #e8e8f8;
+  --text:            var(--color-text);
   --text-secondary:  rgba(200, 195, 240, 0.70);
   --text-tertiary:   rgba(160, 150, 210, 0.50);
 
-  /* Acento principal: dark blue → dark purple */
-  --accent:          #6c3fc4;
+  --accent:          var(--color-accent);
   --accent-hover:    #8255e0;
   --accent-soft:     rgba(108, 63, 196, 0.18);
   --accent-glow:     rgba(108, 63, 196, 0.40);
 
-  /* Teal / Verde perla */
-  --teal:            #4fd1c5;
+  --teal:            var(--color-teal);
   --teal-hover:      #38b2a8;
   --teal-soft:       rgba(79, 209, 197, 0.15);
-  --teal-glow:       rgba(79, 209, 197, 0.30);
+  --teal-glow:       var(--color-teal-glow);
 
-  /* Glows de fondo */
-  --glow-primary:    rgba(45, 27, 142, 0.45);
-  --glow-accent:     rgba(108, 63, 196, 0.35);
+  --glow-primary:    var(--color-glow-primary);
+  --glow-accent:     var(--color-glow-accent);
   --glow-teal:       rgba(79, 209, 197, 0.08);
 
-  /* Estados */
   --danger:          #f87171;
   --danger-hover:    #fca5a5;
   --success-bg:      rgba(79, 209, 197, 0.12);
@@ -55,33 +62,27 @@
   --paid-bg:         rgba(108, 63, 196, 0.15);
   --paid-text:       #a78bfa;
 
-  /* Sombras */
   --shadow-sm:   0 2px 8px rgba(0,0,0,0.40);
   --shadow-md:   0 4px 20px rgba(0,0,0,0.50);
   --shadow-lg:   0 8px 32px rgba(0,0,0,0.60),  inset 0 1px 0 rgba(255,255,255,0.06);
   --shadow-float:0 20px 60px rgba(0,0,0,0.70), inset 0 1px 0 rgba(255,255,255,0.08);
   --shadow-glow: 0 0 30px var(--teal-glow);
 
-  /* Radio */
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 18px;
   --radius-xl: 24px;
   --radius-2xl:32px;
 
-  /* Blur */
   --blur-sm:  blur(8px)  saturate(160%);
   --blur-md:  blur(16px) saturate(180%);
   --blur-lg:  blur(28px) saturate(200%);
 
-  /* Sidebar */
   --sidebar-width: 260px;
 
-  /* Espaciado */
   --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
   --space-5:24px; --space-6:32px; --space-8:48px;
 
-  /* Tipografía */
   --text-xs:  0.75rem;
   --text-sm:  0.875rem;
   --text-base:1rem;
@@ -89,11 +90,15 @@
   --text-lg:  1.5rem;
   --text-xl:  2rem;
 
-  /* Animaciones */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --ease-out:    cubic-bezier(0.16, 1, 0.30, 1);
-  --duration-fast:   180ms;
+  /* ── Tipografía ── */
+  --font-body:    'SF Pro Display', 'Satoshi', 'Inter', sans-serif;
+  --font-display: 'SF Pro Display', 'Satoshi', sans-serif;
+
+  /* ── Animaciones ── */
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth:   cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out:      cubic-bezier(0.16, 1, 0.30, 1);
+  --duration-fast:   200ms;
   --duration-normal: 350ms;
   --duration-slow:   500ms;
 
@@ -104,16 +109,31 @@
 
 /* ─── TOKENS MODO CLARO ─── */
 [data-theme="light"] {
-  --bg-color:        #f0f0ff;
+  /* ── Paleta Liquid Glass Light ── */
+  --color-bg:          #f0f0ff;
+  --color-surface:     rgba(255, 255, 255, 0.60);
+  --color-surface-2:   rgba(230, 225, 255, 0.50);
+  --color-border:      rgba(100, 80, 200, 0.15);
+  --color-text:        #12102a;
+  --color-text-muted:  rgba(50, 40, 100, 0.60);
+  --color-primary:     #2d1b8e;
+  --color-accent:      #6c3fc4;
+  --color-teal:        #4fd1c5;
+  --color-teal-glow:   rgba(79, 209, 197, 0.25);
+  --color-glow-primary:rgba(45, 27, 142, 0.40);
+  --color-glow-accent: rgba(108, 63, 196, 0.35);
+
+  /* ── Aliases internos ── */
+  --bg-color:        var(--color-bg);
   --bg-grid:         rgba(100, 80, 200, 0.04);
-  --surface:         rgba(255, 255, 255, 0.62);
+  --surface:         var(--color-surface);
   --surface-solid:   rgba(248, 246, 255, 0.88);
   --surface-hover:   rgba(240, 235, 255, 0.80);
-  --surface-2:       rgba(230, 225, 255, 0.50);
-  --border:          rgba(100, 80, 200, 0.15);
+  --surface-2:       var(--color-surface-2);
+  --border:          var(--color-border);
   --border-strong:   rgba(100, 80, 200, 0.28);
   --border-glow:     rgba(79, 209, 197, 0.25);
-  --text:            #12102a;
+  --text:            var(--color-text);
   --text-secondary:  rgba(50, 40, 100, 0.68);
   --text-tertiary:   rgba(80, 65, 140, 0.45);
   --accent:          #5b2db0;
@@ -146,7 +166,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
-  font-family: 'Satoshi', 'Inter', system-ui, sans-serif;
+  font-family: var(--font-body, 'Satoshi', 'Inter', system-ui, sans-serif);
   font-size: 15px;
   background-color: var(--bg-color);
   color: var(--text);
@@ -189,14 +209,24 @@ button, input, select, textarea { font: inherit; }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(var(--accent), var(--teal));
+  background: #6c3fc4;
   border-radius: 99px;
 }
-::-webkit-scrollbar-thumb:hover { opacity: 0.8; }
+::-webkit-scrollbar-thumb:hover {
+  background: #4fd1c5;
+}
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #6c3fc4 transparent;
+}
+*:hover {
+  scrollbar-color: #4fd1c5 transparent;
+}
 
 /* ─── ANIMACIONES GLOBALES ─── */
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(18px); }
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeIn {
@@ -216,10 +246,13 @@ button, input, select, textarea { font: inherit; }
   50%      { box-shadow: 0 0 0 8px transparent; }
 }
 
+/* ─── PREFERS REDUCED MOTION ─── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -369,7 +402,6 @@ button, input, select, textarea { font: inherit; }
 
 .admin-header__left { display: flex; align-items: center; gap: var(--space-3); }
 
-/* El botón hamburguesa ahora es el logo — estilos en FanMenu.tsx inline */
 .hamburger-btn {
   background: transparent;
   border: none;
