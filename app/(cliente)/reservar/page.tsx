@@ -8,26 +8,27 @@ export const metadata = {
 };
 
 export default async function ReservarPage() {
+  let initialBusinesses = [];
+  let loggedCustomer = undefined;
+  let serverError = undefined;
+
   try {
     const customerId = await getCustomerSession();
     const [businesses, customers] = await Promise.all([
       getBusinesses(),
       getCustomers(),
     ]);
-    const loggedCustomer = customers.find((c) => c.id === customerId);
-    return (
-      <ReservarClient
-        initialBusinesses={businesses}
-        loggedCustomer={loggedCustomer}
-      />
-    );
+    initialBusinesses = businesses;
+    loggedCustomer = customers.find((c) => c.id === customerId);
   } catch {
-    return (
-      <ReservarClient
-        initialBusinesses={[]}
-        loggedCustomer={undefined}
-        serverError="No se pudo conectar con el servidor. Inténtalo más tarde."
-      />
-    );
+    serverError = "No se pudo conectar con el servidor. Inténtalo más tarde.";
   }
+
+  return (
+    <ReservarClient
+      initialBusinesses={initialBusinesses}
+      loggedCustomer={loggedCustomer}
+      serverError={serverError}
+    />
+  );
 }

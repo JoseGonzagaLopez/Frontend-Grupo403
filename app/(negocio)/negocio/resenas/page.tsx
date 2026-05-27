@@ -6,7 +6,7 @@ import { getResenas } from "@/lib/api";
 export default async function NegocioResenasPage() {
   const businessId = await getBusinessSession();
   if (!businessId) redirect("/login");
-  let resenas = [];
+  let resenas: any[] = [];
   try { resenas = await getResenas(businessId); } catch {}
   return <NegocioResenasClient resenas={resenas} />;
 }
