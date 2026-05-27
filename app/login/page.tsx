@@ -30,6 +30,9 @@ export default function LoginPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
+  const isBusinessSuccess = isSuccess && registerRole === "empresa";
+  const cardShouldAnimate = isSuccess && !isBusinessSuccess;
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -87,6 +90,7 @@ export default function LoginPage() {
         });
         setSuccessMessage("Su petición ha sido enviada");
         setIsSuccess(true);
+        setIsLoading(false);
       }
     } catch (err: any) {
       setError(err.message || "Error al registrarse");
@@ -96,21 +100,21 @@ export default function LoginPage() {
 
   const cardStyle: React.CSSProperties = {
     position: "fixed",
-    top: isSuccess ? "14px" : "50%",
-    left: isSuccess ? "calc(100vw - 24px - 38px)" : "50%",
-    width: isSuccess ? "38px" : "100%",
-    maxWidth: isSuccess ? "38px" : "440px",
-    height: isSuccess ? "38px" : "auto",
-    minHeight: isSuccess ? "38px" : "auto",
-    borderRadius: isSuccess ? "50%" : "var(--radius-xl)",
-    transform: isSuccess ? "translate(0, 0)" : "translate(-50%, -50%)",
+    top: cardShouldAnimate ? "14px" : "50%",
+    left: cardShouldAnimate ? "calc(100vw - 24px - 38px)" : "50%",
+    width: cardShouldAnimate ? "38px" : "100%",
+    maxWidth: cardShouldAnimate ? "38px" : "440px",
+    height: cardShouldAnimate ? "38px" : "auto",
+    minHeight: cardShouldAnimate ? "38px" : "auto",
+    borderRadius: cardShouldAnimate ? "50%" : "var(--radius-xl)",
+    transform: cardShouldAnimate ? "translate(0, 0)" : "translate(-50%, -50%)",
     overflow: "hidden",
-    padding: isSuccess ? "0" : "var(--space-6)",
-    border: `1px solid ${isSuccess ? "rgb(187,187,187)" : "var(--border)"}`,
+    padding: cardShouldAnimate ? "0" : "var(--space-6)",
+    border: `1px solid ${cardShouldAnimate ? "rgb(187,187,187)" : "var(--border)"}`,
     transition: "all 0.8s cubic-bezier(0.65, 0, 0.35, 1)",
     zIndex: 100,
     background: "var(--surface-solid)",
-    boxShadow: isSuccess ? "0 4px 10px var(--accent-glow)" : "var(--shadow-lg)",
+    boxShadow: cardShouldAnimate ? "0 4px 10px var(--accent-glow)" : "var(--shadow-lg)",
   };
 
   return (
@@ -122,11 +126,11 @@ export default function LoginPage() {
           alt="Logo"
           style={{
             position: "absolute",
-            top: isSuccess ? "0" : "32px",
-            left: isSuccess ? "0" : "50%",
-            transform: isSuccess ? "none" : "translateX(-50%)",
-            width: isSuccess ? "100%" : "56px",
-            height: isSuccess ? "100%" : "56px",
+            top: cardShouldAnimate ? "0" : "32px",
+            left: cardShouldAnimate ? "0" : "50%",
+            transform: cardShouldAnimate ? "none" : "translateX(-50%)",
+            width: cardShouldAnimate ? "100%" : "56px",
+            height: cardShouldAnimate ? "100%" : "56px",
             borderRadius: "50%",
             objectFit: "cover",
             transition: "all 0.8s cubic-bezier(0.65, 0, 0.35, 1)",
@@ -134,7 +138,7 @@ export default function LoginPage() {
           }}
         />
 
-        <div style={{ opacity: isSuccess ? 0 : 1, transition: "opacity 0.3s ease-out", paddingTop: "72px" }}>
+        <div style={{ opacity: cardShouldAnimate ? 0 : 1, transition: "opacity 0.3s ease-out", paddingTop: "72px" }}>
 
           <div className="flex flex-col items-center text-center gap-1 mb-5">
             <h1 style={{ fontSize: "var(--text-xl)", fontWeight: 700, color: "var(--text)", letterSpacing: "-0.03em" }}>BookFlow</h1>
@@ -265,12 +269,14 @@ export default function LoginPage() {
           <p style={{ fontSize: "var(--text-lg)", color: "var(--text)", fontWeight: 700, marginBottom: "var(--space-2)" }}>
             {successMessage}
           </p>
-          <button
-            onClick={() => { setIsSuccess(false); setSuccessMessage(""); setTab("login"); setRegisterRole("cliente"); setRegForm({ Nombre: "", Telefono: "", Correo: "", password: "", Localicacion: "" }); setIsLoading(false); setError(""); }}
-            style={{ fontSize: "var(--text-sm)", color: "var(--accent)", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", padding: "0", marginTop: "var(--space-3)" }}
-          >
-            Volver al inicio
-          </button>
+          {isBusinessSuccess && (
+            <button
+              onClick={() => { setIsSuccess(false); setSuccessMessage(""); setTab("login"); setRegisterRole("cliente"); setRegForm({ Nombre: "", Telefono: "", Correo: "", password: "", Localicacion: "" }); setIsLoading(false); setError(""); }}
+              style={{ fontSize: "var(--text-sm)", color: "var(--accent)", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", padding: "0", marginTop: "var(--space-3)" }}
+            >
+              Volver al inicio
+            </button>
+          )}
         </div>
       )}
     </div>
