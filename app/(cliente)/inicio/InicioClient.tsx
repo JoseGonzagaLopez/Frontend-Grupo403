@@ -27,12 +27,12 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   cancelled: { label: "Cancelada",  color: "#c0392b", bg: "rgba(192,57,43,0.12)" },
   completed: { label: "Completada", color: "#666",    bg: "rgba(0,0,0,0.06)" },
   paid:      { label: "Pagada",     color: "#01696f", bg: "rgba(1,105,111,0.12)" },
-  no_show:   { label: "No asistió", color: "#666",    bg: "rgba(0,0,0,0.06)" },
+  no_show:   { label: "No asistio", color: "#666",    bg: "rgba(0,0,0,0.06)" },
 };
 
 export default function InicioClient({ customerId }: { customerId: number }) {
   const [appointments, setAppointments] = useState<Booking[]>([]);
-  const [customerName, setCustomerName] = useState("Cliente");
+  const [displayName, setDisplayName] = useState("Cliente");
   const [businessMap, setBusinessMap] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
 
@@ -55,7 +55,10 @@ export default function InicioClient({ customerId }: { customerId: number }) {
           getBusinesses(),
         ]);
         const found = customers.find((c) => c.id === customerId);
-        if (found) setCustomerName(found.Nombre);
+        if (found) {
+          // username si existe, si no el Nombre
+          setDisplayName(found.username || found.Nombre);
+        }
         
         const mine = allAppointments.filter((a) => a.customerId === customerId);
         setAppointments(mine);
@@ -91,7 +94,6 @@ export default function InicioClient({ customerId }: { customerId: number }) {
   const emptyDays = Array.from({ length: firstDay });
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-  // Citas agrupadas por fecha para el calendario
   const appointmentsByDate = appointments.reduce((acc, appt) => {
     if (!acc[appt.date]) acc[appt.date] = [];
     acc[appt.date].push(appt);
@@ -107,8 +109,8 @@ export default function InicioClient({ customerId }: { customerId: number }) {
     <div className="page-stack">
       <section className="page-hero">
         <div>
-          <h2>¡Hola, {customerName}!</h2>
-          <p>Bienvenido a tu panel de control. Revisa tus próximas citas y organiza tu tiempo.</p>
+          <h2>Hola, {displayName}!</h2>
+          <p>Bienvenido a tu panel de control. Revisa tus proximas citas y organiza tu tiempo.</p>
         </div>
       </section>
 
@@ -121,7 +123,6 @@ export default function InicioClient({ customerId }: { customerId: number }) {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "var(--space-4)", alignItems: "start" }}>
           
-          {/* Calendario Interactivo */}
           <section className="section-card" style={{ padding: "var(--space-5)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)" }}>
               <button onClick={handlePrevMonth} className="secondary-btn" style={{ padding: 8 }}>
@@ -199,10 +200,9 @@ export default function InicioClient({ customerId }: { customerId: number }) {
             </div>
           </section>
 
-          {/* Citas del Día Seleccionado */}
           <section className="section-card" style={{ padding: "var(--space-5)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
             <div>
-              <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 700, margin: "0 0 var(--space-1) 0" }}>Citas del día</h3>
+              <h3 style={{ fontSize: "var(--text-lg)", fontWeight: 700, margin: "0 0 var(--space-1) 0" }}>Citas del dia</h3>
               <p style={{ color: "var(--text-secondary)", fontSize: "var(--text-sm)", margin: 0, textTransform: "capitalize" }}>
                 {selectedDateFormatted}
               </p>
@@ -215,7 +215,7 @@ export default function InicioClient({ customerId }: { customerId: number }) {
                 alignItems: "center", gap: "var(--space-3)", background: "var(--surface-2)", borderRadius: "var(--radius-lg)"
               }}>
                 <CalendarDays size={32} style={{ opacity: 0.3 }} />
-                <p style={{ fontWeight: 500, margin: 0 }}>No hay citas para este día</p>
+                <p style={{ fontWeight: 500, margin: 0 }}>No hay citas para este dia</p>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>

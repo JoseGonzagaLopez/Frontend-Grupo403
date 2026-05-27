@@ -2,10 +2,17 @@
 
 import { cookies } from "next/headers";
 
-const VALID_PASSWORDS = ["Admin1", "Admin2", "Admin3"];
+const ADMIN_CREDENTIALS = [
+  { username: "admin", password: "Admin1" },
+  { username: "admin", password: "Admin2" },
+  { username: "admin", password: "Admin3" },
+];
 
-export async function authenticate(password: string) {
-  if (VALID_PASSWORDS.includes(password)) {
+export async function authenticate(username: string, password: string) {
+  const match = ADMIN_CREDENTIALS.some(
+    (c) => c.username === username && c.password === password
+  );
+  if (match) {
     const cookieStore = await cookies();
     cookieStore.set("admin_auth_token", "authenticated", {
       httpOnly: true,
@@ -29,7 +36,7 @@ export async function loginCustomerAction(customerId: number) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 1 semana
+    maxAge: 60 * 60 * 24 * 7,
   });
 }
 
@@ -51,7 +58,7 @@ export async function loginBusinessAction(businessId: number) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 1 semana
+    maxAge: 60 * 60 * 24 * 7,
   });
 }
 

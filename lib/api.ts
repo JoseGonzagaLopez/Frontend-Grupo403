@@ -148,6 +148,7 @@ export type Customer = {
   Nombre: string;
   Telefono: string;
   Correo: string;
+  username?: string;
   password?: string;
   appointments?: {
     businessId: number;
@@ -194,6 +195,7 @@ export type CreateCustomerDto = {
   Nombre: string;
   Telefono: string;
   Correo: string;
+  username?: string;
   password?: string;
 };
 
@@ -286,13 +288,13 @@ export async function deleteBusiness(id: number): Promise<void> {
   if (!res.ok) throw new Error("Error al eliminar el negocio");
 }
 
-export async function loginCustomer(Correo: string, password?: string): Promise<Customer> {
+export async function loginCustomer(identifier: string, password?: string): Promise<Customer> {
   const res = await fetch(`${API_URL}/clientes/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ Correo, password }),
+    body: JSON.stringify({ Correo: identifier, password }),
   });
-  if (!res.ok) throw new Error("Error en el login. Verifica tus credenciales.");
+  if (!res.ok) throw new Error("Credenciales incorrectas.");
   return res.json();
 }
 
@@ -303,7 +305,7 @@ export async function registerCustomer(data: CreateCustomerDto): Promise<Custome
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    let msg = "Error al registrar el cliente. Quizás el correo ya exista.";
+    let msg = "Error al registrar el cliente. Quizas el correo ya exista.";
     try { const body = await res.json(); msg = body.message || msg; } catch {}
     throw new Error(msg);
   }
@@ -317,7 +319,7 @@ export async function loginBusiness(Correo: string, password: string): Promise<B
     body: JSON.stringify({ Correo, password }),
   });
   if (!res.ok) {
-    let msg = "Credenciales incorrectas. Verifica tu correo y contraseña.";
+    let msg = "Credenciales incorrectas. Verifica tu correo y contrasena.";
     try { const body = await res.json(); msg = body.message || msg; } catch {}
     throw new Error(msg);
   }
@@ -335,7 +337,7 @@ export async function registerBusiness(data: RegisterBusinessDto): Promise<Regis
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    let msg = "Error al registrar el negocio. Quizás el correo ya exista.";
+    let msg = "Error al registrar el negocio. Quizas el correo ya exista.";
     try { const body = await res.json(); msg = body.message || msg; } catch {}
     throw new Error(msg);
   }
@@ -375,21 +377,21 @@ export async function deleteService(id: number): Promise<void> {
   if (!res.ok) throw new Error("Error al eliminar el servicio");
 }
 
-// ── RESEÑAS ───────────────────────────────────────────────────────────────────
+// ── RESENAS ───────────────────────────────────────────────────────────────────
 
 export async function getResenas(businessId?: number): Promise<Resena[]> {
   const url = businessId
     ? `${API_URL}/resenas?businessId=${businessId}`
     : `${API_URL}/resenas`;
   const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error("Error al obtener las reseñas");
+  if (!res.ok) throw new Error("Error al obtener las resenas");
   return res.json();
 }
 
 export async function getResenaByAppointment(appointmentId: number): Promise<Resena | null> {
   const res = await fetch(`${API_URL}/resenas/appointment/${appointmentId}`, { cache: "no-store" });
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error("Error al obtener la reseña");
+  if (!res.ok) throw new Error("Error al obtener la resena");
   return res.json();
 }
 
@@ -399,13 +401,13 @@ export async function createResena(data: CreateResenaDto): Promise<Resena> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error("Error al crear la reseña");
+  if (!res.ok) throw new Error("Error al crear la resena");
   return res.json();
 }
 
 export async function deleteResena(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/resenas/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Error al eliminar la reseña");
+  if (!res.ok) throw new Error("Error al eliminar la resena");
 }
 
 // ── SOLICITUDES DE CAMBIO DE PERFIL ───────────────────────────────────────────

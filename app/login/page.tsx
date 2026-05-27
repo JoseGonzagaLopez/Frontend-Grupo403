@@ -1,24 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { authenticate } from "@/lib/actions";
 import { loginCustomer, registerCustomer, loginBusiness, registerBusiness } from "@/lib/api";
 import { loginCustomerAction, loginBusinessAction } from "@/lib/actions";
+import { Sun, Moon } from "lucide-react";
 
 type Tab = "login" | "register";
-type Role = "cliente" | "empresa" | "admin";
 
 export default function LoginPage() {
   const [tab, setTab] = useState<Tab>("login");
-  const [role, setRole] = useState<Role>("cliente");
 
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
+  // Login unificado
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
 
+  // Registro
   const [registerRole, setRegisterRole] = useState<"cliente" | "empresa">("cliente");
   const [regForm, setRegForm] = useState({
     Nombre: "",
+    username: "",
     Telefono: "",
     Correo: "",
     password: "",
@@ -29,41 +30,68 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [isBusinessSuccess, setIsBusinessSuccess] = useState(false);
 
-  const isBusinessSuccess = isSuccess && registerRole === "empresa";
-  const cardShouldAnimate = isSuccess && !isBusinessSuccess;
+  // Tema oscuro/claro
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const stored = document.documentElement.getAttribute("data-theme");
+    const dark = stored === "dark" || (!stored && prefersDark);
+    setIsDark(dark);
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  }, []);
 
+  function toggleTheme() {
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
+  }
+
+  // ── LOGIN UNIFICADO ──────────────────────────────────────────────────────────
+  // Orden de intento: admin → cliente → negocio
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
     try {
-      if (role === "admin") {
-        const result = await authenticate(adminPassword);
-        if (!result.success) throw new Error("Contraseña de administrador incorrecta");
+      // 1. Admin: username = "admin"
+      if (identifier.trim().toLowerCase() === "admin") {
+        const result = await authenticate("admin", password);
+        if (!result.success) throw new Error("Credenciales de administrador incorrectas");
         setSuccessMessage("Acceso concedido");
         setIsSuccess(true);
         setTimeout(() => { window.location.href = "/dashboard"; }, 800);
-      } else if (role === "cliente") {
-        const customer = await loginCustomer(loginEmail, loginPassword);
+        return;
+      }
+
+      // 2. Intentar como cliente (por correo o username)
+      let clienteOk = false;
+      try {
+        const customer = await loginCustomer(identifier, password);
         await loginCustomerAction(customer.id);
-        setSuccessMessage("Sesión iniciada");
+        clienteOk = true;
+        setSuccessMessage("Sesion iniciada");
         setIsSuccess(true);
         setTimeout(() => { window.location.href = "/inicio"; }, 800);
-      } else {
-        // empresa: usa Correo igual que el cliente
-        const business = await loginBusiness(loginEmail, loginPassword);
-        await loginBusinessAction(business.id);
-        setSuccessMessage("Sesión iniciada");
-        setIsSuccess(true);
-        setTimeout(() => { window.location.href = "/negocio"; }, 800);
-      }
+      } catch { /* no era cliente */ }
+
+      if (clienteOk) return;
+
+      // 3. Intentar como negocio (por correo)
+      const business = await loginBusiness(identifier, password);
+      await loginBusinessAction(business.id);
+      setSuccessMessage("Sesion iniciada");
+      setIsSuccess(true);
+      setTimeout(() => { window.location.href = "/negocio"; }, 800);
+
     } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión");
+      setError("Usuario o contrasena incorrectos. Verifica tus datos.");
       setIsLoading(false);
     }
   };
 
+  // ── REGISTRO ────────────────────────────────────────────────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -72,12 +100,13 @@ export default function LoginPage() {
       if (registerRole === "cliente") {
         const customer = await registerCustomer({
           Nombre: regForm.Nombre,
+          username: regForm.username || undefined,
           Telefono: regForm.Telefono,
           Correo: regForm.Correo,
           password: regForm.password,
         });
         await loginCustomerAction(customer.id);
-        setSuccessMessage("Cuenta creada y sesión iniciada");
+        setSuccessMessage("Cuenta creada y sesion iniciada");
         setIsSuccess(true);
         setTimeout(() => { window.location.href = "/inicio"; }, 800);
       } else {
@@ -88,7 +117,8 @@ export default function LoginPage() {
           Localicacion: regForm.Localicacion,
           password: regForm.password,
         });
-        setSuccessMessage("Su petición ha sido enviada");
+        setSuccessMessage("Su peticion ha sido enviada");
+        setIsBusinessSuccess(true);
         setIsSuccess(true);
         setIsLoading(false);
       }
@@ -98,12 +128,14 @@ export default function LoginPage() {
     }
   };
 
+  const cardShouldAnimate = isSuccess && !isBusinessSuccess;
+
   const cardStyle: React.CSSProperties = {
     position: "fixed",
     top: cardShouldAnimate ? "14px" : "50%",
     left: cardShouldAnimate ? "calc(100vw - 24px - 38px)" : "50%",
     width: cardShouldAnimate ? "38px" : "100%",
-    maxWidth: cardShouldAnimate ? "38px" : "440px",
+    maxWidth: cardShouldAnimate ? "38px" : "460px",
     height: cardShouldAnimate ? "38px" : "auto",
     minHeight: cardShouldAnimate ? "38px" : "auto",
     borderRadius: cardShouldAnimate ? "50%" : "var(--radius-xl)",
@@ -119,8 +151,34 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-color)] flex items-center justify-center">
-      <div className="surface-card" style={cardStyle}>
 
+      {/* Toggle modo oscuro — esquina superior derecha */}
+      <button
+        onClick={toggleTheme}
+        aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+        style={{
+          position: "fixed",
+          top: "var(--space-4)",
+          right: "var(--space-4)",
+          zIndex: 200,
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-full)",
+          width: 40,
+          height: 40,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          color: "var(--text)",
+          boxShadow: "var(--shadow-sm)",
+          transition: "all 0.2s ease",
+        }}
+      >
+        {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      </button>
+
+      <div className="surface-card" style={cardStyle}>
         <img
           src="/favicon.ico"
           alt="Logo"
@@ -139,7 +197,6 @@ export default function LoginPage() {
         />
 
         <div style={{ opacity: cardShouldAnimate ? 0 : 1, transition: "opacity 0.3s ease-out", paddingTop: "72px" }}>
-
           <div className="flex flex-col items-center text-center gap-1 mb-5">
             <h1 style={{ fontSize: "var(--text-xl)", fontWeight: 700, color: "var(--text)", letterSpacing: "-0.03em" }}>BookFlow</h1>
             <p style={{ color: "var(--text-secondary)", fontSize: "var(--text-sm)" }}>
@@ -147,11 +204,12 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {/* Tabs */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", background: "var(--surface-2)", borderRadius: "var(--radius-md)", padding: "3px", marginBottom: "var(--space-5)" }}>
             {(["login", "register"] as Tab[]).map((t) => (
               <button key={t} type="button" onClick={() => { setTab(t); setError(""); }}
                 style={{ padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-sm)", fontSize: "var(--text-sm)", fontWeight: 600, background: tab === t ? "var(--surface-solid)" : "transparent", color: tab === t ? "var(--text)" : "var(--text-secondary)", boxShadow: tab === t ? "var(--shadow-sm)" : "none", transition: "all 0.2s ease", border: "none", cursor: "pointer" }}>
-                {t === "login" ? "Iniciar sesión" : "Registrarse"}
+                {t === "login" ? "Iniciar sesion" : "Registrarse"}
               </button>
             ))}
           </div>
@@ -160,35 +218,29 @@ export default function LoginPage() {
           {tab === "login" && (
             <form onSubmit={handleLogin} className="flex flex-col gap-4" autoComplete="off">
               <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Tipo de cuenta</label>
-                <select value={role} onChange={(e) => { setRole(e.target.value as Role); setError(""); setLoginEmail(""); setLoginPassword(""); }} className="input">
-                  <option value="cliente">👤 Cliente</option>
-                  <option value="empresa">🏢 Empresa / Negocio</option>
-                  <option value="admin">🔐 Administrador</option>
-                </select>
+                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Usuario o correo</label>
+                <input
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  className="input"
+                  placeholder="admin / tu@correo.com / username"
+                  required
+                  autoComplete="username"
+                />
               </div>
-
-              {role === "admin" && (
-                <div className="flex flex-col gap-1">
-                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Contraseña de administrador</label>
-                  <input type="password" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className="input" placeholder="••••••••" required autoComplete="new-password" />
-                </div>
-              )}
-
-              {/* Correo + contraseña igual para cliente Y empresa */}
-              {role !== "admin" && (
-                <>
-                  <div className="flex flex-col gap-1">
-                    <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Correo electrónico</label>
-                    <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="input" placeholder="ejemplo@correo.com" required />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Contraseña</label>
-                    <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="input" placeholder="••••••••" required autoComplete="current-password" />
-                  </div>
-                </>
-              )}
-
+              <div className="flex flex-col gap-1">
+                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Contrasena</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input"
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+              </div>
               {error && <div className="message-error">{error}</div>}
               <button type="submit" className="primary-btn w-full flex justify-center items-center mt-1" disabled={isLoading}>
                 {isLoading ? "Verificando..." : "Entrar"}
@@ -202,39 +254,64 @@ export default function LoginPage() {
               <div className="flex flex-col gap-1">
                 <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Tipo de cuenta</label>
                 <select value={registerRole} onChange={(e) => { setRegisterRole(e.target.value as "cliente" | "empresa"); setError(""); }} className="input">
-                  <option value="cliente">👤 Cliente</option>
-                  <option value="empresa">🏢 Empresa / Negocio</option>
+                  <option value="cliente">Cliente</option>
+                  <option value="empresa">Empresa / Negocio</option>
                 </select>
               </div>
 
               <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>{registerRole === "cliente" ? "Nombre completo" : "Nombre del negocio"}</label>
-                <input type="text" value={regForm.Nombre} onChange={(e) => setRegForm({ ...regForm, Nombre: e.target.value })} className="input" placeholder={registerRole === "cliente" ? "Ej. María López" : "Ej. Peluquería Carmen"} required />
+                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
+                  {registerRole === "cliente" ? "Nombre completo" : "Nombre del negocio"}
+                </label>
+                <input type="text" value={regForm.Nombre}
+                  onChange={(e) => setRegForm({ ...regForm, Nombre: e.target.value })}
+                  className="input" placeholder={registerRole === "cliente" ? "Ej. Maria Lopez" : "Ej. Peluqueria Carmen"} required />
               </div>
 
-              {/* Correo — ambos tipos */}
-              <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Correo electrónico</label>
-                <input type="email" value={regForm.Correo} onChange={(e) => setRegForm({ ...regForm, Correo: e.target.value })} className="input" placeholder="ejemplo@correo.com" required />
-              </div>
-
-              {/* Teléfono — ambos tipos */}
-              <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Teléfono</label>
-                <input type="tel" value={regForm.Telefono} onChange={(e) => setRegForm({ ...regForm, Telefono: e.target.value })} className="input" placeholder="Ej. 600000000" pattern="[0-9]{9}" title="Debe contener 9 números" />
-              </div>
-
-              {/* Dirección — solo empresa */}
-              {registerRole === "empresa" && (
+              {/* Username — solo clientes */}
+              {registerRole === "cliente" && (
                 <div className="flex flex-col gap-1">
-                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Dirección / Localización</label>
-                  <input type="text" value={regForm.Localicacion} onChange={(e) => setRegForm({ ...regForm, Localicacion: e.target.value })} className="input" placeholder="Ej. Calle Mayor 10, Alicante" />
+                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
+                    Nombre de usuario
+                    <span style={{ fontWeight: 400, color: "var(--text-secondary)", marginLeft: 6 }}>(para iniciar sesion)</span>
+                  </label>
+                  <input type="text" value={regForm.username}
+                    onChange={(e) => setRegForm({ ...regForm, username: e.target.value.toLowerCase().replace(/\s/g, "") })}
+                    className="input" placeholder="Ej. marialopez"
+                    pattern="[a-zA-Z0-9_]+" title="Solo letras, numeros y guion bajo"
+                  />
                 </div>
               )}
 
               <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Contraseña</label>
-                <input type="password" value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} className="input" placeholder="Mínimo 6 caracteres" required minLength={6} autoComplete="new-password" />
+                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Correo electronico</label>
+                <input type="email" value={regForm.Correo}
+                  onChange={(e) => setRegForm({ ...regForm, Correo: e.target.value })}
+                  className="input" placeholder="ejemplo@correo.com" required />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Telefono</label>
+                <input type="tel" value={regForm.Telefono}
+                  onChange={(e) => setRegForm({ ...regForm, Telefono: e.target.value })}
+                  className="input" placeholder="Ej. 600000000"
+                  pattern="[0-9]{9}" title="Debe contener 9 numeros" />
+              </div>
+
+              {registerRole === "empresa" && (
+                <div className="flex flex-col gap-1">
+                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Direccion / Localizacion</label>
+                  <input type="text" value={regForm.Localicacion}
+                    onChange={(e) => setRegForm({ ...regForm, Localicacion: e.target.value })}
+                    className="input" placeholder="Ej. Calle Mayor 10, Alicante" />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1">
+                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Contrasena</label>
+                <input type="password" value={regForm.password}
+                  onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
+                  className="input" placeholder="Minimo 6 caracteres" required minLength={6} autoComplete="new-password" />
               </div>
 
               {error && <div className="message-error">{error}</div>}
@@ -245,7 +322,7 @@ export default function LoginPage() {
           )}
 
           <p style={{ textAlign: "center", marginTop: "var(--space-4)", fontSize: "var(--text-xs)", color: "var(--text-secondary)" }}>
-            Al registrarte aceptas los términos de uso del servicio
+            Al registrarte aceptas los terminos de uso del servicio
           </p>
         </div>
       </div>
@@ -271,7 +348,12 @@ export default function LoginPage() {
           </p>
           {isBusinessSuccess && (
             <button
-              onClick={() => { setIsSuccess(false); setSuccessMessage(""); setTab("login"); setRegisterRole("cliente"); setRegForm({ Nombre: "", Telefono: "", Correo: "", password: "", Localicacion: "" }); setIsLoading(false); setError(""); }}
+              onClick={() => {
+                setIsSuccess(false); setSuccessMessage(""); setIsBusinessSuccess(false);
+                setTab("login"); setRegisterRole("cliente");
+                setRegForm({ Nombre: "", username: "", Telefono: "", Correo: "", password: "", Localicacion: "" });
+                setIsLoading(false); setError("");
+              }}
               style={{ fontSize: "var(--text-sm)", color: "var(--accent)", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", padding: "0", marginTop: "var(--space-3)" }}
             >
               Volver al inicio
