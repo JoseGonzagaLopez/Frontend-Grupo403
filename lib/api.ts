@@ -148,6 +148,7 @@ export type Customer = {
   Nombre: string;
   Telefono: string;
   Correo: string;
+  password?: string;
   appointments?: {
     businessId: number;
     negocio?: { Nombre: string };
@@ -160,6 +161,7 @@ export type Business = {
   Localicacion?: string;
   Telefono?: string;
   Correo?: string;
+  password?: string;
   descripcion?: string;
   tipoNegocio?: string;
   fotoUrl?: string;
