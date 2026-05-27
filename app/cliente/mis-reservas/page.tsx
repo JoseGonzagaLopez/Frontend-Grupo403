@@ -1,33 +1,33 @@
-import { cookies } from "next/headers";
-import { getAppointments, getResenas } from "@/lib/api";
+import { getCustomerSession } from "@/lib/actions";
+import { getAppointments, getResenas, getCustomers } from "@/lib/api";
 import MisReservasClient from "./MisReservasClient";
 import type { Booking, Resena } from "@/lib/api";
+import { redirect } from "next/navigation";
 
 export default async function MisReservasPage() {
-  const cookieStore = await cookies();
-  const customerRaw = cookieStore.get("loggedCustomer")?.value;
-  const customer = customerRaw ? JSON.parse(customerRaw) : null;
+  const customerId = await getCustomerSession();
+  if (!customerId) redirect("/login");
 
-  let allAppointments: Booking[] = [];
-  let resenas: Resena[] = [];
-
-  try {
-    allAppointments = await getAppointments();
-  } catch {}
+  let customer: { id: number; Nombre: string } | null = null;
+  let myAppointments: Booking[] = [];
+  let resenasByAppointment: Record<number, Resena> = {};
 
   try {
-    resenas = await getResenas();
+    const [customers, allAppointments, resenas] = await Promise.all([
+      getCustomers(),
+      getAppointments(),
+      getResenas(),
+    ]);
+
+    const found = customers.find((c) => c.id === customerId);
+    if (found) customer = { id: found.id, Nombre: found.Nombre };
+
+    myAppointments = allAppointments.filter((a) => a.customerId === customerId);
+
+    resenas.forEach((r) => {
+      if (r.appointmentId != null) resenasByAppointment[r.appointmentId] = r;
+    });
   } catch {}
-
-  const myAppointments = customer
-    ? allAppointments.filter((a) => a.customerId === customer.id)
-    : [];
-
-  // Mapa appointmentId -> reseña
-  const resenasByAppointment: Record<number, Resena> = {};
-  resenas.forEach((r) => {
-    if (r.appointmentId != null) resenasByAppointment[r.appointmentId] = r;
-  });
 
   return (
     <MisReservasClient
