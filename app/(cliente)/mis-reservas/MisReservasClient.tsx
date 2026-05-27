@@ -10,7 +10,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   cancelled: { label: "Cancelada",  color: "#c0392b", bg: "rgba(192,57,43,0.12)" },
   completed: { label: "Completada", color: "#666",    bg: "rgba(0,0,0,0.06)" },
   paid:      { label: "Pagada",     color: "#01696f", bg: "rgba(1,105,111,0.12)" },
-  no_show:   { label: "No asisti\u00f3", color: "#666", bg: "rgba(0,0,0,0.06)" },
+  no_show:   { label: "No asistió", color: "#666",    bg: "rgba(0,0,0,0.06)" },
 };
 
 function hasPassed(date: string, time: string): boolean {
@@ -18,7 +18,9 @@ function hasPassed(date: string, time: string): boolean {
   catch { return false; }
 }
 
-function StarRating({ value, onChange, readonly = false }: { value: number; onChange?: (v: number) => void; readonly?: boolean }) {
+function StarRating({ value, onChange, readonly = false }: {
+  value: number; onChange?: (v: number) => void; readonly?: boolean;
+}) {
   const [hover, setHover] = useState(0);
   return (
     <div style={{ display: "flex", gap: 2 }}>
@@ -27,10 +29,16 @@ function StarRating({ value, onChange, readonly = false }: { value: number; onCh
           onClick={() => onChange && onChange(n)}
           onMouseEnter={() => !readonly && setHover(n)}
           onMouseLeave={() => !readonly && setHover(0)}
-          style={{ background: "none", border: "none", padding: 1, cursor: readonly ? "default" : "pointer",
-            color: n <= (hover || value) ? "#e0a800" : "var(--border)", transition: "color 0.1s" }}
+          style={{
+            background: "none", border: "none", padding: 1,
+            cursor: readonly ? "default" : "pointer",
+            color: n <= (hover || value) ? "#e0a800" : "var(--border)",
+            transition: "color 0.1s",
+          }}
         >
-          <Star size={20} fill={n <= (hover || value) ? "#e0a800" : "none"} stroke={n <= (hover || value) ? "#e0a800" : "var(--border)"} />
+          <Star size={20}
+            fill={n <= (hover || value) ? "#e0a800" : "none"}
+            stroke={n <= (hover || value) ? "#e0a800" : "var(--border)"} />
         </button>
       ))}
     </div>
@@ -50,39 +58,53 @@ function ModalResena({ appt, customerName, onClose, onSaved }: {
     if (puntuacion === 0) { setError("Selecciona al menos una estrella."); return; }
     setLoading(true); setError("");
     try {
-      const dto: CreateResenaDto = { businessId: appt.businessId, customerId: appt.customerId,
-        appointmentId: appt.id, clienteNombre: customerName, puntuacion, comentario: comentario.trim() || undefined };
+      const dto: CreateResenaDto = {
+        businessId: appt.businessId, customerId: appt.customerId,
+        appointmentId: appt.id, clienteNombre: customerName,
+        puntuacion, comentario: comentario.trim() || undefined,
+      };
       const nueva = await createResena(dto);
       onSaved(nueva); onClose();
-    } catch { setError("No se pudo enviar la rese\u00f1a."); }
+    } catch { setError("No se pudo enviar la reseña."); }
     finally { setLoading(false); }
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.45)",
-      display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-4)" }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)",
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.45)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-4)",
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{
+        background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)",
         padding: "var(--space-8) var(--space-6)", width: "100%", maxWidth: 460,
-        boxShadow: "0 20px 60px rgba(0,0,0,0.2)", display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+        boxShadow: "0 20px 60px rgba(0,0,0,0.2)", display: "flex", flexDirection: "column", gap: "var(--space-5)",
+      }}>
         <div>
-          <h3 style={{ margin: 0, fontSize: "var(--text-lg)", fontWeight: 700 }}>Dejar rese\u00f1a</h3>
+          <h3 style={{ margin: 0, fontSize: "var(--text-lg)", fontWeight: 700 }}>Dejar reseña</h3>
           <p style={{ margin: "4px 0 0", color: "var(--text-secondary)", fontSize: "var(--text-sm)" }}>{appt.serviceName}</p>
         </div>
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           <div>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: 8, fontSize: "var(--text-sm)" }}>Puntuaci\u00f3n</label>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: 8, fontSize: "var(--text-sm)" }}>Puntuación</label>
             <StarRating value={puntuacion} onChange={setPuntuacion} />
           </div>
           <div>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: "var(--text-sm)" }}>Comentario <span style={{ color: "var(--text-secondary)", fontWeight: 400 }}>(opcional)</span></label>
-            <textarea className="input" rows={3} placeholder="Cu\u00e9ntanos tu experiencia..." value={comentario}
-              onChange={(e) => setComentario(e.target.value)} maxLength={500} style={{ resize: "vertical", minHeight: 80 }} />
+            <label style={{ display: "block", fontWeight: 600, marginBottom: 6, fontSize: "var(--text-sm)" }}>
+              Comentario <span style={{ color: "var(--text-secondary)", fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <textarea className="input" rows={3} placeholder="Cuéntanos tu experiencia..."
+              value={comentario} onChange={(e) => setComentario(e.target.value)}
+              maxLength={500} style={{ resize: "vertical", minHeight: 80 }} />
           </div>
           {error && <p style={{ color: "#c0392b", fontSize: "var(--text-sm)", margin: 0 }}>{error}</p>}
           <div style={{ display: "flex", gap: "var(--space-3)", justifyContent: "flex-end" }}>
             <button type="button" className="secondary-btn" onClick={onClose} disabled={loading}>Cancelar</button>
-            <button type="submit" className="primary-btn" disabled={loading}>{loading ? "Enviando..." : "Publicar rese\u00f1a"}</button>
+            <button type="submit" className="primary-btn" disabled={loading}>
+              {loading ? "Enviando..." : "Publicar reseña"}
+            </button>
           </div>
         </form>
       </div>
@@ -101,8 +123,10 @@ function TarjetaReserva({ appt, resena, customerName, onResenaGuardada }: {
 
   return (
     <>
-      <div style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)",
-        padding: "var(--space-4) var(--space-5)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+      <div style={{
+        background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)",
+        padding: "var(--space-4) var(--space-5)", display: "flex", flexDirection: "column", gap: "var(--space-3)",
+      }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "var(--space-3)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)", flex: 1 }}>
             <p style={{ fontWeight: 600, margin: 0 }}>{appt.serviceName}</p>
@@ -110,31 +134,42 @@ function TarjetaReserva({ appt, resena, customerName, onResenaGuardada }: {
               <CalendarDays size={13} /> {dateFormatted} <Clock size={13} style={{ marginLeft: 4 }} /> {appt.time}
             </p>
           </div>
-          <span style={{ background: st.bg, color: st.color, padding: "4px 14px", borderRadius: "var(--radius-full)",
-            fontSize: "var(--text-sm)", fontWeight: 600, whiteSpace: "nowrap" }}>{st.label}</span>
+          <span style={{
+            background: st.bg, color: st.color, padding: "4px 14px",
+            borderRadius: "var(--radius-full)", fontSize: "var(--text-sm)", fontWeight: 600, whiteSpace: "nowrap",
+          }}>{st.label}</span>
         </div>
+
         {resena && (
-          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "var(--space-3)",
-            display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "var(--space-3)", display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <StarRating value={resena.puntuacion} readonly />
-              <span style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)" }}>Tu rese\u00f1a</span>
+              <span style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)" }}>Tu reseña</span>
             </div>
-            {resena.comentario && <p style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)", margin: 0, fontStyle: "italic" }}>"{resena.comentario}"</p>}
+            {resena.comentario && (
+              <p style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)", margin: 0, fontStyle: "italic" }}>
+                "{resena.comentario}"
+              </p>
+            )}
           </div>
         )}
+
         {pasada && !resena && (
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: "var(--space-3)" }}>
-            <button className="secondary-btn"
+            <button
+              className="secondary-btn"
               style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "var(--text-sm)" }}
-              onClick={() => setModalOpen(true)}>
-              <MessageSquarePlus size={15} /> Dejar rese\u00f1a
+              onClick={() => setModalOpen(true)}
+            >
+              <MessageSquarePlus size={15} /> Dejar reseña
             </button>
           </div>
         )}
       </div>
-      {modalOpen && <ModalResena appt={appt} customerName={customerName}
-        onClose={() => setModalOpen(false)} onSaved={onResenaGuardada} />}
+      {modalOpen && (
+        <ModalResena appt={appt} customerName={customerName}
+          onClose={() => setModalOpen(false)} onSaved={onResenaGuardada} />
+      )}
     </>
   );
 }
@@ -149,7 +184,6 @@ export default function MisReservasClient({ customerId }: { customerId: number }
   useEffect(() => {
     async function load() {
       try {
-        // Cargamos appointments y customers juntos; resenas por separado (puede no existir)
         const [customers, allAppointments] = await Promise.all([
           getCustomers(),
           getAppointments(),
@@ -159,15 +193,12 @@ export default function MisReservasClient({ customerId }: { customerId: number }
         const mine = allAppointments.filter((a) => a.customerId === customerId);
         setAppointments(mine);
 
-        // Resenas: intentar cargar pero no bloquear si falla
         try {
           const allResenas = await getResenas();
           const map: Record<number, Resena> = {};
           allResenas.forEach((r) => { if (r.appointmentId != null) map[r.appointmentId] = r; });
           setResenas(map);
-        } catch {
-          // El endpoint /resenas puede no estar disponible; no es cr\u00edtico
-        }
+        } catch { /* /resenas opcional */ }
       } catch (err) {
         console.error("Error cargando mis reservas:", err);
       } finally {
@@ -202,18 +233,19 @@ export default function MisReservasClient({ customerId }: { customerId: number }
         <section className="section-card">
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
             {[1, 2, 3].map((i) => (
-              <div key={i} style={{ height: 80, borderRadius: "var(--radius-lg)",
-                background: "var(--surface-2)", opacity: 0.6 }} />
+              <div key={i} style={{ height: 80, borderRadius: "var(--radius-lg)", background: "var(--surface-2)", opacity: 0.6 }} />
             ))}
           </div>
         </section>
       ) : (
         <>
-          <div style={{ display: "flex", gap: "var(--space-2)", background: "var(--surface-2)",
+          <div style={{
+            display: "flex", gap: "var(--space-2)", background: "var(--surface-2)",
             border: "1px solid var(--border)", borderRadius: "var(--radius-full)",
-            padding: "var(--space-1)", width: "fit-content" }}>
+            padding: "var(--space-1)", width: "fit-content",
+          }}>
             <button style={tabStyle(tab === "proximas")} onClick={() => setTab("proximas")}>
-              Pr\u00f3ximas {proximas.length > 0 && `(${proximas.length})`}
+              Próximas {proximas.length > 0 && `(${proximas.length})`}
             </button>
             <button style={tabStyle(tab === "pasadas")} onClick={() => setTab("pasadas")}>
               Pasadas {pasadas.length > 0 && `(${pasadas.length})`}
@@ -222,21 +254,27 @@ export default function MisReservasClient({ customerId }: { customerId: number }
 
           <section className="section-card">
             {lista.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "var(--space-16) var(--space-8)",
+              <div style={{
+                textAlign: "center", padding: "var(--space-16) var(--space-8)",
                 color: "var(--text-secondary)", display: "flex", flexDirection: "column",
-                alignItems: "center", gap: "var(--space-3)" }}>
+                alignItems: "center", gap: "var(--space-3)",
+              }}>
                 <CalendarDays size={44} style={{ opacity: 0.2 }} />
                 <p style={{ fontWeight: 600, margin: 0 }}>
-                  {tab === "proximas" ? "No tienes reservas pr\u00f3ximas" : "No tienes reservas pasadas"}
+                  {tab === "proximas" ? "No tienes reservas próximas" : "No tienes reservas pasadas"}
                 </p>
-                {tab === "proximas" && <p style={{ fontSize: "var(--text-sm)", margin: 0 }}>Cuando hagas una reserva aparecer\u00e1 aqu\u00ed.</p>}
+                {tab === "proximas" && (
+                  <p style={{ fontSize: "var(--text-sm)", margin: 0 }}>Cuando hagas una reserva aparecerá aquí.</p>
+                )}
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
                 {lista.map((appt) => (
-                  <TarjetaReserva key={appt.id} appt={appt} resena={resenas[appt.id]}
+                  <TarjetaReserva
+                    key={appt.id} appt={appt} resena={resenas[appt.id]}
                     customerName={customerName}
-                    onResenaGuardada={(r) => setResenas((prev) => ({ ...prev, [appt.id]: r }))} />
+                    onResenaGuardada={(r) => setResenas((prev) => ({ ...prev, [appt.id]: r }))}
+                  />
                 ))}
               </div>
             )}
