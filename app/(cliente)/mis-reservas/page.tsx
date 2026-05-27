@@ -1,12 +1,12 @@
-import { getCustomerSession } from "@/lib/actions";
 import { getAppointments, getResenas, getCustomers } from "@/lib/api";
 import MisReservasClient from "./MisReservasClient";
 import type { Booking, Resena } from "@/lib/api";
+import { getCustomerSession } from "@/lib/actions";
 import { redirect } from "next/navigation";
 
 export default async function MisReservasPage() {
   const customerId = await getCustomerSession();
-  if (!customerId) redirect("/login");
+  if (!customerId) redirect("/cliente/login");
 
   let customer: { id: number; Nombre: string } | null = null;
   let myAppointments: Booking[] = [];
