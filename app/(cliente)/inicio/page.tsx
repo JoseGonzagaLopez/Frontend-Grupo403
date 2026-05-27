@@ -9,7 +9,7 @@ export const metadata = {
 
 export default async function ClienteInicioPage() {
   const customerId = await getCustomerSession();
-  if (!customerId) redirect("/cliente/login");
+  if (!customerId) redirect("/login");
 
   return <InicioClient customerId={customerId} />;
 }

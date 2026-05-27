@@ -13,7 +13,9 @@ export function middleware(request: NextRequest) {
   const isClienteReg   = pathname === '/cliente/registro'
 
   // Rutas que requieren ser cliente
-  const isClienteArea  = pathname === '/reservar' ||
+  const isClienteArea  = pathname === '/inicio' ||
+                         pathname.startsWith('/inicio/') ||
+                         pathname === '/reservar' ||
                          pathname.startsWith('/reservar/') ||
                          pathname === '/mis-reservas' ||
                          pathname.startsWith('/mis-reservas/')
