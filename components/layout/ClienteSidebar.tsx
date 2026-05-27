@@ -1,6 +1,5 @@
 "use client";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { CalendarDays, CalendarPlus } from "lucide-react";
 
 const menuItems = [
@@ -12,6 +11,12 @@ interface Props { isOpen?: boolean; setIsOpen?: (v: boolean) => void; }
 
 export default function ClienteSidebar({ isOpen, setIsOpen }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  function handleNav(href: string) {
+    if (setIsOpen) setIsOpen(false);
+    router.push(href);
+  }
 
   return (
     <aside className={`admin-sidebar ${isOpen ? "admin-sidebar--open" : ""}`}>
@@ -21,18 +26,18 @@ export default function ClienteSidebar({ isOpen, setIsOpen }: Props) {
       </div>
       <nav className="admin-sidebar__nav">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
           return (
-            <Link
+            <button
               key={item.href}
-              href={item.href}
-              onClick={() => setIsOpen && setIsOpen(false)}
+              onClick={() => handleNav(item.href)}
               className={`admin-sidebar__link ${isActive ? "admin-sidebar__link--active" : ""}`}
+              style={{ width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer" }}
             >
               <Icon size={18} />
               <span>{item.label}</span>
-            </Link>
+            </button>
           );
         })}
       </nav>
