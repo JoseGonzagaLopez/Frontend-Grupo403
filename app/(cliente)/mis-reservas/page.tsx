@@ -18,12 +18,9 @@ export default async function MisReservasPage() {
       getAppointments(),
       getResenas(),
     ]);
-
     const found = customers.find((c) => c.id === customerId);
     if (found) customer = { id: found.id, Nombre: found.Nombre };
-
     myAppointments = allAppointments.filter((a) => a.customerId === customerId);
-
     resenas.forEach((r) => {
       if (r.appointmentId != null) resenasByAppointment[r.appointmentId] = r;
     });

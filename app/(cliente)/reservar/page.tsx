@@ -1,6 +1,5 @@
 import ReservarClient from "./ReservarClient";
 import { getBusinesses, getCustomers } from "@/lib/api";
-
 import { getCustomerSession } from "@/lib/actions";
 
 export const metadata = {
@@ -11,22 +10,18 @@ export const metadata = {
 export default async function ReservarPage() {
   try {
     const customerId = await getCustomerSession();
-    
     const [businesses, customers] = await Promise.all([
       getBusinesses(),
       getCustomers(),
     ]);
-
-    const loggedCustomer = customers.find(c => c.id === customerId);
-
+    const loggedCustomer = customers.find((c) => c.id === customerId);
     return (
       <ReservarClient
         initialBusinesses={businesses}
         loggedCustomer={loggedCustomer}
       />
     );
-  } catch (error) {
-    console.error("Error loading data for reservar:", error);
+  } catch {
     return (
       <ReservarClient
         initialBusinesses={[]}

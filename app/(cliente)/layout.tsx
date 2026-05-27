@@ -1,7 +1,6 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { getCustomerSession } from "@/lib/actions";
 import { getCustomers } from "@/lib/api";
+import { redirect } from "next/navigation";
 import ClienteLayoutClient from "./ClienteLayoutClient";
 
 export default async function ClienteLayout({ children }: { children: React.ReactNode }) {

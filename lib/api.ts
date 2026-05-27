@@ -1,4 +1,4 @@
-export type BookingStatus = "pending" | "confirmed" | "paid" | "completed" | "no_show";
+export type BookingStatus = "pending" | "confirmed" | "paid" | "completed" | "no_show" | "cancelled";
 
 export interface Booking {
   id: number;
@@ -76,12 +76,23 @@ export type CreateServiceDto = {
 export type UpdateServiceDto = Partial<Omit<CreateServiceDto, "businessId">>;
 
 export type Resena = {
-  id?: number;
+  id: number;
+  businessId: number;
+  customerId?: number;
+  appointmentId?: number;
   clienteNombre?: string;
-  puntuacion?: number;
+  puntuacion: number;
   comentario?: string;
   fecha?: string;
-  businessId?: number;
+};
+
+export type CreateResenaDto = {
+  businessId: number;
+  customerId?: number;
+  appointmentId?: number;
+  clienteNombre?: string;
+  puntuacion: number;
+  comentario?: string;
 };
 
 export type ProfileChangeRequest = {
@@ -290,7 +301,7 @@ export async function registerCustomer(data: CreateCustomerDto): Promise<Custome
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    let msg = "Error al registrar el cliente. Quiz\u00e1s el correo ya exista.";
+    let msg = "Error al registrar el cliente. Quizás el correo ya exista.";
     try { const body = await res.json(); msg = body.message || msg; } catch {}
     throw new Error(msg);
   }
@@ -304,7 +315,7 @@ export async function loginBusiness(Correo: string, password: string): Promise<B
     body: JSON.stringify({ Correo, password }),
   });
   if (!res.ok) {
-    let msg = "Credenciales incorrectas. Verifica tu correo y contrase\u00f1a.";
+    let msg = "Credenciales incorrectas. Verifica tu correo y contraseña.";
     try { const body = await res.json(); msg = body.message || msg; } catch {}
     throw new Error(msg);
   }
@@ -322,7 +333,7 @@ export async function registerBusiness(data: RegisterBusinessDto): Promise<Regis
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    let msg = "Error al registrar el negocio. Quiz\u00e1s el correo ya exista.";
+    let msg = "Error al registrar el negocio. Quizás el correo ya exista.";
     try { const body = await res.json(); msg = body.message || msg; } catch {}
     throw new Error(msg);
   }
@@ -364,10 +375,35 @@ export async function deleteService(id: number): Promise<void> {
 
 // ── RESEÑAS ───────────────────────────────────────────────────────────────────
 
-export async function getResenas(businessId: number): Promise<Resena[]> {
-  const res = await fetch(`${API_URL}/resenas?businessId=${businessId}`, { cache: "no-store" });
-  if (!res.ok) throw new Error("Error al obtener las rese\u00f1as");
+export async function getResenas(businessId?: number): Promise<Resena[]> {
+  const url = businessId
+    ? `${API_URL}/resenas?businessId=${businessId}`
+    : `${API_URL}/resenas`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener las reseñas");
   return res.json();
+}
+
+export async function getResenaByAppointment(appointmentId: number): Promise<Resena | null> {
+  const res = await fetch(`${API_URL}/resenas/appointment/${appointmentId}`, { cache: "no-store" });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Error al obtener la reseña");
+  return res.json();
+}
+
+export async function createResena(data: CreateResenaDto): Promise<Resena> {
+  const res = await fetch(`${API_URL}/resenas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al crear la reseña");
+  return res.json();
+}
+
+export async function deleteResena(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/resenas/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Error al eliminar la reseña");
 }
 
 // ── SOLICITUDES DE CAMBIO DE PERFIL ───────────────────────────────────────────
