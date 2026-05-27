@@ -28,9 +28,9 @@ function useReducedMotion() {
   return v;
 }
 
-const R      = 190;  // radio
-const ARC0   = -20;  // ángulo inicio: negativo → las opciones bajan más
-const ARC1   =  72;  // ángulo fin: reducido para que el arco baje en conjunto
+const R      = 190;
+const ARC0   =  -4;  // punto intermedio: ligeramente por debajo del eje horizontal
+const ARC1   =  85;  // punto intermedio: casi vertical pero sin pasarse
 const T_SIZE =  58;
 const I_SIZE =  52;
 
