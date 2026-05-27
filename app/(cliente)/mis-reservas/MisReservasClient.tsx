@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Booking, Resena, CreateResenaDto } from "@/lib/api";
-import { createResena } from "@/lib/api";
+import { getAppointments, getCustomers, getResenas, createResena } from "@/lib/api";
 import { CalendarDays, Clock, Star, MessageSquarePlus } from "lucide-react";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -28,7 +28,6 @@ function StarRating({ value, onChange, readonly = false }: { value: number; onCh
           onMouseEnter={() => !readonly && setHover(n)}
           onMouseLeave={() => !readonly && setHover(0)}
           style={{ background: "none", border: "none", padding: 1, cursor: readonly ? "default" : "pointer", color: n <= (hover || value) ? "#e0a800" : "var(--border)", transition: "color 0.1s" }}
-          aria-label={`${n} estrellas`}
         >
           <Star size={20} fill={n <= (hover || value) ? "#e0a800" : "none"} stroke={n <= (hover || value) ? "#e0a800" : "var(--border)"} />
         </button>
@@ -51,7 +50,7 @@ function ModalResena({ appt, customerName, onClose, onSaved }: { appt: Booking; 
       const dto: CreateResenaDto = { businessId: appt.businessId, customerId: appt.customerId, appointmentId: appt.id, clienteNombre: customerName, puntuacion, comentario: comentario.trim() || undefined };
       const nueva = await createResena(dto);
       onSaved(nueva); onClose();
-    } catch { setError("No se pudo enviar la reseña. Inténtalo de nuevo."); }
+    } catch { setError("No se pudo enviar la reseña."); }
     finally { setLoading(false); }
   }
 
@@ -94,13 +93,12 @@ function TarjetaReserva({ appt, resena, customerName, onResenaGuardada }: { appt
       <div style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "var(--space-4) var(--space-5)", display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "var(--space-3)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)", flex: 1 }}>
-            <p style={{ fontWeight: 600, margin: 0, fontSize: "var(--text-base)" }}>{appt.serviceName}</p>
-            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)", margin: 0, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <p style={{ fontWeight: 600, margin: 0 }}>{appt.serviceName}</p>
+            <p style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)", margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
               <CalendarDays size={13} />{dateFormatted}<Clock size={13} style={{ marginLeft: 4 }} />{appt.time}
             </p>
-            {appt.importe > 0 && <p style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", margin: 0 }}>{appt.importe}€</p>}
           </div>
-          <span style={{ background: st.bg, color: st.color, padding: "4px 14px", borderRadius: "var(--radius-full)", fontSize: "var(--text-sm)", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}>{st.label}</span>
+          <span style={{ background: st.bg, color: st.color, padding: "4px 14px", borderRadius: "var(--radius-full)", fontSize: "var(--text-sm)", fontWeight: 600, whiteSpace: "nowrap" }}>{st.label}</span>
         </div>
         {resena && (
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: "var(--space-3)", display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
@@ -124,17 +122,41 @@ function TarjetaReserva({ appt, resena, customerName, onResenaGuardada }: { appt
   );
 }
 
-export default function MisReservasClient({ appointments, customer, resenasByAppointment }: { appointments: Booking[]; customer: { Nombre: string; id: number } | null; resenasByAppointment: Record<number, Resena> }) {
-  const [resenas, setResenas] = useState<Record<number, Resena>>(resenasByAppointment);
+export default function MisReservasClient({ customerId }: { customerId: number }) {
+  const [appointments, setAppointments] = useState<Booking[]>([]);
+  const [resenas, setResenas] = useState<Record<number, Resena>>({});
+  const [customerName, setCustomerName] = useState("Cliente");
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"proximas" | "pasadas">("proximas");
 
-  if (!customer) return (
-    <div className="page-stack"><section className="page-hero"><div><h2>Mis reservas</h2><p>Debes iniciar sesión.</p></div></section></div>
-  );
+  useEffect(() => {
+    async function load() {
+      try {
+        const [customers, allAppointments, allResenas] = await Promise.all([
+          getCustomers(),
+          getAppointments(),
+          getResenas(),
+        ]);
+        const found = customers.find((c) => c.id === customerId);
+        if (found) setCustomerName(found.Nombre);
+        const mine = allAppointments.filter((a) => a.customerId === customerId);
+        setAppointments(mine);
+        const map: Record<number, Resena> = {};
+        allResenas.forEach((r) => { if (r.appointmentId != null) map[r.appointmentId] = r; });
+        setResenas(map);
+      } catch (err) {
+        console.error("Error cargando mis reservas:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [customerId]);
 
   const sorted = [...appointments].sort((a, b) => new Date(`${a.date}T${a.time || "00:00"}`).getTime() - new Date(`${b.date}T${b.time || "00:00"}`).getTime());
   const proximas = sorted.filter((a) => !hasPassed(a.date, a.time));
   const pasadas  = sorted.filter((a) => hasPassed(a.date, a.time)).reverse();
+  const lista = tab === "proximas" ? proximas : pasadas;
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
     padding: "var(--space-2) var(--space-5)", borderRadius: "var(--radius-full)",
@@ -144,32 +166,43 @@ export default function MisReservasClient({ appointments, customer, resenasByApp
     transition: "background 0.18s, color 0.18s",
   });
 
-  const lista = tab === "proximas" ? proximas : pasadas;
-
   return (
     <div className="page-stack">
       <section className="page-hero">
         <div><h2>Mis reservas</h2><p>Consulta y valora tus reservas.</p></div>
       </section>
-      <div style={{ display: "flex", gap: "var(--space-2)", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--radius-full)", padding: "var(--space-1)", width: "fit-content" }}>
-        <button style={tabStyle(tab === "proximas")} onClick={() => setTab("proximas")}>Próximas {proximas.length > 0 && `(${proximas.length})`}</button>
-        <button style={tabStyle(tab === "pasadas")} onClick={() => setTab("pasadas")}>Pasadas {pasadas.length > 0 && `(${pasadas.length})`}</button>
-      </div>
-      <section className="section-card">
-        {lista.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "var(--space-16) var(--space-8)", color: "var(--text-secondary)", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)" }}>
-            <CalendarDays size={44} style={{ opacity: 0.2 }} />
-            <p style={{ fontWeight: 600, margin: 0 }}>{tab === "proximas" ? "No tienes reservas próximas" : "No tienes reservas pasadas"}</p>
-            {tab === "proximas" && <p style={{ fontSize: "var(--text-sm)", margin: 0, maxWidth: "36ch" }}>Cuando hagas una reserva aparecerá aquí.</p>}
-          </div>
-        ) : (
+
+      {loading ? (
+        <section className="section-card">
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-            {lista.map((appt) => (
-              <TarjetaReserva key={appt.id} appt={appt} resena={resenas[appt.id]} customerName={customer.Nombre} onResenaGuardada={(r) => setResenas((prev) => ({ ...prev, [appt.id]: r }))} />
+            {[1,2,3].map((i) => (
+              <div key={i} style={{ height: 80, borderRadius: "var(--radius-lg)", background: "var(--surface-2)", animation: "pulse 1.5s ease-in-out infinite" }} />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      ) : (
+        <>
+          <div style={{ display: "flex", gap: "var(--space-2)", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--radius-full)", padding: "var(--space-1)", width: "fit-content" }}>
+            <button style={tabStyle(tab === "proximas")} onClick={() => setTab("proximas")}>Próximas {proximas.length > 0 && `(${proximas.length})`}</button>
+            <button style={tabStyle(tab === "pasadas")} onClick={() => setTab("pasadas")}>Pasadas {pasadas.length > 0 && `(${pasadas.length})`}</button>
+          </div>
+          <section className="section-card">
+            {lista.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "var(--space-16) var(--space-8)", color: "var(--text-secondary)", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-3)" }}>
+                <CalendarDays size={44} style={{ opacity: 0.2 }} />
+                <p style={{ fontWeight: 600, margin: 0 }}>{tab === "proximas" ? "No tienes reservas próximas" : "No tienes reservas pasadas"}</p>
+                {tab === "proximas" && <p style={{ fontSize: "var(--text-sm)", margin: 0 }}>Cuando hagas una reserva aparecerá aquí.</p>}
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                {lista.map((appt) => (
+                  <TarjetaReserva key={appt.id} appt={appt} resena={resenas[appt.id]} customerName={customerName} onResenaGuardada={(r) => setResenas((prev) => ({ ...prev, [appt.id]: r }))} />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }
