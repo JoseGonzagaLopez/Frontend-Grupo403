@@ -7,43 +7,47 @@ export function middleware(request: NextRequest) {
   const businessAuthToken = request.cookies.get('business_auth_token')
 
   const pathname = request.nextUrl.pathname
-  const isLoginPage = pathname === '/login'
-  const isPublicBooking = pathname === '/reservar'
-  const isCustomerArea = pathname.startsWith('/cliente/')
-  const isNegocioArea = pathname === '/negocio' || pathname.startsWith('/negocio/')
-  const isAdminArea = !isLoginPage && !isPublicBooking && !isCustomerArea && !isNegocioArea
 
-  // ── Rutas de empresa ──────────────────────────────────
+  const isLoginPage    = pathname === '/login'
+  const isClienteLogin = pathname === '/cliente/login'
+  const isClienteReg   = pathname === '/cliente/registro'
+
+  // Rutas que requieren ser cliente
+  const isClienteArea  = pathname === '/reservar' ||
+                         pathname.startsWith('/reservar/') ||
+                         pathname === '/mis-reservas' ||
+                         pathname.startsWith('/mis-reservas/')
+
+  // Rutas del area privada del cliente (antiguo /cliente/*)
+  const isClientePrivado = pathname.startsWith('/cliente/') &&
+                           !isClienteLogin && !isClienteReg
+
+  const isNegocioArea  = pathname === '/negocio' || pathname.startsWith('/negocio/')
+  const isAdminArea    = !isLoginPage && !isClienteLogin && !isClienteReg &&
+                         !isClienteArea && !isClientePrivado && !isNegocioArea
+
+  // ── Rutas de empresa ─────────────────────────────────
   if (isNegocioArea && !businessAuthToken) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // ── Reservar: requiere ser cliente ────────────────────
-  if (isPublicBooking && !customerAuthToken) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // ── Rutas de cliente (reservar + mis-reservas) ───────
+  if ((isClienteArea || isClientePrivado) && !customerAuthToken) {
+    return NextResponse.redirect(new URL('/cliente/login', request.url))
   }
 
-  // ── Área cliente ──────────────────────────────────────
-  if (isCustomerArea && customerAuthToken) {
-    return NextResponse.redirect(new URL('/reservar', request.url))
-  }
-
-  // ── Área admin ────────────────────────────────────────
+  // ── Area admin ───────────────────────────────────────
   if (isAdminArea && !adminAuthToken) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Si ya está autenticado como admin y va al login, lo mandamos al dashboard
+  // ── Redirigir si ya esta autenticado ─────────────────
   if (isLoginPage && adminAuthToken) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
-
-  // Si ya está autenticado como cliente y va al login, lo mandamos a reservar
-  if (isLoginPage && customerAuthToken) {
+  if ((isClienteLogin || isClienteReg) && customerAuthToken) {
     return NextResponse.redirect(new URL('/reservar', request.url))
   }
-
-  // Si ya está autenticado como empresa y va al login, lo mandamos al negocio
   if (isLoginPage && businessAuthToken) {
     return NextResponse.redirect(new URL('/negocio', request.url))
   }
