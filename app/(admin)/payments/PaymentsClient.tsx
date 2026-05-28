@@ -657,10 +657,11 @@ export default function PaymentsClient({
           <tbody>
             {payments.map((payment) => {
               const customer = customers.find((c) => c.id === payment.customerId);
+              const business = businesses.find((b) => b.id === payment.businessId);
               return (
                 <tr key={payment.ID}>
                   <td>{customer?.Nombre ?? `Cliente #${payment.customerId}`}</td>
-                  <td>{payment.Comercio ?? `Negocio #${payment.businessId}`}</td>
+                  <td>{business?.Nombre ?? (business as any)?.nombre ?? `Negocio #${payment.businessId}`}</td>
                   <td>{payment.Importe} €</td>
                   <td>{payment.Metodo}</td>
                   <td>{formatDate(payment.Fecha)}</td>
