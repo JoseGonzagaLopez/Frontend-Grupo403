@@ -9,6 +9,7 @@ import { Sun, Moon } from "lucide-react";
 type Tab = "login" | "register";
 
 export default function LoginPage() {
+  const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState<Tab>("login");
 
   // Login unificado
@@ -34,7 +35,9 @@ export default function LoginPage() {
 
   // Tema oscuro/claro
   const [isDark, setIsDark] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const stored = document.documentElement.getAttribute("data-theme");
     const dark = stored === "dark" || (!stored && prefersDark);
@@ -125,11 +128,8 @@ export default function LoginPage() {
     }
   };
 
-  // ── Card: animación de cierre hacia avatar ──────────────────────────────
   const cardShouldAnimate = isSuccess && !isBusinessSuccess;
 
-  // Cuando NO está animando: la card se centra con position:fixed + translate.
-  // Cuando SÍ anima (login exitoso): vuela a esquina sup-derecha como avatar.
   const cardStyle: React.CSSProperties = cardShouldAnimate
     ? {
         position: "fixed",
@@ -150,7 +150,6 @@ export default function LoginPage() {
         boxShadow: "0 4px 10px var(--accent-glow)",
       }
     : {
-        // Estado normal: centrado en pantalla
         position: "relative",
         width: "100%",
         maxWidth: 460,
@@ -165,8 +164,17 @@ export default function LoginPage() {
         boxShadow: "var(--shadow-float)",
       };
 
+  // Render minimo en servidor para evitar hydration mismatch con 100dvh y temas
+  if (!mounted) {
+    return (
+      <div
+        suppressHydrationWarning
+        style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}
+      />
+    );
+  }
+
   return (
-    // Wrapper: flex centrado, cubre toda la pantalla
     <div
       style={{
         minHeight: "100dvh",
