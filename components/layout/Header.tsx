@@ -121,7 +121,6 @@ export default function Header({
                   Sesión activa
                 </p>
               </div>
-
               <button type="button" className="sellix-profile__dropdown-item" onClick={handleLogout}>
                 <LogOut size={15} />
                 Cerrar sesión
@@ -132,6 +131,12 @@ export default function Header({
       </div>
 
       <style>{`
+        /* ═══════════════════════════════════
+           BUK-A HEADER — usa 100% variables CSS
+           Sin colores hardcodeados ni media queries
+           de prefers-color-scheme en los componentes
+        ═══════════════════════════════════ */
+
         .sellix-topbar {
           position: sticky;
           top: 0;
@@ -140,59 +145,57 @@ export default function Header({
           grid-template-columns: minmax(220px, 320px) minmax(280px, 1fr) auto;
           align-items: center;
           gap: 18px;
-          padding: 18px 24px;
-          margin: 14px 18px 0 18px;
-          border: 1px solid var(--border, rgba(99,102,241,0.18));
-          border-radius: var(--radius-xl, 22px);
-          background:
-            linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
-            var(--surface, rgba(18,20,40,0.72));
+          padding: 14px 20px;
+          margin: 12px 16px 0 16px;
+          border: 1px solid var(--border);
+          border-radius: var(--radius-xl, 20px);
+          background: var(--surface);
           backdrop-filter: blur(24px) saturate(180%);
           -webkit-backdrop-filter: blur(24px) saturate(180%);
-          box-shadow: var(--shadow-lg, 0 10px 40px rgba(0,0,0,0.18));
+          box-shadow: var(--shadow-lg);
+          transition:
+            background var(--transition-smooth),
+            border-color var(--transition-smooth),
+            box-shadow var(--transition-smooth);
           animation: topbarIn 380ms var(--ease-out, cubic-bezier(0.16,1,0.3,1)) both;
         }
 
+        /* ── Intro ── */
         .sellix-topbar__intro {
           min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 4px;
         }
 
         .sellix-topbar__eyebrow {
-          font-size: 0.72rem;
+          font-size: var(--text-xs, 0.72rem);
           text-transform: uppercase;
           letter-spacing: 0.14em;
-          color: var(--text-tertiary, rgba(140,140,180,0.45));
+          color: var(--text-tertiary);
           font-weight: 700;
-        }
-
-        .sellix-topbar__heading-wrap {
-          min-width: 0;
         }
 
         .sellix-topbar__title {
-          font-size: clamp(1.2rem, 1rem + 0.7vw, 1.75rem);
-          line-height: 1.05;
+          font-size: clamp(1.1rem, 0.9rem + 0.7vw, 1.6rem);
+          line-height: 1.1;
           font-weight: 700;
           letter-spacing: -0.03em;
-          color: var(--text, #e8e9f8);
+          color: var(--text);
           margin: 0;
         }
 
         .sellix-topbar__subtitle {
-          margin-top: 4px;
-          font-size: 0.84rem;
-          color: var(--text-secondary, rgba(180,182,215,0.70));
+          font-size: var(--text-xs, 0.72rem);
+          color: var(--text-secondary);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          margin-top: 2px;
         }
 
-        .sellix-topbar__center {
-          min-width: 0;
-        }
+        /* ── Search ── */
+        .sellix-topbar__center { min-width: 0; }
 
         .sellix-search {
           position: relative;
@@ -200,24 +203,27 @@ export default function Header({
           align-items: center;
           gap: 10px;
           width: 100%;
-          min-height: 52px;
-          padding: 0 14px;
-          border-radius: 16px;
-          border: 1px solid var(--border, rgba(99,102,241,0.18));
-          background: rgba(255,255,255,0.05);
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-          transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+          min-height: 44px;
+          padding: 0 12px;
+          border-radius: var(--radius-lg, 14px);
+          border: 1px solid var(--border);
+          background: var(--surface-2, var(--surface));
+          transition:
+            border-color 180ms ease,
+            box-shadow 180ms ease,
+            transform 180ms ease,
+            background var(--transition-smooth);
         }
 
         .sellix-search:focus-within {
-          border-color: var(--border-strong, rgba(99,102,241,0.32));
-          box-shadow: 0 0 0 4px rgba(99,102,241,0.08), inset 0 1px 0 rgba(255,255,255,0.08);
+          border-color: var(--border-strong);
+          box-shadow: 0 0 0 3px var(--accent-soft);
           transform: translateY(-1px);
         }
 
         .sellix-search__icon {
           flex-shrink: 0;
-          color: var(--text-tertiary, rgba(140,140,180,0.45));
+          color: var(--text-tertiary);
         }
 
         .sellix-search__input {
@@ -226,32 +232,33 @@ export default function Header({
           border: none;
           outline: none;
           background: transparent;
-          color: var(--text, #e8e9f8);
-          font-size: 0.9rem;
+          color: var(--text);
+          font-size: var(--text-sm, 0.8125rem);
           font-weight: 500;
         }
 
         .sellix-search__input::placeholder {
-          color: var(--text-secondary, rgba(180,182,215,0.70));
+          color: var(--text-faint);
         }
 
         .sellix-search__shortcut {
           flex-shrink: 0;
-          padding: 5px 8px;
-          border-radius: 10px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.08);
-          color: var(--text-tertiary, rgba(140,140,180,0.45));
-          font-size: 0.72rem;
+          padding: 4px 7px;
+          border-radius: 8px;
+          background: var(--surface-hover);
+          border: 1px solid var(--border);
+          color: var(--text-tertiary);
+          font-size: 0.68rem;
           font-weight: 700;
           letter-spacing: 0.04em;
         }
 
+        /* ── Actions ── */
         .sellix-topbar__actions {
           display: flex;
           align-items: center;
           justify-content: flex-end;
-          gap: 10px;
+          gap: 8px;
         }
 
         .sellix-icon-btn {
@@ -259,91 +266,89 @@ export default function Header({
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 44px;
-          height: 44px;
-          border-radius: 14px;
-          border: 1px solid var(--border, rgba(99,102,241,0.18));
-          color: var(--text, #e8e9f8);
-          transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+          width: 40px;
+          height: 40px;
+          border-radius: var(--radius-md, 10px);
+          border: 1px solid var(--border);
+          color: var(--text-secondary);
+          transition:
+            transform 160ms ease,
+            border-color 160ms ease,
+            background 160ms ease,
+            color 160ms ease;
         }
 
         .sellix-icon-btn--soft {
-          background: rgba(255,255,255,0.06);
+          background: var(--surface-hover);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
         }
 
         .sellix-icon-btn:hover {
           transform: translateY(-1px);
-          border-color: var(--border-strong, rgba(99,102,241,0.32));
-          background: rgba(255,255,255,0.09);
+          border-color: var(--border-strong);
+          color: var(--text);
+          background: var(--accent-soft);
         }
 
         .sellix-icon-btn__ping {
           position: absolute;
-          top: 10px;
-          right: 10px;
-          width: 8px;
-          height: 8px;
+          top: 9px; right: 9px;
+          width: 7px; height: 7px;
           border-radius: 9999px;
-          background: var(--teal, #2dd4bf);
-          box-shadow: 0 0 10px var(--teal-glow, rgba(45,212,191,0.25));
+          background: var(--teal);
+          box-shadow: 0 0 8px var(--teal-glow);
         }
 
-        .sellix-profile {
-          position: relative;
-        }
+        /* ── Profile ── */
+        .sellix-profile { position: relative; }
 
         .sellix-profile__trigger {
           display: flex;
           align-items: center;
           gap: 10px;
-          min-height: 48px;
-          padding: 6px 8px 6px 6px;
-          border-radius: 16px;
-          border: 1px solid var(--border, rgba(99,102,241,0.18));
-          background: rgba(255,255,255,0.06);
+          min-height: 44px;
+          padding: 5px 10px 5px 5px;
+          border-radius: var(--radius-lg, 14px);
+          border: 1px solid var(--border);
+          background: var(--surface-hover);
           backdrop-filter: blur(14px);
           -webkit-backdrop-filter: blur(14px);
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-          transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+          transition:
+            transform 160ms ease,
+            border-color 160ms ease,
+            background 160ms ease;
         }
 
         .sellix-profile__trigger:hover,
         .sellix-profile__trigger.is-open {
           transform: translateY(-1px);
-          border-color: var(--border-strong, rgba(99,102,241,0.32));
-          background: rgba(255,255,255,0.09);
+          border-color: var(--border-strong);
+          background: var(--accent-soft);
         }
 
         .sellix-profile__avatar-wrap {
           position: relative;
-          width: 36px;
-          height: 36px;
-          border-radius: 12px;
+          width: 32px; height: 32px;
+          border-radius: 10px;
           overflow: hidden;
           flex-shrink: 0;
-          border: 1px solid rgba(255,255,255,0.12);
-          box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+          border: 1px solid var(--border-strong);
         }
 
         .sellix-profile__avatar {
-          width: 100%;
-          height: 100%;
+          width: 100%; height: 100%;
           object-fit: cover;
         }
 
         .sellix-profile__status {
           position: absolute;
-          right: 2px;
-          bottom: 2px;
-          width: 9px;
-          height: 9px;
+          right: 1px; bottom: 1px;
+          width: 8px; height: 8px;
           border-radius: 50%;
-          border: 2px solid rgba(18,20,40,0.8);
-          background: var(--teal, #2dd4bf);
-          box-shadow: 0 0 10px var(--teal-glow, rgba(45,212,191,0.25));
+          border: 2px solid var(--surface-solid, var(--color-surface-solid));
+          background: var(--teal);
+          box-shadow: 0 0 8px var(--teal-glow);
         }
 
         .sellix-profile__meta {
@@ -354,65 +359,64 @@ export default function Header({
         }
 
         .sellix-profile__name {
-          font-size: 0.86rem;
-          color: var(--text, #e8e9f8);
+          font-size: 0.82rem;
+          color: var(--text);
           font-weight: 700;
-          max-width: 140px;
+          max-width: 130px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
 
         .sellix-profile__role {
-          font-size: 0.74rem;
-          color: var(--text-secondary, rgba(180,182,215,0.70));
+          font-size: 0.70rem;
+          color: var(--text-secondary);
           font-weight: 500;
         }
 
+        /* ── Dropdown ── */
         .sellix-profile__dropdown {
           position: absolute;
-          top: calc(100% + 10px);
+          top: calc(100% + 8px);
           right: 0;
-          width: 240px;
+          width: 230px;
           overflow: hidden;
-          border-radius: var(--radius-lg, 16px);
-          border: 1px solid var(--border-strong, rgba(99,102,241,0.32));
-          background:
-            linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
-            var(--surface, rgba(18,20,40,0.78));
+          border-radius: var(--radius-lg, 14px);
+          border: 1px solid var(--border-strong);
+          background: var(--surface-solid, var(--color-surface-solid));
           backdrop-filter: blur(26px) saturate(190%);
           -webkit-backdrop-filter: blur(26px) saturate(190%);
-          box-shadow: var(--shadow-float, 0 24px 64px rgba(0,0,0,0.24));
-          animation: dropdownIn 220ms var(--ease-out, cubic-bezier(0.16,1,0.3,1)) both;
+          box-shadow: var(--shadow-float);
+          animation: dropdownIn 200ms var(--ease-out, cubic-bezier(0.16,1,0.3,1)) both;
+          transition: background var(--transition-smooth), border-color var(--transition-smooth);
         }
 
         .sellix-profile__dropdown-head {
-          padding: 14px 16px;
-          border-bottom: 1px solid var(--border, rgba(99,102,241,0.18));
+          padding: 12px 14px;
+          border-bottom: 1px solid var(--border);
         }
 
         .sellix-profile__dropdown-name {
-          color: var(--text, #e8e9f8);
-          font-size: 0.9rem;
+          color: var(--text);
+          font-size: 0.86rem;
           font-weight: 700;
         }
 
         .sellix-profile__dropdown-status {
-          margin-top: 6px;
+          margin-top: 5px;
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          color: var(--teal, #2dd4bf);
-          font-size: 0.76rem;
+          gap: 7px;
+          color: var(--teal);
+          font-size: 0.72rem;
           font-weight: 600;
         }
 
         .sellix-profile__dropdown-status-dot {
-          width: 7px;
-          height: 7px;
+          width: 6px; height: 6px;
           border-radius: 50%;
           background: currentColor;
-          box-shadow: 0 0 8px currentColor;
+          box-shadow: 0 0 6px currentColor;
         }
 
         .sellix-profile__dropdown-item {
@@ -420,59 +424,46 @@ export default function Header({
           display: flex;
           align-items: center;
           gap: 10px;
-          padding: 12px 16px;
-          color: var(--danger, #f87171);
-          font-size: 0.86rem;
+          padding: 11px 14px;
+          color: var(--danger);
+          font-size: 0.82rem;
           font-weight: 600;
-          transition: background 160ms ease, color 160ms ease;
+          transition: background 160ms ease;
         }
 
         .sellix-profile__dropdown-item:hover {
-          background: var(--surface-2, rgba(26,28,55,0.60));
+          background: var(--surface-hover);
         }
 
+        /* ── Animations ── */
         @keyframes topbarIn {
           from { opacity: 0; transform: translateY(-10px) scale(0.985); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         @keyframes dropdownIn {
-          from { opacity: 0; transform: translateY(8px) scale(0.98); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+          from { opacity: 0; transform: translateY(8px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
+        /* ── Responsive ── */
         @media (max-width: 1180px) {
           .sellix-topbar {
-            grid-template-columns: 1fr;
-            gap: 14px;
+            grid-template-columns: 1fr auto;
           }
-
-          .sellix-topbar__actions {
-            justify-content: space-between;
-            flex-wrap: wrap;
-          }
+          .sellix-topbar__center { display: none; }
         }
 
         @media (max-width: 760px) {
           .sellix-topbar {
-            margin: 12px 12px 0 12px;
-            padding: 14px;
-            border-radius: 18px;
+            margin: 10px 10px 0 10px;
+            padding: 10px 12px;
+            border-radius: var(--radius-lg, 14px);
+            grid-template-columns: 1fr auto;
           }
-
           .sellix-profile__meta,
-          .sellix-search__shortcut,
           .sellix-topbar__subtitle {
             display: none;
-          }
-
-          .sellix-topbar__actions {
-            gap: 8px;
-            justify-content: flex-start;
-          }
-
-          .sellix-profile__trigger {
-            padding-right: 6px;
           }
         }
       `}</style>
