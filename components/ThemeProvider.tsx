@@ -8,7 +8,7 @@ const ThemeContext = React.createContext<{
   theme: Theme;
   setTheme: (t: Theme) => void;
 }>({
-  theme: "dark",
+  theme: "light",
   setTheme: () => {},
 });
 
@@ -17,29 +17,36 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Siempre iniciamos con "dark" para que el HTML del servidor y el cliente
-  // coincidan en el primer render y no haya hydration mismatch.
-  const [theme, setThemeState] = React.useState<Theme>("dark");
-  const [mounted, setMounted] = React.useState(false);
+  const [theme, setThemeState] = React.useState<Theme>("light");
 
-  // Una vez montado en el cliente, leemos la preferencia real.
+  // Al montar: leer preferencia guardada o sistema operativo
   React.useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored === "light" || stored === "dark") {
-      setThemeState(stored);
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setThemeState(prefersDark ? "dark" : "light");
+    let resolved: Theme = "light";
+    try {
+      const stored = localStorage.getItem("buka-theme") as Theme | null;
+      if (stored === "light" || stored === "dark") {
+        resolved = stored;
+      } else {
+        resolved = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+      }
+    } catch {
+      resolved = "light";
     }
+    setThemeState(resolved);
+    document.documentElement.setAttribute("data-theme", resolved);
   }, []);
 
-  // Aplicar el tema al atributo data-theme del html (solo tras el montaje).
+  // Cada vez que cambia: aplicar al DOM y guardar
   React.useEffect(() => {
-    if (!mounted) return;
     document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-  }, [theme, mounted]);
+    try {
+      localStorage.setItem("buka-theme", theme);
+    } catch {
+      // ignorar si localStorage no está disponible
+    }
+  }, [theme]);
 
   const setTheme = React.useCallback((t: Theme) => setThemeState(t), []);
 
