@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Calendar, Scissors, Star } from "lucide-react";
 import FanMenu from "@/components/FanMenu";
 
@@ -11,13 +10,10 @@ const menuItems = [
 ];
 
 export default function NegocioSidebar() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-  if (!mounted) return null;
-
   return (
     <FanMenu
       items={menuItems.map(({ href, label, icon, color }) => ({ href, label, icon, color }))}
+      logoSrc="/favicon.ico"
     />
   );
 }

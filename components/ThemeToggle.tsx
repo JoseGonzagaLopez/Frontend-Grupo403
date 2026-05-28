@@ -1,6 +1,6 @@
 "use client";
 
-import { useTheme } from "@/components/ThemeProvider";
+import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -23,7 +23,11 @@ export function ThemeToggle() {
       aria-label="Alternar tema oscuro"
       title="Alternar tema oscuro"
     >
-      {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+      {theme === "dark" ? (
+        <Sun size={16} />
+      ) : (
+        <Moon size={16} />
+      )}
     </button>
   );
 }

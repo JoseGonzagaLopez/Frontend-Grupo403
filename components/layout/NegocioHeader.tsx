@@ -4,11 +4,18 @@ import { logOutBusiness } from "@/lib/actions";
 import { useState, useRef, useEffect } from "react";
 import { LogOut, User } from "lucide-react";
 import Link from "next/link";
+import FanMenu, { type FanMenuItem } from "./FanMenu";
+import { Calendar, Scissors, Star } from "lucide-react";
 
-// FanMenu se renderiza a través de NegocioSidebar — NO duplicar aquí
+const FAN_ITEMS: FanMenuItem[] = [
+  { label: "Reservas",  href: "/negocio/reservas",  icon: <Calendar size={20} /> },
+  { label: "Servicios", href: "/negocio/servicios", icon: <Scissors size={20} /> },
+  { label: "Reseñas",   href: "/negocio/resenas",   icon: <Star     size={20} /> },
+];
+
 interface Props { onMenuClick?: () => void; }
 
-export default function NegocioHeader({ onMenuClick: _onMenuClick }: Props) {
+export default function NegocioHeader({ onMenuClick }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -28,13 +35,15 @@ export default function NegocioHeader({ onMenuClick: _onMenuClick }: Props) {
   return (
     <header className="admin-header glass-surface">
       <div className="admin-header__left">
+        {/* Abanico radial para el negocio */}
+        <FanMenu items={FAN_ITEMS} />
         <span className="admin-header__title">Buk-A</span>
         <span className="admin-header__subtitle">Portal de negocio</span>
       </div>
 
       <div className="admin-header__actions">
         <ThemeToggle />
-        <div style={{ position: "relative" }} ref={ref}>
+        <div className="relative" ref={ref}>
           <button
             onClick={() => setOpen(!open)}
             style={{
@@ -61,7 +70,7 @@ export default function NegocioHeader({ onMenuClick: _onMenuClick }: Props) {
               border: "1px solid var(--border-strong)",
               borderRadius: "var(--radius-lg)",
               boxShadow: "var(--shadow-float)",
-              width: 220, overflow: "hidden",
+              marginTop: 0, width: 220, overflow: "hidden",
               animation: "fadeSlideUp 250ms var(--ease-out) both",
             }}>
               <div style={{ padding: "10px 14px", borderBottom: "1px solid var(--border)" }}>

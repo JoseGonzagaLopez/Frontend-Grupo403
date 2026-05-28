@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, CalendarDays, Users,
@@ -17,24 +16,15 @@ const menuItems = [
   { label: "Solicitudes",      href: "/solicitudes", icon: <ClipboardList   size={22} />, color: "#f472b6" },
 ];
 
-interface SidebarProps {
-  isOpen?: boolean;
-  setIsOpen?: (v: boolean) => void;
-}
-
-export default function Sidebar({ isOpen: _isOpen, setIsOpen: _setIsOpen }: SidebarProps) {
-  const [mounted, setMounted] = useState(false);
+export default function Sidebar() {
+  // pathname kept for potential future active-state usage
   const _pathname = usePathname();
   void _pathname;
-
-  useEffect(() => { setMounted(true); }, []);
-
-  // No renderizar nada en SSR para evitar hydration mismatch con createPortal
-  if (!mounted) return null;
 
   return (
     <FanMenu
       items={menuItems.map(({ href, label, icon, color }) => ({ href, label, icon, color }))}
+      logoSrc="/favicon.ico"
     />
   );
 }

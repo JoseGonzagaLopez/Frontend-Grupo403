@@ -1,23 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Home, CalendarPlus, CalendarDays } from "lucide-react";
 import FanMenu from "@/components/FanMenu";
-import { CalendarDays, Star, User } from "lucide-react";
 
 const menuItems = [
-  { label: "Mis reservas", href: "/cliente/reservas", icon: <CalendarDays size={22} />, color: "#4fd1c5" },
-  { label: "Reseñas",      href: "/cliente/resenas",  icon: <Star         size={22} />, color: "#fbbf24" },
-  { label: "Mi perfil",    href: "/cliente/perfil",   icon: <User         size={22} />, color: "#a78bfa" },
+  { label: "Inicio",        href: "/inicio",      icon: <Home         size={22} />, color: "#4fd1c5" },
+  { label: "Hacer reserva", href: "/reservar",     icon: <CalendarPlus size={22} />, color: "#a78bfa" },
+  { label: "Mis reservas",  href: "/mis-reservas", icon: <CalendarDays size={22} />, color: "#6c3fc4" },
 ];
 
 export default function ClienteSidebar() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-  if (!mounted) return null;
-
   return (
     <FanMenu
       items={menuItems.map(({ href, label, icon, color }) => ({ href, label, icon, color }))}
+      logoSrc="/favicon.ico"
     />
   );
 }

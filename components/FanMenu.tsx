@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import Image from "next/image";
 
 export interface FanMenuItem {
   icon: React.ReactNode;
@@ -27,51 +28,16 @@ function useReducedMotion() {
   return v;
 }
 
-const R      = 130;
-const ARC0   = 10;   // ángulo inicio (grados desde eje X positivo, arriba)
-const ARC1   = 80;   // ángulo fin
-const T_SIZE = 52;   // tamaño trigger
-const I_SIZE = 46;   // tamaño ítems
+const R      = 190;
+const ARC0   =  -4;
+const ARC1   =  85;
+const T_SIZE =  58;
+const I_SIZE =  52;
 
 function arcPos(idx: number, total: number) {
   const a = total === 1 ? (ARC0 + ARC1) / 2 : ARC0 + (idx * (ARC1 - ARC0)) / (total - 1);
   const rad = (a * Math.PI) / 180;
   return { x: Math.cos(rad) * R, y: -Math.sin(rad) * R };
-}
-
-// Logo SVG inline de Buk-A — sin dependencia de Image ni favicon
-function BukaLogo({ size = 36 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 40 40"
-      fill="none"
-      aria-hidden="true"
-      style={{ display: "block", flexShrink: 0 }}
-    >
-      <circle cx="20" cy="20" r="20" fill="url(#lg)" />
-      <defs>
-        <linearGradient id="lg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#4fd1c5" />
-          <stop offset="1" stopColor="#6c3fc4" />
-        </linearGradient>
-      </defs>
-      {/* Letra B estilizada */}
-      <text
-        x="20"
-        y="27"
-        textAnchor="middle"
-        fontSize="20"
-        fontWeight="700"
-        fontFamily="'Satoshi','SF Pro Display',sans-serif"
-        fill="white"
-        letterSpacing="-1"
-      >
-        B
-      </text>
-    </svg>
-  );
 }
 
 const FanItem = memo(function FanItem({
@@ -108,86 +74,60 @@ const FanItem = memo(function FanItem({
         display: "flex", alignItems: "center", justifyContent: "center",
         textDecoration: "none",
         cursor: open ? "pointer" : "default",
-        background: hov
-          ? `radial-gradient(circle at 40% 35%, ${accent}55, rgba(10,10,40,0.85) 70%)`
-          : "rgba(255,255,255,0.10)",
-        backdropFilter: "blur(20px) saturate(180%)",
-        WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        border: `1px solid ${hov ? accent + "88" : "rgba(255,255,255,0.18)"  }`,
-        boxShadow: hov
-          ? `0 0 20px ${accent}55, 0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.20)`
-          : "0 6px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.14)",
+        background: "rgba(255,255,255,0.12)",
+        backdropFilter: "blur(24px) saturate(180%)",
+        WebkitBackdropFilter: "blur(24px) saturate(180%)",
+        border: "1px solid rgba(255,255,255,0.22)",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.18)",
         opacity: open ? 1 : 0,
         transform: open
-          ? `translate(${x}px,${y}px) scale(${hov ? 1.12 : 1})`
-          : "translate(0px,0px) scale(0.15)",
+          ? `translate(${x}px,${y}px) scale(${hov ? 1.13 : 1})`
+          : "translate(0px,0px) scale(0.1)",
         transition: reduced ? "none" : open
-          ? `opacity 320ms ${snappy} ${oDelay}ms, transform 420ms ${spring} ${oDelay}ms, background 150ms ease, box-shadow 150ms ease`
-          : `opacity 180ms ${smooth} ${cDelay}ms, transform 200ms ${smooth} ${cDelay}ms`,
+          ? `opacity 350ms ${snappy} ${oDelay}ms, transform 450ms ${spring} ${oDelay}ms`
+          : `opacity 200ms ${smooth} ${cDelay}ms, transform 230ms ${smooth} ${cDelay}ms`,
         willChange: "transform, opacity",
         pointerEvents: open ? "auto" : "none",
-        color: hov ? accent : "rgba(232,232,248,0.92)",
+        color: "rgba(232,232,248,0.95)",
       }}
     >
-      {/* Brillo interno tipo glass */}
-      <span aria-hidden="true" style={{
-        position: "absolute", top: "7%", left: "17%",
-        width: "56%", height: "30%",
-        borderRadius: "50%",
-        background: "linear-gradient(135deg,rgba(255,255,255,0.50) 0%,rgba(255,255,255,0) 100%)",
-        filter: "blur(2px)",
-        pointerEvents: "none", zIndex: 1,
-      }} />
+      <span aria-hidden="true" style={{ position:"absolute",inset:0,borderRadius:"50%",background:`radial-gradient(circle at 40% 35%, ${accent}18, transparent 70%)`,pointerEvents:"none" }} />
+      <span aria-hidden="true" style={{ position:"absolute",inset:0,borderRadius:"50%",background:`radial-gradient(circle at 40% 35%, ${accent}40, ${accent}10 70%)`,border:`1.5px solid ${accent}50`,opacity:hov?1:0,transition:reduced?"none":"opacity 140ms ease",willChange:"opacity",pointerEvents:"none" }} />
+      <span aria-hidden="true" style={{ position:"absolute",top:"8%",left:"18%",width:"55%",height:"32%",borderRadius:"50%",background:"linear-gradient(135deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 100%)",filter:"blur(2px)",pointerEvents:"none",zIndex:1 }} />
 
-      <span style={{ position: "relative", zIndex: 2, display: "flex" }}>
-        {item.icon}
+      <span style={{ position:"relative",zIndex:2,display:"flex" }}>
+        <span style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",color:"rgba(232,232,248,0.95)",opacity:hov?0:1,transition:reduced?"none":"opacity 140ms ease",willChange:"opacity" }}>
+          {item.icon}
+        </span>
+        <span style={{ display:"flex",alignItems:"center",justifyContent:"center",color:accent,opacity:hov?1:0,transition:reduced?"none":"opacity 140ms ease",willChange:"opacity" }}>
+          {item.icon}
+        </span>
       </span>
 
-      {/* Tooltip */}
-      <span aria-hidden="true" style={{
-        position: "absolute",
-        left: "calc(100% + 10px)", top: "50%",
-        transform: `translateY(-50%) translateX(${hov ? 0 : -8}px)`,
-        whiteSpace: "nowrap",
-        background: "rgba(6,4,22,0.88)",
-        backdropFilter: "blur(10px)",
-        WebkitBackdropFilter: "blur(10px)",
-        border: "1px solid rgba(255,255,255,0.12)",
-        color: "#e8e8f8",
-        fontSize: "0.70rem",
-        fontWeight: 600,
-        letterSpacing: "0.04em",
-        padding: "4px 10px",
-        borderRadius: 99,
-        pointerEvents: "none",
-        opacity: hov ? 1 : 0,
-        transition: reduced ? "none" : "opacity 140ms ease, transform 160ms ease",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
-      }}>
+      <span aria-hidden="true" style={{ position:"absolute",left:"calc(100% + 12px)",top:"50%",transform:`translateY(-50%) translateX(${hov?0:-6}px)`,whiteSpace:"nowrap",background:"rgba(8,5,28,0.85)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.14)",color:"#e8e8f8",fontSize:"0.70rem",fontWeight:600,letterSpacing:"0.04em",padding:"4px 12px",borderRadius:99,pointerEvents:"none",opacity:hov?1:0,transition:reduced?"none":"opacity 150ms ease, transform 170ms ease",willChange:"opacity, transform",boxShadow:"0 4px 16px rgba(0,0,0,0.45)" }}>
         {item.label}
       </span>
     </Link>
   );
 });
 
-export default function FanMenu({ items }: FanMenuProps) {
+export default function FanMenu({ items, logoSrc = "/favicon.ico" }: FanMenuProps) {
   const [open, setOpen]       = useState(false);
   const [mounted, setMounted] = useState(false);
-  const reduced  = useReducedMotion();
-  const btnRef   = useRef<HTMLButtonElement>(null);
-  const [hovTrigger, setHovTrigger] = useState(false);
+  const reduced = useReducedMotion();
+  const btnRef  = useRef<HTMLButtonElement>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
   const close = useCallback(() => setOpen(false), []);
 
+  const onKey = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") { setOpen(false); btnRef.current?.focus(); }
+  }, []);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { close(); btnRef.current?.focus(); }
-    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [close]);
+  }, [onKey]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -198,49 +138,14 @@ export default function FanMenu({ items }: FanMenuProps) {
   const smooth = "cubic-bezier(0.25,0.46,0.45,0.94)";
 
   const menu = (
-    <div style={{ position: "fixed", inset: 0, zIndex: 99999, pointerEvents: "none" }}>
+    <div style={{ position:"fixed",inset:0,zIndex:99999,pointerEvents:"none" }}>
 
-      {/* Overlay */}
-      <div
-        aria-hidden="true"
-        onClick={close}
-        style={{
-          position: "absolute", inset: 0,
-          background: "rgba(4,4,18,0.52)",
-          backdropFilter: "blur(8px) saturate(140%)",
-          WebkitBackdropFilter: "blur(8px) saturate(140%)",
-          opacity: open ? 1 : 0,
-          transition: reduced ? "none" : `opacity 280ms ${smooth}`,
-          pointerEvents: open ? "auto" : "none",
-        }}
-      />
+      <div aria-hidden="true" onClick={close} style={{ position:"absolute",inset:0,background:"rgba(4,4,18,0.50)",backdropFilter:"blur(10px) saturate(140%)",WebkitBackdropFilter:"blur(10px) saturate(140%)",opacity:open?1:0,transition:reduced?"none":`opacity 300ms ${smooth}`,willChange:"opacity",pointerEvents:open?"auto":"none" }} />
 
-      {/* Zona de navegación — anclada bottom-left */}
-      <div
-        role="navigation"
-        aria-label="Menú principal"
-        style={{
-          position: "absolute",
-          bottom: 24, left: 24,
-          width: T_SIZE, height: T_SIZE,
-          pointerEvents: "auto",
-        }}
-      >
-        {/* Anillo decorativo */}
-        <div aria-hidden="true" style={{
-          position: "absolute",
-          bottom: T_SIZE / 2, left: T_SIZE / 2,
-          width: R * 2, height: R * 2,
-          marginLeft: -R, marginBottom: -R,
-          borderRadius: "50%",
-          border: "1px solid rgba(79,209,197,0.15)",
-          pointerEvents: "none",
-          opacity: open ? 1 : 0,
-          transform: open ? "scale(1)" : "scale(0.4)",
-          transition: reduced ? "none" : `opacity 350ms ${smooth}, transform 430ms ${spring}`,
-        }} />
+      <div role="navigation" aria-label="Menú principal" style={{ position:"absolute",bottom:24,left:24,width:T_SIZE,height:T_SIZE,pointerEvents:"auto" }}>
 
-        {/* Ítems del abanico */}
+        <div aria-hidden="true" style={{ position:"absolute",bottom:T_SIZE/2,left:T_SIZE/2,width:R*2,height:R*2,marginLeft:-R,marginBottom:-R,borderRadius:"50%",border:"1px solid rgba(255,255,255,0.08)",pointerEvents:"none",opacity:open?1:0,transform:open?"scale(1)":"scale(0.5)",transition:reduced?"none":`opacity 380ms ${smooth}, transform 460ms ${spring}`,willChange:"transform, opacity" }} />
+
         {items.map((item, i) => {
           const { x, y } = arcPos(i, items.length);
           return (
@@ -250,14 +155,13 @@ export default function FanMenu({ items }: FanMenuProps) {
               x={x} y={y}
               open={open}
               oDelay={reduced ? 0 : i * 55}
-              cDelay={reduced ? 0 : (items.length - 1 - i) * 28}
+              cDelay={reduced ? 0 : (items.length - 1 - i) * 30}
               reduced={reduced}
               onClose={close}
             />
           );
         })}
 
-        {/* Botón trigger — logo glass sin fondo negro */}
         <button
           ref={btnRef}
           type="button"
@@ -265,75 +169,19 @@ export default function FanMenu({ items }: FanMenuProps) {
           aria-haspopup="menu"
           aria-label={open ? "Cerrar menú" : "Abrir menú"}
           onClick={() => setOpen(v => !v)}
-          onMouseEnter={() => setHovTrigger(true)}
-          onMouseLeave={() => setHovTrigger(false)}
-          style={{
-            position: "absolute", bottom: 0, left: 0, zIndex: 2,
-            width: T_SIZE, height: T_SIZE,
-            borderRadius: "50%",
-            cursor: "pointer",
-            padding: 0,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: hovTrigger
-              ? "rgba(79,209,197,0.18)"
-              : open
-                ? "rgba(108,63,196,0.25)"
-                : "rgba(255,255,255,0.11)",
-            backdropFilter: "blur(28px) saturate(200%)",
-            WebkitBackdropFilter: "blur(28px) saturate(200%)",
-            border: `1.5px solid ${
-              open ? "rgba(79,209,197,0.55)" : hovTrigger ? "rgba(79,209,197,0.40)" : "rgba(255,255,255,0.22)"
-            }`,
-            boxShadow: open
-              ? "0 0 28px rgba(79,209,197,0.35), 0 8px 32px rgba(0,0,0,0.50), inset 0 1px 0 rgba(255,255,255,0.22)"
-              : "0 6px 24px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.18)",
-            transform: open
-              ? `rotate(45deg) scale(${hovTrigger ? 1.10 : 1.04})`
-              : `rotate(0deg) scale(${hovTrigger ? 1.08 : 1})`,
-            transition: reduced ? "none" : `transform 460ms ${spring}, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease`,
-            willChange: "transform",
-            overflow: "visible",  // sin clip que cause el negro
-          }}
+          style={{ position:"absolute",bottom:0,left:0,zIndex:2,width:T_SIZE,height:T_SIZE,borderRadius:"50%",cursor:"pointer",padding:0,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255,255,255,0.13)",backdropFilter:"blur(32px) saturate(200%)",WebkitBackdropFilter:"blur(32px) saturate(200%)",border:"1.5px solid rgba(255,255,255,0.28)",boxShadow:"0 8px 32px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.25)",transform:open?"rotate(135deg) scale(1.06)":"rotate(0deg) scale(1)",transition:reduced?"none":`transform 480ms ${spring}`,willChange:"transform" }}
         >
-          {/* Brillo interno del trigger */}
-          <span aria-hidden="true" style={{
-            position: "absolute", top: "7%", left: "16%",
-            width: "58%", height: "32%",
-            borderRadius: "50%",
-            background: "linear-gradient(135deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 100%)",
-            filter: "blur(3px)",
-            pointerEvents: "none", zIndex: 2,
-            transform: open ? "rotate(-45deg)" : "rotate(0deg)",
-            transition: reduced ? "none" : `transform 460ms ${spring}`,
-          }} />
-
-          {/* Pulso externo cuando está cerrado */}
-          <span aria-hidden="true" style={{
-            position: "absolute", inset: -10,
-            borderRadius: "50%",
-            border: "1.5px solid rgba(79,209,197,0.25)",
-            opacity: open ? 0 : 1,
-            animation: reduced || open ? "none" : "fanRingPulse 3s ease-in-out infinite",
-            transition: "opacity 200ms ease",
-            pointerEvents: "none",
-          }} />
-
-          {/* Logo SVG inline — nunca negro */}
-          <span style={{
-            position: "relative", zIndex: 1,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transform: open ? "rotate(-45deg)" : "rotate(0deg)",
-            transition: reduced ? "none" : `transform 460ms ${spring}`,
-          }}>
-            <BukaLogo size={30} />
-          </span>
+          <span aria-hidden="true" style={{ position:"absolute",top:"6%",left:"15%",width:"60%",height:"35%",borderRadius:"50%",background:"linear-gradient(135deg,rgba(255,255,255,0.60) 0%,rgba(255,255,255,0) 100%)",filter:"blur(3px)",pointerEvents:"none",zIndex:2,transform:open?"rotate(-135deg)":"rotate(0deg)",transition:reduced?"none":`transform 480ms ${spring}`,willChange:"transform" }} />
+          <span aria-hidden="true" style={{ position:"absolute",inset:-10,borderRadius:"50%",border:"1.5px solid rgba(79,209,197,0.28)",opacity:open?0:1,animation:reduced||open?"none":"fanRingPulse 3s ease-in-out infinite",transition:"opacity 200ms ease",pointerEvents:"none" }} />
+          <Image src={logoSrc} alt="" width={T_SIZE} height={T_SIZE} style={{ width:"100%",height:"100%",objectFit:"cover",borderRadius:"50%",pointerEvents:"none",userSelect:"none",display:"block",transform:open?"rotate(-135deg)":"rotate(0deg)",transition:reduced?"none":`transform 480ms ${spring}`,willChange:"transform",position:"relative",zIndex:1 }} draggable={false} priority />
         </button>
 
         <style>{`
           @keyframes fanRingPulse {
-            0%,100%{opacity:.25;transform:scale(1);}
-            50%{opacity:.85;transform:scale(1.20);}
+            0%,100%{opacity:.28;transform:scale(1);}
+            50%{opacity:.9;transform:scale(1.22);}
           }
+          [data-next-themes-indicator],#__next-themes-indicator,nextjs-portal{display:none!important}
         `}</style>
       </div>
     </div>
