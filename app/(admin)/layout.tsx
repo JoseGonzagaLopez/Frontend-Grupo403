@@ -12,18 +12,18 @@ export default function AdminLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="admin-shell">
-      {/* Overlay to close sidebar on mobile/when open */}
+    <div className="admin-shell" suppressHydrationWarning>
       {isSidebarOpen && (
-        <div 
+        <div
           className="sidebar-overlay"
           onClick={() => setIsSidebarOpen(false)}
-        ></div>
+          suppressHydrationWarning
+        />
       )}
-      
+
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-      <div className="admin-main">
+      <div className="admin-main" suppressHydrationWarning>
         <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
         <main className="admin-content">{children}</main>
       </div>

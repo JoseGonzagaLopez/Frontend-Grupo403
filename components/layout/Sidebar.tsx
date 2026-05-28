@@ -16,15 +16,18 @@ const menuItems = [
   { label: "Solicitudes",      href: "/solicitudes", icon: <ClipboardList   size={22} />, color: "#f472b6" },
 ];
 
-export default function Sidebar() {
-  // pathname kept for potential future active-state usage
+interface SidebarProps {
+  isOpen?: boolean;
+  setIsOpen?: (v: boolean) => void;
+}
+
+export default function Sidebar({ isOpen: _isOpen, setIsOpen: _setIsOpen }: SidebarProps) {
   const _pathname = usePathname();
   void _pathname;
 
   return (
     <FanMenu
       items={menuItems.map(({ href, label, icon, color }) => ({ href, label, icon, color }))}
-      logoSrc="/favicon.ico"
     />
   );
 }
