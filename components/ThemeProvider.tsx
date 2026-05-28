@@ -17,10 +17,14 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // Siempre iniciamos con "dark" para que el HTML del servidor y el cliente
+  // coincidan en el primer render y no haya hydration mismatch.
   const [theme, setThemeState] = React.useState<Theme>("dark");
+  const [mounted, setMounted] = React.useState(false);
 
-  // Leer el tema guardado en localStorage (solo en cliente)
+  // Una vez montado en el cliente, leemos la preferencia real.
   React.useEffect(() => {
+    setMounted(true);
     const stored = localStorage.getItem("theme") as Theme | null;
     if (stored === "light" || stored === "dark") {
       setThemeState(stored);
@@ -30,11 +34,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Aplicar el tema al atributo data-theme del html
+  // Aplicar el tema al atributo data-theme del html (solo tras el montaje).
   React.useEffect(() => {
+    if (!mounted) return;
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
-  }, [theme]);
+  }, [theme, mounted]);
 
   const setTheme = React.useCallback((t: Theme) => setThemeState(t), []);
 

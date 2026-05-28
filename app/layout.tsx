@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Buk-A — Bookings Admin",
@@ -18,9 +19,16 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
           rel="stylesheet"
         />
-        {/* Script de detección de tema: va en <head>, fuera del árbol React.
-            No genera el warning de React 19 porque no es hijo de un componente. */}
-        <script
+      </head>
+      <body suppressHydrationWarning>
+        {/*
+          Script de detección de tema inyectado con next/script strategy="beforeInteractive".
+          Se ejecuta antes de que React hidrate, evitando el warning de React 19
+          sobre <script> dentro del árbol de componentes.
+        */}
+        <Script
+          id="theme-detector"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function(){
@@ -38,8 +46,6 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body suppressHydrationWarning>
         <ThemeProvider>
           {children}
         </ThemeProvider>
