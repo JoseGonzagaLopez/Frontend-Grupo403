@@ -31,25 +31,36 @@ export default function ReservationsChart({ appointments }: ReservationsChartPro
       return acc;
     }, {} as Record<string, number>);
 
-    // Convert to array and sort by date
-    return Object.entries(chartData)
-      .map(([date, count]) => {
-        // Formatear la fecha para que sea más legible (ej. "20 May")
-        const dateObj = new Date(`${date}T00:00:00`);
-        const formattedDate = dateObj.toLocaleDateString("es-ES", {
-          day: "numeric",
-          month: "short",
-        });
+    // Convert to array and prioritize dates near today when there are many
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-        return {
-          date: formattedDate,
-          rawDate: date,
-          reservas: count,
-        };
-      })
-      .sort((a, b) => new Date(`${a.rawDate}T00:00:00`).getTime() - new Date(`${b.rawDate}T00:00:00`).getTime())
-      // Mostrar solo los últimos 14 días con actividad o similar, o todos si son pocos
-      .slice(-14);
+    const groupedData = Object.entries(chartData).map(([date, count]) => {
+      const dateObj = new Date(`${date}T00:00:00`);
+      const formattedDate = dateObj.toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "short",
+      });
+
+      return {
+        date: formattedDate,
+        rawDate: date,
+        reservas: count,
+        time: dateObj.getTime(),
+      };
+    });
+
+    if (groupedData.length <= 14) {
+      return groupedData.sort((a, b) => a.time - b.time);
+    }
+
+    const nearestDates = groupedData
+      .slice()
+      .sort((a, b) => Math.abs(a.time - today.getTime()) - Math.abs(b.time - today.getTime()))
+      .slice(0, 14)
+      .sort((a, b) => a.time - b.time);
+
+    return nearestDates;
   }, [appointments]);
 
   if (!isMounted) {
