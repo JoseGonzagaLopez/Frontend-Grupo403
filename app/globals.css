@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   BUK-A — DESIGN SYSTEM v4  ·  Sellix-inspired + Liquid Glass
+   BUK-A — DESIGN SYSTEM v5  ·  Sellix-inspired + Liquid Glass
    Clean white/light base · Indigo accent · Smooth animations
    Tipografía: Satoshi (Fontshare)
 ═══════════════════════════════════════════════════════════════════ */
@@ -333,6 +333,10 @@ body::after {
   0%, 100% { transform: scale(1);    opacity: 1 }
   50%       { transform: scale(1.03); opacity: 0.85 }
 }
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.98) }
+  to   { opacity: 1; transform: translateY(0) scale(1) }
+}
 
 /* ─── LIQUID GLASS BASE — the core surface class ─── */
 .glass-surface,
@@ -344,7 +348,6 @@ body::after {
 .panel-card,
 .empty-glass {
   position: relative;
-  /* Liquid Glass: translucent white + blur + inner highlight */
   background: linear-gradient(
     160deg,
     rgba(255,255,255,0.72) 0%,
@@ -380,7 +383,6 @@ body::after {
     inset 0 -1px 0 rgba(0,0,0,0.18);
 }
 
-/* Subtle glass sheen — top-edge highlight */
 .glass-surface::before,
 .section-card::before,
 .kpi-card::before,
@@ -483,7 +485,6 @@ body::after {
     border-color var(--transition-fast);
 }
 
-/* stagger animation for KPI cards */
 .kpi-card:nth-child(1) { animation: fadeSlideUp 320ms  var(--ease-out) 0ms   both; }
 .kpi-card:nth-child(2) { animation: fadeSlideUp 320ms  var(--ease-out) 60ms  both; }
 .kpi-card:nth-child(3) { animation: fadeSlideUp 320ms  var(--ease-out) 120ms both; }
@@ -1022,6 +1023,19 @@ select option { background: var(--surface-solid); color: var(--text); }
   box-shadow: 0 2px 10px var(--accent-glow);
 }
 
+/* ─── SEARCH ROW ─── */
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search-row .input {
+  flex: 1;
+  min-width: 200px;
+}
+
 /* ─── FEEDBACK MESSAGES ─── */
 .message-success {
   display: flex;
@@ -1078,7 +1092,6 @@ select option { background: var(--surface-solid); color: var(--text); }
   max-width: 420px;
   padding: 32px;
   border-radius: var(--radius-xl);
-  /* Liquid Glass modal */
   background: linear-gradient(
     160deg,
     rgba(255,255,255,0.88) 0%,
@@ -1156,6 +1169,249 @@ select option { background: var(--surface-solid); color: var(--text); }
   position: relative; z-index: 1;
 }
 
+/* ─── CUSTOMER GRID ─── */
+.customer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.customer-card {
+  position: relative;
+  padding: 20px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(
+    160deg,
+    rgba(255,255,255,0.80) 0%,
+    rgba(255,255,255,0.55) 100%
+  );
+  border: 1px solid rgba(255,255,255,0.65);
+  backdrop-filter: var(--blur-md);
+  -webkit-backdrop-filter: var(--blur-md);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.75);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast);
+  animation: cardIn 340ms var(--ease-out) both;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .customer-card {
+  background: linear-gradient(
+    160deg,
+    rgba(255,255,255,0.07) 0%,
+    rgba(255,255,255,0.03) 100%
+  );
+  border-color: var(--border);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.customer-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 80% 40% at 50% 0%,
+    rgba(255,255,255,0.28) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.customer-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-float), inset 0 1px 0 rgba(255,255,255,0.80);
+}
+
+[data-theme="dark"] .customer-card:hover {
+  box-shadow: var(--shadow-float), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+
+/* stagger animation for customer cards */
+.customer-card:nth-child(1)  { animation-delay: 0ms; }
+.customer-card:nth-child(2)  { animation-delay: 40ms; }
+.customer-card:nth-child(3)  { animation-delay: 80ms; }
+.customer-card:nth-child(4)  { animation-delay: 120ms; }
+.customer-card:nth-child(5)  { animation-delay: 160ms; }
+.customer-card:nth-child(6)  { animation-delay: 200ms; }
+
+.customer-name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 4px;
+  position: relative; z-index: 1;
+}
+
+.customer-meta {
+  font-size: 0.80rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  position: relative; z-index: 1;
+}
+
+.customer-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 0.70rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: var(--accent-soft);
+  border: 1px solid var(--border-strong);
+  color: var(--accent);
+  position: relative; z-index: 1;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+[data-theme="dark"] .customer-tag {
+  background: rgba(99,102,241,0.18);
+  border-color: rgba(99,102,241,0.30);
+}
+
+/* ─── NEGOCIO / SOLICITUD CARDS (generic entity card) ─── */
+.entity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.entity-card,
+.negocio-card,
+.solicitud-card {
+  position: relative;
+  padding: 22px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(
+    160deg,
+    rgba(255,255,255,0.80) 0%,
+    rgba(255,255,255,0.55) 100%
+  );
+  border: 1px solid rgba(255,255,255,0.65);
+  backdrop-filter: var(--blur-md);
+  -webkit-backdrop-filter: var(--blur-md);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.75);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast);
+  animation: cardIn 340ms var(--ease-out) both;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .entity-card,
+[data-theme="dark"] .negocio-card,
+[data-theme="dark"] .solicitud-card {
+  background: linear-gradient(
+    160deg,
+    rgba(255,255,255,0.07) 0%,
+    rgba(255,255,255,0.03) 100%
+  );
+  border-color: var(--border);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.entity-card::before,
+.negocio-card::before,
+.solicitud-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    ellipse 80% 40% at 50% 0%,
+    rgba(255,255,255,0.28) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.entity-card:hover,
+.negocio-card:hover,
+.solicitud-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-float), inset 0 1px 0 rgba(255,255,255,0.80);
+}
+
+[data-theme="dark"] .entity-card:hover,
+[data-theme="dark"] .negocio-card:hover,
+[data-theme="dark"] .solicitud-card:hover {
+  box-shadow: var(--shadow-float), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+
+.entity-card__title,
+.negocio-card__title,
+.solicitud-card__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 6px;
+  position: relative; z-index: 1;
+}
+
+.entity-card__meta,
+.negocio-card__meta,
+.solicitud-card__meta {
+  font-size: 0.80rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  position: relative; z-index: 1;
+}
+
+.entity-card__actions,
+.negocio-card__actions,
+.solicitud-card__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  position: relative; z-index: 1;
+}
+
+/* ─── EMPTY STATE ─── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-secondary);
+}
+
+.empty-state__icon {
+  width: 52px; height: 52px;
+  border-radius: var(--radius-lg);
+  background: var(--accent-soft);
+  border: 1px solid var(--border-strong);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  max-width: 36ch;
+  margin-bottom: 20px;
+}
+
 /* ─── ADMIN SHELL LAYOUT ─── */
 .admin-shell {
   min-height: 100dvh;
@@ -1195,7 +1451,6 @@ select option { background: var(--surface-solid); color: var(--text); }
   z-index: 50;
   display: flex;
   flex-direction: column;
-  /* Liquid Glass sidebar */
   background: linear-gradient(
     180deg,
     rgba(255,255,255,0.82) 0%,
@@ -1336,7 +1591,6 @@ select option { background: var(--surface-solid); color: var(--text); }
   position: sticky;
   top: 0;
   z-index: 40;
-  /* Liquid Glass header */
   background: rgba(255,255,255,0.78);
   border-bottom: 1px solid rgba(0,0,0,0.06);
   backdrop-filter: var(--blur-md);
@@ -1559,6 +1813,8 @@ select option { background: var(--surface-solid); color: var(--text); }
   .data-table  { display: block; overflow-x: auto; white-space: nowrap; }
   .panel-title-row { flex-direction: column; align-items: flex-start; }
   .form-grid   { grid-template-columns: 1fr; }
+  .customer-grid { grid-template-columns: 1fr; }
+  .entity-grid   { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
