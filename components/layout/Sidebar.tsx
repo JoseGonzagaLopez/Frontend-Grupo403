@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, CalendarDays, Users,
@@ -22,8 +23,14 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen: _isOpen, setIsOpen: _setIsOpen }: SidebarProps) {
+  const [mounted, setMounted] = useState(false);
   const _pathname = usePathname();
   void _pathname;
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // No renderizar nada en SSR para evitar hydration mismatch con createPortal
+  if (!mounted) return null;
 
   return (
     <FanMenu
