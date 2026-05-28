@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Buk-A — Bookings Admin",
@@ -19,33 +18,29 @@ export default function RootLayout({
           href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
           rel="stylesheet"
         />
-      </head>
-      <body suppressHydrationWarning>
         {/*
-          Script de detección de tema inyectado con next/script strategy="beforeInteractive".
-          Se ejecuta antes de que React hidrate, evitando el warning de React 19
-          sobre <script> dentro del árbol de componentes.
+          Script SÍNCRONO bloqueante — debe estar en <head> como script nativo,
+          NO como next/script, para que se ejecute antes de cualquier paint CSS.
+          Esto elimina el FOUC (flash of unstyled/wrong-theme content).
         */}
-        <Script
-          id="theme-detector"
-          strategy="beforeInteractive"
+        <script
           dangerouslySetInnerHTML={{
-            __html: `
-              (function(){
-                try {
-                  var t = localStorage.getItem('theme');
-                  if (t === 'light' || t === 'dark') {
-                    document.documentElement.setAttribute('data-theme', t);
-                  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                  } else {
-                    document.documentElement.setAttribute('data-theme', 'light');
-                  }
-                } catch(e){}
-              })()
-            `,
+            __html: `(function(){
+  try {
+    var t = localStorage.getItem('theme');
+    if (t === 'light' || t === 'dark') {
+      document.documentElement.setAttribute('data-theme', t);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  } catch(e){}
+})();`,
           }}
         />
+      </head>
+      <body suppressHydrationWarning>
         <ThemeProvider>
           {children}
         </ThemeProvider>
