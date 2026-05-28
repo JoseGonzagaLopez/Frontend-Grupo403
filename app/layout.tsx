@@ -22,11 +22,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="system"
-          enableSystem
-        >
+        <ThemeProvider>
           {children}
         </ThemeProvider>
       </body>
