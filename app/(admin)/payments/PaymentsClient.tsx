@@ -481,6 +481,7 @@ export default function PaymentsClient({
                 <option value="Tarjeta">Tarjeta</option>
                 <option value="Bizum">Bizum</option>
                 <option value="Efectivo">Efectivo</option>
+                <option value="Transferencia">Transferencia</option>
                 <option value="Pendiente">Pendiente</option>
               </select>
               <input
@@ -559,6 +560,7 @@ export default function PaymentsClient({
                 <option value="Tarjeta">Tarjeta</option>
                 <option value="Bizum">Bizum</option>
                 <option value="Efectivo">Efectivo</option>
+                <option value="Transferencia">Transferencia</option>
                 <option value="Pendiente">Pendiente</option>
               </select>
               <input
