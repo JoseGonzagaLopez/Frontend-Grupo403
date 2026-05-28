@@ -9,14 +9,11 @@ import { Sun, Moon } from "lucide-react";
 type Tab = "login" | "register";
 
 export default function LoginPage() {
-  const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState<Tab>("login");
 
-  // Login unificado
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
 
-  // Registro
   const [registerRole, setRegisterRole] = useState<"cliente" | "empresa">("cliente");
   const [regForm, setRegForm] = useState({
     Nombre: "",
@@ -32,12 +29,10 @@ export default function LoginPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [isBusinessSuccess, setIsBusinessSuccess] = useState(false);
-
-  // Tema oscuro/claro
   const [isDark, setIsDark] = useState(false);
 
+  // Tema: se ejecuta solo en cliente, no bloquea el render
   useEffect(() => {
-    setMounted(true);
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const stored = document.documentElement.getAttribute("data-theme");
     const dark = stored === "dark" || (!stored && prefersDark);
@@ -51,7 +46,6 @@ export default function LoginPage() {
     document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
   }
 
-  // ── LOGIN UNIFICADO ──────────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -90,7 +84,6 @@ export default function LoginPage() {
     }
   };
 
-  // ── REGISTRO ──────────────────────────────────────────────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -164,18 +157,9 @@ export default function LoginPage() {
         boxShadow: "var(--shadow-float)",
       };
 
-  // Render minimo en servidor para evitar hydration mismatch con 100dvh y temas
-  if (!mounted) {
-    return (
-      <div
-        suppressHydrationWarning
-        style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}
-      />
-    );
-  }
-
   return (
     <div
+      suppressHydrationWarning
       style={{
         minHeight: "100dvh",
         display: "flex",
