@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function ReservarPage() {
-  let initialBusinesses = [];
+  let initialBusinesses: Awaited<ReturnType<typeof getBusinesses>> = [];
   let loggedCustomer = undefined;
   let serverError = undefined;
 

@@ -11,11 +11,16 @@ const menuItems = [
   { label: "Mis reservas",  href: "/mis-reservas",  icon: CalendarDays, color: "#6366f1" },
 ];
 
-export default function ClienteSidebar() {
+interface ClienteSidebarProps {
+  isOpen?: boolean;
+  setIsOpen?: (open: boolean) => void;
+}
+
+export default function ClienteSidebar({ isOpen, setIsOpen }: ClienteSidebarProps = {}) {
   const pathname = usePathname();
 
   return (
-    <aside className="sellix-sidebar sellix-sidebar--cliente">
+    <aside className={`sellix-sidebar sellix-sidebar--cliente${isOpen ? " sellix-sidebar--mobile-open" : ""}`}>
       <div className="sellix-sidebar__logo">
         <div className="sellix-sidebar__logo-icon">
           <Image src="/favicon.ico" alt="Buk-A" width={32} height={32} priority />
@@ -66,7 +71,27 @@ export default function ClienteSidebar() {
         @keyframes sidebarItemIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
         @keyframes dotPulse { 0%,100%{opacity:1}50%{opacity:0.6} }
         @media(max-width:1024px){.sellix-sidebar{width:var(--sidebar-collapsed,72px)}.sellix-sidebar__logo-text,.sellix-sidebar__item-label,.sellix-sidebar__item-dot{opacity:0;pointer-events:none}.sellix-sidebar__item{justify-content:center;padding:10px}.sellix-sidebar__item-icon{width:22px}}
-        @media(max-width:640px){.sellix-sidebar{display:none}}
+        @media(max-width:640px){
+          .sellix-sidebar {
+            transform: translateX(-100%);
+            transition: transform 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          }
+          .sellix-sidebar--mobile-open {
+            transform: translateX(0);
+          }
+          .sellix-sidebar__logo-text, .sellix-sidebar__item-label {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            width: auto !important;
+          }
+          .sellix-sidebar__item {
+            justify-content: flex-start !important;
+            padding: 9px 12px !important;
+          }
+          .sellix-sidebar__logo {
+            justify-content: flex-start !important;
+          }
+        }
       `}</style>
     </aside>
   );

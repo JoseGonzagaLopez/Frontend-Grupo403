@@ -25,7 +25,6 @@ export default function ClienteLayoutClient({
           subtitle="Portal de cliente"
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
           userName={customerName}
-          userRole="Cliente"
           onLogout={async () => {
             await logOutCustomer();
             window.location.href = "/login";

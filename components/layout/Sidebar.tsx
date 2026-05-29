@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -47,6 +48,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             </svg>
           </div>
           <span className="buka-sidebar__logo-text">Buk-A</span>
+          {/* Mobile close */}
           {setIsOpen && (
             <button
               className="buka-sidebar__close"
@@ -88,7 +90,9 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         {/* ── User pill at bottom ── */}
         <div className="buka-sidebar__footer">
           <div className="buka-sidebar__user">
-            <div className="buka-sidebar__user-avatar" aria-hidden="true">A</div>
+            <div className="buka-sidebar__user-avatar" aria-hidden="true">
+              A
+            </div>
             <div className="buka-sidebar__user-info">
               <span className="buka-sidebar__user-name">Admin</span>
               <span className="buka-sidebar__user-role">Super Admin</span>
@@ -99,31 +103,39 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
       <style>{`
         /* ════════════════════════════════
-           BUK-A SIDEBAR — Sellix Style
-           Usa 100% variables CSS del tema
+           BUK-A SIDEBAR  —  Sellix Style
+           Liquid Glass + clean indigo
         ════════════════════════════════ */
 
         .buka-sidebar {
           position: fixed;
           left: 0; top: 0; bottom: 0;
-          width: var(--sidebar-width, 240px);
+          width: 240px;
           z-index: 50;
           display: flex;
           flex-direction: column;
           padding: 20px 12px 16px;
           gap: 0;
 
-          background: var(--surface);
-          backdrop-filter: blur(24px) saturate(160%) brightness(1.02);
-          -webkit-backdrop-filter: blur(24px) saturate(160%) brightness(1.02);
-          border-right: 1px solid var(--border);
+          /* Liquid Glass base */
+          background: rgba(255, 255, 255, 0.82);
+          backdrop-filter: blur(24px) saturate(160%) brightness(1.04);
+          -webkit-backdrop-filter: blur(24px) saturate(160%) brightness(1.04);
+          border-right: 1px solid rgba(99, 102, 241, 0.10);
           box-shadow:
-            1px 0 0 rgba(255,255,255,0.5) inset,
-            4px 0 24px rgba(0,0,0,0.06);
+            1px 0 0 rgba(255,255,255,0.6) inset,
+            4px 0 24px rgba(99,102,241,0.06);
 
-          transition: transform 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                      background var(--transition-smooth),
-                      border-color var(--transition-smooth);
+          transition: transform 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Dark mode */
+        [data-theme="dark"] .buka-sidebar {
+          background: rgba(17, 18, 36, 0.88);
+          border-right-color: rgba(99,102,241,0.16);
+          box-shadow:
+            1px 0 0 rgba(255,255,255,0.04) inset,
+            4px 0 32px rgba(0,0,0,0.24);
         }
 
         /* ── Logo ── */
@@ -132,177 +144,252 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
           align-items: center;
           gap: 10px;
           padding: 2px 8px 18px 8px;
-          border-bottom: 1px solid var(--border);
+          border-bottom: 1px solid rgba(99,102,241,0.10);
           margin-bottom: 12px;
         }
-
         .buka-sidebar__logo-mark {
-          width: 34px; height: 34px;
+          width: 36px; height: 36px;
           border-radius: 10px;
-          background: var(--accent-soft);
-          border: 1px solid var(--border-strong);
+          background: rgba(99,102,241,0.10);
+          border: 1px solid rgba(99,102,241,0.20);
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
-          box-shadow: 0 2px 8px var(--accent-glow);
+          /* Liquid Glass icon background */
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          box-shadow: 0 2px 8px rgba(99,102,241,0.18), inset 0 1px 0 rgba(255,255,255,0.35);
+          transition: box-shadow 200ms ease;
         }
-
+        .buka-sidebar__logo-mark:hover {
+          box-shadow: 0 4px 16px rgba(99,102,241,0.30), inset 0 1px 0 rgba(255,255,255,0.45);
+        }
         .buka-sidebar__logo-text {
-          font-size: 1.05rem;
-          font-weight: 800;
-          letter-spacing: -0.03em;
-          color: var(--text);
+          font-size: 1.0625rem;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          color: #1e1f3b;
           flex: 1;
         }
-
+        [data-theme="dark"] .buka-sidebar__logo-text { color: #e8e9f4; }
         .buka-sidebar__close {
-          margin-left: auto;
           display: none;
-          width: 28px; height: 28px;
-          border-radius: 8px;
-          align-items: center; justify-content: center;
-          color: var(--text-secondary);
-          transition: background 160ms ease, color 160ms ease;
+          padding: 4px;
+          border-radius: 6px;
+          color: #6b7280;
+          background: none;
+          border: none;
+          cursor: pointer;
+          margin-left: auto;
+          transition: background 150ms ease, color 150ms ease;
         }
-
         .buka-sidebar__close:hover {
-          background: var(--surface-hover);
-          color: var(--text);
+          background: rgba(99,102,241,0.08);
+          color: #6366f1;
         }
 
         /* ── Nav ── */
         .buka-sidebar__nav {
-          flex: 1;
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          gap: 2px;
+          flex: 1;
           overflow-y: auto;
-          padding-right: 2px;
+          overflow-x: hidden;
+          scrollbar-width: none;
         }
+        .buka-sidebar__nav::-webkit-scrollbar { display: none; }
 
+        /* ── Nav item ── */
         .buka-sidebar__item {
+          position: relative;
           display: flex;
           align-items: center;
-          gap: 11px;
-          padding: 10px 12px;
-          border-radius: var(--radius-lg, 14px);
+          gap: 10px;
+          padding: 9px 12px;
+          border-radius: 12px;
           text-decoration: none;
-          color: var(--text-secondary);
-          font-size: 0.875rem;
+          color: #6b7280;
+          font-size: 0.8125rem;
           font-weight: 500;
+          letter-spacing: 0.005em;
+          white-space: nowrap;
+          overflow: hidden;
+          cursor: pointer;
+
+          /* entry animation */
+          animation: sidebarItemIn 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+
+          /* glass micro-effect */
           transition:
-            background 160ms ease,
             color 160ms ease,
+            background 160ms ease,
             transform 160ms ease,
             box-shadow 160ms ease;
-          animation: sidebarItemIn 280ms var(--ease-out, cubic-bezier(0.16,1,0.3,1)) both;
-          position: relative;
+        }
+        @keyframes sidebarItemIn {
+          from { opacity: 0; transform: translateX(-8px); }
+          to   { opacity: 1; transform: translateX(0); }
         }
 
         .buka-sidebar__item:hover {
-          background: var(--surface-hover);
-          color: var(--text);
+          color: #4f46e5;
+          background: rgba(99,102,241,0.07);
           transform: translateX(2px);
         }
+        .buka-sidebar__item:active {
+          transform: translateX(1px) scale(0.99);
+        }
 
+        /* ── Active state — solid indigo pill ── */
         .buka-sidebar__item--active {
-          background: var(--accent-soft);
-          color: var(--accent);
-          font-weight: 700;
-          box-shadow: inset 0 0 0 1px var(--border-strong);
+          color: #fff !important;
+          background: #6366f1 !important;
+          box-shadow:
+            0 4px 16px rgba(99,102,241,0.35),
+            inset 0 1px 0 rgba(255,255,255,0.20);
+          transform: none !important;
         }
-
         .buka-sidebar__item--active:hover {
-          background: var(--accent-soft);
-          transform: translateX(2px);
+          background: #4f46e5 !important;
+          transform: none !important;
+        }
+        [data-theme="dark"] .buka-sidebar__item { color: rgba(180,183,220,0.70); }
+        [data-theme="dark"] .buka-sidebar__item:hover {
+          color: #a5b4fc;
+          background: rgba(99,102,241,0.12);
         }
 
         .buka-sidebar__item-icon {
-          width: 32px; height: 32px;
-          border-radius: 9px;
-          display: flex; align-items: center; justify-content: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
-          transition: background 160ms ease;
+          width: 20px;
+          transition: transform 200ms ease;
         }
-
+        .buka-sidebar__item:hover .buka-sidebar__item-icon {
+          transform: scale(1.10);
+        }
         .buka-sidebar__item--active .buka-sidebar__item-icon {
-          background: var(--accent-soft);
+          transform: none;
         }
 
         .buka-sidebar__item-label {
           flex: 1;
-          white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          transition: opacity 200ms ease;
         }
 
-        /* ── Footer ── */
+        /* ── Footer / User pill ── */
         .buka-sidebar__footer {
-          padding-top: 14px;
-          margin-top: 8px;
-          border-top: 1px solid var(--border);
+          padding-top: 12px;
+          border-top: 1px solid rgba(99,102,241,0.10);
+          margin-top: 4px;
         }
-
         .buka-sidebar__user {
           display: flex;
           align-items: center;
           gap: 10px;
-          padding: 10px 12px;
-          border-radius: var(--radius-lg, 14px);
-          background: var(--surface-hover);
-          border: 1px solid var(--border);
-          transition: background 160ms ease, border-color 160ms ease;
-          cursor: default;
+          padding: 8px 10px;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: background 160ms ease;
         }
-
         .buka-sidebar__user:hover {
-          background: var(--accent-soft);
-          border-color: var(--border-strong);
+          background: rgba(99,102,241,0.07);
         }
-
         .buka-sidebar__user-avatar {
           width: 32px; height: 32px;
-          border-radius: 9px;
-          background: var(--accent);
-          color: white;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 0.8rem;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+          color: #fff;
+          font-size: 0.75rem;
           font-weight: 700;
+          display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(99,102,241,0.30);
         }
-
         .buka-sidebar__user-info {
           display: flex;
           flex-direction: column;
-          min-width: 0;
+          gap: 1px;
+          overflow: hidden;
         }
-
         .buka-sidebar__user-name {
-          font-size: 0.82rem;
-          font-weight: 700;
-          color: var(--text);
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: #1e1f3b;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
-
         .buka-sidebar__user-role {
-          font-size: 0.70rem;
-          color: var(--text-secondary);
-          font-weight: 500;
+          font-size: 0.6875rem;
+          color: #9ca3af;
+          white-space: nowrap;
+        }
+        [data-theme="dark"] .buka-sidebar__user-name { color: #e8e9f4; }
+
+        /* ════════════════════════════════
+           RESPONSIVE
+        ════════════════════════════════ */
+
+        /* Collapsed on medium screens */
+        @media (max-width: 1024px) {
+          .buka-sidebar {
+            width: 72px;
+          }
+          .buka-sidebar__logo-text,
+          .buka-sidebar__item-label,
+          .buka-sidebar__user-info {
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+          }
+          .buka-sidebar__close {
+            display: none;
+          }
+          .buka-sidebar__item {
+            justify-content: center;
+            padding: 10px;
+          }
+          .buka-sidebar__user {
+            justify-content: center;
+          }
+          .buka-sidebar__logo {
+            justify-content: center;
+          }
         }
 
-        /* ── Mobile overlay ── */
-        @media (max-width: 768px) {
+        /* Hidden on mobile — slides in when open */
+        @media (max-width: 640px) {
           .buka-sidebar {
+            width: 260px;
             transform: translateX(-100%);
           }
-
           .buka-sidebar--mobile-open {
             transform: translateX(0);
           }
-
+          .buka-sidebar__logo-text,
+          .buka-sidebar__item-label,
+          .buka-sidebar__user-info {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            width: auto !important;
+          }
           .buka-sidebar__close {
             display: flex;
+          }
+          .buka-sidebar__item {
+            justify-content: flex-start;
+            padding: 9px 12px;
+          }
+          .buka-sidebar__user {
+            justify-content: flex-start;
+          }
+          .buka-sidebar__logo {
+            justify-content: flex-start;
           }
         }
       `}</style>

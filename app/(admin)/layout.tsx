@@ -41,7 +41,7 @@ export default function AdminLayout({
         .admin-shell {
           display: flex;
           min-height: 100dvh;
-          background: var(--bg-page, #f5f6fa);
+          background: transparent;
           font-family: var(--font-body, 'Inter', sans-serif);
           opacity: 0;
           transition: opacity 300ms ease;

@@ -32,6 +32,13 @@ function formatDate(date: string) {
   }
 }
 
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('es-ES', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
 function KpiCard({
   title,
   value,
@@ -220,6 +227,13 @@ function SearchableSelect({
   );
 }
 
+function normalizePago(p: Pago): Pago {
+  return {
+    ...p,
+    Estado: p.Estado === "Completado" || p.Estado === "paid" ? "Pagado" : p.Estado === "pending" ? "Por cobrar" : p.Estado,
+  };
+}
+
 export default function PaymentsClient({
   initialPayments,
   initialCustomers,
@@ -229,7 +243,7 @@ export default function PaymentsClient({
   initialCustomers: Customer[];
   initialBusinesses: Business[];
 }) {
-  const [payments, setPayments] = useState<Pago[]>(initialPayments);
+  const [payments, setPayments] = useState<Pago[]>(() => initialPayments.map(normalizePago));
   const [customers] = useState<Customer[]>(initialCustomers);
   const [businesses] = useState<Business[]>(initialBusinesses);
 
@@ -329,7 +343,7 @@ export default function PaymentsClient({
 
     try {
       const created = await createPago(createForm);
-      setPayments((prev) => [created, ...prev]);
+      setPayments((prev) => [normalizePago(created), ...prev]);
       setCreateForm(emptyForm);
       setIsCreateOpen(false);
       setSuccessMessage("Pago creado correctamente.");
@@ -354,7 +368,7 @@ export default function PaymentsClient({
 
       setPayments((prev) =>
         prev.map((payment) =>
-          payment.ID === editingPaymentId ? updated : payment
+          payment.ID === editingPaymentId ? normalizePago(updated) : payment
         )
       );
 
@@ -419,7 +433,7 @@ export default function PaymentsClient({
       <section className="kpi-grid">
         <KpiCard
           title="Cobrado"
-          value={`${collectedTotal} €`}
+          value={`${formatCurrency(collectedTotal)} €`}
           subtitle={`${paidPayments.length} operaciones registradas`}
           variant="positive"
         />
@@ -661,8 +675,8 @@ export default function PaymentsClient({
               return (
                 <tr key={payment.ID}>
                   <td>{customer?.Nombre ?? `Cliente #${payment.customerId}`}</td>
-                  <td>{business?.Nombre ?? (business as any)?.nombre ?? `Negocio #${payment.businessId}`}</td>
-                  <td>{payment.Importe} €</td>
+                  <td>{business?.Nombre ?? payment.Comercio ?? `Negocio #${payment.businessId}`}</td>
+                  <td>{formatCurrency(Number(payment.Importe))} €</td>
                   <td>{payment.Metodo}</td>
                   <td>{formatDate(payment.Fecha)}</td>
                   <td>
