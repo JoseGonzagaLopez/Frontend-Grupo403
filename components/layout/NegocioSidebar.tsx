@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Calendar, Scissors, Star } from "lucide-react";
+import { Calendar, Scissors, Star, X } from "lucide-react";
 
 const menuItems = [
   { label: "Reservas",  href: "/negocio/reservas",  icon: Calendar, color: "#2dd4bf" },
@@ -26,6 +26,15 @@ export default function NegocioSidebar({ isOpen, setIsOpen }: NegocioSidebarProp
           <Image src="/favicon.ico" alt="Buk-A Negocio" width={32} height={32} priority />
         </div>
         <span className="sellix-sidebar__logo-text">Mi Negocio</span>
+        {setIsOpen && (
+          <button
+            className="sellix-sidebar__close"
+            onClick={() => setIsOpen(false)}
+            aria-label="Cerrar menú"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
 
       <div className="sellix-sidebar__divider" />
@@ -48,6 +57,16 @@ export default function NegocioSidebar({ isOpen, setIsOpen }: NegocioSidebarProp
           );
         })}
       </nav>
+
+      <div className="sellix-sidebar__footer" style={{ paddingBottom: "70px" }}>
+        <div className="sellix-sidebar__user">
+          <div className="sellix-sidebar__user-avatar">N</div>
+          <div className="sellix-sidebar__user-info">
+            <span className="sellix-sidebar__user-name">Negocio</span>
+            <span className="sellix-sidebar__user-role">Portal Negocio</span>
+          </div>
+        </div>
+      </div>
 
       <style>{`
         .sellix-sidebar {
@@ -83,7 +102,23 @@ export default function NegocioSidebar({ isOpen, setIsOpen }: NegocioSidebarProp
         .sellix-sidebar__item-dot { position:absolute; right:10px; width:6px; height:6px; border-radius:50%; background:var(--item-color); box-shadow:0 0 8px var(--item-color); animation:dotPulse 2s ease-in-out infinite; z-index:1; }
         @keyframes sidebarItemIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
         @keyframes dotPulse { 0%,100%{opacity:1;box-shadow:0 0 6px var(--item-color)}50%{opacity:0.6;box-shadow:0 0 14px var(--item-color)} }
-        @media(max-width:1024px){.sellix-sidebar{width:var(--sidebar-collapsed,72px)}.sellix-sidebar__logo-text,.sellix-sidebar__item-label,.sellix-sidebar__item-dot{opacity:0;pointer-events:none}.sellix-sidebar__item{justify-content:center;padding:10px}.sellix-sidebar__item-icon{width:22px}}
+        
+        .sellix-sidebar__close { display:none; padding:4px; border-radius:6px; color:var(--text-secondary); background:none; border:none; cursor:pointer; margin-left:auto; transition:background 150ms ease,color 150ms ease; }
+        .sellix-sidebar__close:hover { background:var(--surface-hover); color:var(--text); }
+        
+        .sellix-sidebar__footer { padding-top:12px; border-top:1px solid var(--border); margin-top:4px; }
+        .sellix-sidebar__user { width:100%; display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px; background:none; border:none; text-align:left; color:var(--text); }
+        .sellix-sidebar__user-avatar { width:32px; height:32px; border-radius:50%; background:var(--teal); color:#fff; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 2px 8px var(--teal-glow); }
+        .sellix-sidebar__user-info { display:flex; flex-direction:column; gap:1px; overflow:hidden; flex:1; }
+        .sellix-sidebar__user-name { font-size:0.8125rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .sellix-sidebar__user-role { font-size:0.6875rem; color:var(--text-secondary); white-space:nowrap; }
+
+        @media(max-width:1024px){
+          .sellix-sidebar{width:var(--sidebar-collapsed,72px)}
+          .sellix-sidebar__logo-text,.sellix-sidebar__item-label,.sellix-sidebar__item-dot,.sellix-sidebar__user-info{opacity:0;pointer-events:none;display:none;}
+          .sellix-sidebar__item,.sellix-sidebar__user{justify-content:center;padding:10px}
+          .sellix-sidebar__item-icon{width:22px}
+        }
         @media(max-width:640px){
           .sellix-sidebar {
             transform: translateX(-100%);
@@ -92,12 +127,14 @@ export default function NegocioSidebar({ isOpen, setIsOpen }: NegocioSidebarProp
           .sellix-sidebar--mobile-open {
             transform: translateX(0);
           }
-          .sellix-sidebar__logo-text, .sellix-sidebar__item-label {
+          .sellix-sidebar__logo-text, .sellix-sidebar__item-label, .sellix-sidebar__user-info {
             opacity: 1 !important;
             pointer-events: auto !important;
             width: auto !important;
+            display: flex !important;
           }
-          .sellix-sidebar__item {
+          .sellix-sidebar__close { display: flex; }
+          .sellix-sidebar__item, .sellix-sidebar__user {
             justify-content: flex-start !important;
             padding: 9px 12px !important;
           }

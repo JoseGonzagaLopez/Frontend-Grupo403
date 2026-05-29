@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Buk-A — Bookings Admin",
@@ -23,7 +24,9 @@ export default function RootLayout({
           NO como next/script, para que se ejecute antes de cualquier paint CSS.
           Esto elimina el FOUC (flash of unstyled/wrong-theme content).
         */}
-        <script
+        <Script
+          id="theme-initializer"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){
   try {

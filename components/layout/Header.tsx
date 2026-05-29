@@ -13,6 +13,7 @@ interface HeaderProps {
   onLogout?: () => Promise<void>;
   onMenuClick?: () => void;
   hideHamburger?: boolean;
+  forceHamburger?: boolean;
   fanItems?: unknown[];
 }
 
@@ -31,6 +32,9 @@ export default function Header({
   subtitle = "Plataforma de gestión de reservas y cobros",
   userName = "Administrador",
   onLogout,
+  onMenuClick,
+  hideHamburger,
+  forceHamburger,
 }: HeaderProps) {
   const [dropOpen, setDropOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -60,11 +64,20 @@ export default function Header({
 
   return (
     <header className="sellix-topbar">
-      <div className="sellix-topbar__intro">
-        <span className="sellix-topbar__eyebrow">Workspace</span>
-        <div className="sellix-topbar__heading-wrap">
-          <h1 className="sellix-topbar__title">{title}</h1>
-          <p className="sellix-topbar__subtitle">{subtitle}</p>
+      <div className="sellix-topbar__intro" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        {onMenuClick && !hideHamburger && (
+          <button type="button" className="sellix-icon-btn sellix-icon-btn--soft sellix-hamburger" onClick={onMenuClick} aria-label="Abrir menú" style={{ display: "none" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span className="sellix-topbar__eyebrow">Workspace</span>
+          <div className="sellix-topbar__heading-wrap">
+            <h1 className="sellix-topbar__title">{title}</h1>
+            <p className="sellix-topbar__subtitle">{subtitle}</p>
+          </div>
         </div>
       </div>
 
@@ -452,6 +465,7 @@ export default function Header({
             grid-template-columns: 1fr auto;
           }
           .sellix-topbar__center { display: none; }
+          .sellix-hamburger { display: flex !important; }
         }
 
         @media (max-width: 760px) {

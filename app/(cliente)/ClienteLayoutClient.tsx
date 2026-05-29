@@ -14,7 +14,7 @@ export default function ClienteLayoutClient({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="admin-shell">
+    <div className="admin-shell" style={{ display: "block" }}>
       {isSidebarOpen && (
         <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
       )}
@@ -24,6 +24,7 @@ export default function ClienteLayoutClient({
           title="Buk-A"
           subtitle="Portal de cliente"
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          forceHamburger={true}
           userName={customerName}
           onLogout={async () => {
             await logOutCustomer();
