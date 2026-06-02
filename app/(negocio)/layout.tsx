@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import NegocioSidebar from "@/components/layout/NegocioSidebar";
 import Header from "@/components/layout/Header";
 import { Calendar, Scissors, Star } from "lucide-react";
 import { logOutBusiness } from "@/lib/actions";
 
 export default function NegocioLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -21,6 +23,7 @@ export default function NegocioLayout({ children }: { children: React.ReactNode 
           userName="Negocio" 
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
           forceHamburger={true}
+          onEditProfile={() => router.push("/negocio/perfil")}
           onLogout={async () => {
              await logOutBusiness();
              window.location.href = "/login";
