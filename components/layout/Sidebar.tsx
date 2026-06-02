@@ -21,9 +21,10 @@ interface SidebarProps {
   isOpen?: boolean;
   setIsOpen?: (open: boolean) => void;
   menuItems?: { label: string; href: string; icon: any; color?: string }[];
+  logoText?: string;
 }
 
-export default function Sidebar({ isOpen, setIsOpen, menuItems }: SidebarProps) {
+export default function Sidebar({ isOpen, setIsOpen, menuItems, logoText = "Buk-A" }: SidebarProps) {
   const pathname = usePathname();
   const items = menuItems ?? defaultMenuItems;
 
@@ -44,7 +45,7 @@ export default function Sidebar({ isOpen, setIsOpen, menuItems }: SidebarProps) 
             <rect x="13" y="13" width="9" height="9" rx="2.5" fill="url(#logoGrad)" />
           </svg>
         </div>
-        <span className="sellix-sidebar__logo-text">Buk-A</span>
+        <span className="sellix-sidebar__logo-text">{logoText}</span>
         {setIsOpen && (
           <button
             className="sellix-sidebar__close"

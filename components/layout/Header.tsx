@@ -4,13 +4,15 @@ import Image from "next/image";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { logOut } from "@/lib/actions";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, LogOut, Search, Sparkles } from "lucide-react";
+import { Bell, LogOut, Search, Sparkles, Edit2 } from "lucide-react";
 
 interface HeaderProps {
   title?: string;
   subtitle?: string;
   userName?: string;
+  role?: string;
   onLogout?: () => Promise<void>;
+  onEditProfile?: () => Promise<void> | void;
   onMenuClick?: () => void;
   hideHamburger?: boolean;
   forceHamburger?: boolean;
@@ -31,7 +33,9 @@ export default function Header({
   title = "Buk-A Admin",
   subtitle = "Plataforma de gestión de reservas y cobros",
   userName = "Administrador",
+  role,
   onLogout,
+  onEditProfile,
   onMenuClick,
   hideHamburger,
   forceHamburger,
@@ -49,6 +53,13 @@ export default function Header({
     else {
       await logOut();
       window.location.href = "/login";
+    }
+  };
+
+  const handleEditProfile = async () => {
+    if (onEditProfile) {
+      await onEditProfile();
+      setDropOpen(false);
     }
   };
 
@@ -98,7 +109,7 @@ export default function Header({
             </div>
             <div className="sellix-profile__meta">
               <span className="sellix-profile__name">{userName}</span>
-              <span className="sellix-profile__role">Admin</span>
+              {role ? <span className="sellix-profile__role">{role}</span> : null}
             </div>
           </button>
 
@@ -111,6 +122,12 @@ export default function Header({
                   Sesión activa
                 </p>
               </div>
+              {onEditProfile && (
+                <button type="button" className="sellix-profile__dropdown-item sellix-profile__dropdown-item--edit" onClick={handleEditProfile}>
+                  <Edit2 size={15} />
+                  Editar perfil
+                </button>
+              )}
               <button type="button" className="sellix-profile__dropdown-item" onClick={handleLogout}>
                 <LogOut size={15} />
                 Cerrar sesión
@@ -423,6 +440,10 @@ export default function Header({
 
         .sellix-profile__dropdown-item:hover {
           background: var(--surface-hover);
+        }
+
+        .sellix-profile__dropdown-item--edit {
+          color: var(--accent, var(--text));
         }
 
         /* ── Animations ── */

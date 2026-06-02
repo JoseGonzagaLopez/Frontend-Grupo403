@@ -30,7 +30,7 @@ export default function AdminLayout({
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
       <div className="admin-main">
-        <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} role="admin" />
         <main className="admin-content">
           <div className="admin-content-inner">{children}</div>
         </main>
