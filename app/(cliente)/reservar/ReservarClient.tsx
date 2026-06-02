@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import type { Business, Customer, Service } from "@/lib/api";
 import { createAppointment, getServices } from "@/lib/api";
-import { CustomDatePicker } from "@/components/CustomDatePicker";
 
 function SearchableSelect({
   options,
@@ -232,7 +231,13 @@ export default function ReservarClient({
           <div className="form-grid">
             <div>
               <label className="block text-sm font-semibold mb-1">Fecha <span style={{ color: "var(--danger)" }}>*</span></label>
-              <CustomDatePicker value={form.date} onChange={(date) => setForm((f) => ({ ...f, date }))} />
+              <input
+                type="date"
+                className="input"
+                value={form.date}
+                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                required
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">Hora <span style={{ color: "var(--danger)" }}>*</span></label>

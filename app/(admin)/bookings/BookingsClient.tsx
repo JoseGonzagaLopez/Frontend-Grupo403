@@ -17,7 +17,6 @@ import {
   updateAppointment,
 } from "@/lib/api";
 import { useEffect, useRef } from "react";
-import { CustomDatePicker } from "@/components/CustomDatePicker";
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const label =
@@ -638,9 +637,12 @@ export default function BookingsClient({
 
           <form onSubmit={handleCreateSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <CustomDatePicker
+              <input
+                className="input"
+                type="date"
                 value={createForm.date}
-                onChange={(date) => updateCreateForm("date", date)}
+                onChange={(e) => updateCreateForm("date", e.target.value)}
+                required
               />
               <input
                 className="input"
@@ -759,9 +761,12 @@ export default function BookingsClient({
 
           <form onSubmit={handleEditSubmit} className="page-stack" style={{ gap: 16 }}>
             <div className="form-grid">
-              <CustomDatePicker
+              <input
+                className="input"
+                type="date"
                 value={editForm.date}
-                onChange={(date) => updateEditForm("date", date)}
+                onChange={(e) => updateEditForm("date", e.target.value)}
+                required
               />
               <input
                 className="input"
