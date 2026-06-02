@@ -125,45 +125,23 @@ export default function LoginPage() {
     }
   };
 
-  // ── Card: animación de cierre hacia avatar ──────────────────────────────
-  const cardShouldAnimate = isSuccess && !isBusinessSuccess;
-
-  // Cuando NO está animando: la card se centra con position:fixed + translate.
-  // Cuando SÍ anima (login exitoso): vuela a esquina sup-derecha como avatar.
-  const cardStyle: React.CSSProperties = cardShouldAnimate
-    ? {
-        position: "fixed",
-        top: 14,
-        left: "calc(100vw - 24px - 38px)",
-        width: 38,
-        maxWidth: 38,
-        height: 38,
-        minHeight: 38,
-        borderRadius: "50%",
-        transform: "none",
-        overflow: "hidden",
-        padding: 0,
-        border: "1px solid rgb(187,187,187)",
-        transition: "all 0.8s cubic-bezier(0.65, 0, 0.35, 1)",
-        zIndex: 100,
-        background: "var(--surface-solid)",
-        boxShadow: "0 4px 10px var(--accent-glow)",
-      }
-    : {
-        // Estado normal: centrado en pantalla
-        position: "relative",
-        width: "100%",
-        maxWidth: 460,
-        borderRadius: "var(--radius-xl)",
-        transform: "none",
-        overflow: "hidden",
-        padding: "var(--space-6)",
-        border: "1px solid var(--border)",
-        transition: "all 0.8s cubic-bezier(0.65, 0, 0.35, 1)",
-        zIndex: 10,
-        background: "var(--surface-solid)",
-        boxShadow: "var(--shadow-float)",
-      };
+  // ── Card styling ──────────────────────────────────────────────────────
+  const cardStyle: React.CSSProperties = {
+    position: "relative",
+    width: "100%",
+    maxWidth: 460,
+    borderRadius: "var(--radius-xl)",
+    transform: "none",
+    overflow: "hidden",
+    padding: "var(--space-6)",
+    border: "1px solid var(--border)",
+    transition: "opacity 0.3s ease",
+    zIndex: 10,
+    background: "var(--surface-solid)",
+    boxShadow: "var(--shadow-float)",
+    opacity: isSuccess ? 0 : 1,
+    pointerEvents: isSuccess ? "none" : "auto",
+  };
 
   return (
     // Wrapper: flex centrado, cubre toda la pantalla
@@ -227,29 +205,25 @@ export default function LoginPage() {
       )}
 
       {/* Card centrada */}
-      <div className="surface-card" style={{ ...cardStyle, position: cardShouldAnimate ? "fixed" : "relative", zIndex: cardShouldAnimate ? 100 : 10 }}>
+      <div className="surface-card" style={cardStyle}>
         <img
           src="/favicon.ico"
           alt="Logo"
           style={{
-            position: "absolute",
-            top: cardShouldAnimate ? "0" : "32px",
-            left: cardShouldAnimate ? "0" : "50%",
-            transform: cardShouldAnimate ? "none" : "translateX(-50%)",
-            width: cardShouldAnimate ? "100%" : "56px",
-            height: cardShouldAnimate ? "100%" : "56px",
+            position: "relative",
+            margin: "0 auto 32px",
+            width: "56px",
+            height: "56px",
             borderRadius: "50%",
             objectFit: "cover",
-            transition: "all 0.8s cubic-bezier(0.65, 0, 0.35, 1)",
             zIndex: 10,
           }}
         />
 
         <div
           style={{
-            opacity: cardShouldAnimate ? 0 : 1,
+            opacity: isSuccess ? 0 : 1,
             transition: "opacity 0.3s ease-out",
-            paddingTop: "72px",
           }}
         >
           <div className="flex flex-col items-center text-center gap-1 mb-5">
