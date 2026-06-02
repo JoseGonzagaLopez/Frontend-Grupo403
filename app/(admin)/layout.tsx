@@ -70,7 +70,7 @@ export default function AdminLayout({
           flex: 1;
           display: flex;
           flex-direction: column;
-          margin-left: 240px;
+          margin-left: 0;
           min-width: 0;
           transition: margin-left 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
@@ -92,21 +92,6 @@ export default function AdminLayout({
           }
           to {
             opacity: 1;
-          }
-        }
-
-        /* ── Responsive ── */
-        @media (max-width: 1024px) {
-          .admin-main {
-            margin-left: 72px;
-          }
-        }
-        @media (max-width: 640px) {
-          .admin-main {
-            margin-left: 0;
-          }
-          .admin-content-inner {
-            padding: 16px;
           }
         }
 

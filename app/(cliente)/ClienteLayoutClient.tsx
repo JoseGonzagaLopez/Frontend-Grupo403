@@ -1,8 +1,14 @@
 "use client";
-import { useState } from "react";
-import ClienteSidebar from "@/components/layout/ClienteSidebar";
 import Header from "@/components/layout/Header";
 import { logOutCustomer } from "@/lib/actions";
+import Sidebar from "@/components/layout/Sidebar";
+import { Home, CalendarPlus, CalendarDays } from "lucide-react";
+
+const clienteMenu = [
+  { label: "Inicio", href: "/inicio", icon: Home },
+  { label: "Hacer reserva", href: "/reservar", icon: CalendarPlus },
+  { label: "Mis reservas", href: "/mis-reservas", icon: CalendarDays },
+];
 
 export default function ClienteLayoutClient({
   children,
@@ -11,20 +17,13 @@ export default function ClienteLayoutClient({
   children: React.ReactNode;
   customerName: string;
 }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   return (
-    <div className="admin-shell" style={{ display: "block" }}>
-      {isSidebarOpen && (
-        <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
-      )}
-      <ClienteSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+    <div className="admin-shell cliente-shell">
+      <Sidebar menuItems={clienteMenu} />
       <div className="admin-main">
         <Header
           title="Buk-A"
           subtitle="Portal de cliente"
-          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          forceHamburger={true}
           userName={customerName}
           onLogout={async () => {
             await logOutCustomer();
@@ -33,6 +32,25 @@ export default function ClienteLayoutClient({
         />
         <main className="admin-content">{children}</main>
       </div>
+
+      <style>{`
+      .cliente-shell {
+        display: flex;
+        min-height: 100dvh;
+      }
+      .cliente-shell .admin-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        margin-left: 0;
+        min-width: 0;
+      }
+      .cliente-shell .admin-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 28px 32px;
+      }
+    `}</style>
     </div>
   );
 }
