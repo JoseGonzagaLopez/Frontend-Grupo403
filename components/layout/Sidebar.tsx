@@ -80,7 +80,7 @@ export default function Sidebar({ isOpen, setIsOpen, menuItems, logoText = "Buk-
       </nav>
 
       <style>{`
-        .sellix-sidebar { position:relative; width:240px; min-height:100vh; flex-shrink:0; z-index:10; display:flex; flex-direction:column; padding:20px 12px; background:var(--surface,rgba(18,20,40,0.72)); backdrop-filter:blur(28px) saturate(180%); -webkit-backdrop-filter:blur(28px) saturate(180%); border-right:1px solid var(--border,rgba(99,102,241,0.18)); box-shadow:4px 0 32px rgba(0,0,0,0.18),inset -1px 0 0 rgba(255,255,255,0.04); }
+        .sellix-sidebar { position:sticky; top:0; align-self:flex-start; width:240px; min-height:100vh; flex-shrink:0; z-index:10; display:flex; flex-direction:column; padding:20px 12px; background:var(--surface,rgba(18,20,40,0.72)); backdrop-filter:blur(28px) saturate(180%); -webkit-backdrop-filter:blur(28px) saturate(180%); border-right:1px solid var(--border,rgba(99,102,241,0.18)); box-shadow:4px 0 32px rgba(0,0,0,0.18),inset -1px 0 0 rgba(255,255,255,0.04); }
         .sellix-sidebar__logo { display:flex; align-items:center; gap:10px; padding:4px 8px 16px 8px; }
         .sellix-sidebar__logo-icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, rgba(167,139,250,0.15) 0%, rgba(45,212,191,0.15) 100%); border: 1px solid rgba(167,139,250,0.30); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 12px rgba(167,139,250,0.25), inset 0 1px 0 rgba(255,255,255,0.10); transition: box-shadow 200ms ease, transform 200ms ease; }
         .sellix-sidebar__logo-icon:hover { box-shadow: 0 4px 20px rgba(167,139,250,0.40), inset 0 1px 0 rgba(255,255,255,0.15); transform: scale(1.05); }
