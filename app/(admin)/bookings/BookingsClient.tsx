@@ -251,7 +251,7 @@ export default function BookingsClient({
   const [editForm, setEditForm] = useState<BookingForm>(emptyForm);
 
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
-  const [customerFilter, setCustomerFilter] = useState<number | "">("");
+  const [customerFilter, setCustomerFilter] = useState<string>("");
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
@@ -268,8 +268,12 @@ export default function BookingsClient({
       filtered = filtered.filter((booking) => booking.status === statusFilter);
     }
 
-    if (customerFilter !== "") {
-      filtered = filtered.filter((booking) => booking.customerId === customerFilter);
+    if (customerFilter.trim() !== "") {
+      filtered = filtered.filter((booking) => {
+        const customer = customers.find((c) => c.id === booking.customerId);
+        const name = customer?.Nombre || (customer as any)?.nombre || "";
+        return name.toLowerCase().includes(customerFilter.toLowerCase());
+      });
     }
 
     return filtered.sort((a, b) => {
@@ -309,8 +313,8 @@ export default function BookingsClient({
       editingBookingId !== null
         ? editForm.businessId
         : isCreateOpen
-        ? createForm.businessId
-        : "";
+          ? createForm.businessId
+          : "";
 
     if (businessId === "") {
       setAvailableServices([]);
@@ -908,23 +912,21 @@ export default function BookingsClient({
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>
-            <div className="filter-row">
-              <button type="button" className={`filter-pill ${statusFilter === 'all' ? 'active' : ''}`} onClick={() => setStatusFilter("all")}>Todas</button>
-              <button type="button" className={`filter-pill ${statusFilter === 'pending' ? 'active' : ''}`} onClick={() => setStatusFilter("pending")}>Pendientes</button>
-              <button type="button" className={`filter-pill ${statusFilter === 'confirmed' ? 'active' : ''}`} onClick={() => setStatusFilter("confirmed")}>Confirmadas</button>
-              <button type="button" className={`filter-pill ${statusFilter === 'paid' ? 'active' : ''}`} onClick={() => setStatusFilter("paid")}>Pagadas</button>
-            </div>
-            <div style={{ width: "250px" }}>
-              <SearchableSelect
-                options={customers.map((c) => ({
-                  id: c.id,
-                  label: c.Nombre || (c as any).nombre || `Cliente ${c.id}`,
-                }))}
-                value={customerFilter}
-                onChange={(id) => setCustomerFilter(id)}
-                placeholder="Filtrar por Cliente"
-              />
-            </div>
+          <div className="filter-row">
+            <button type="button" className={`filter-pill ${statusFilter === 'all' ? 'active' : ''}`} onClick={() => setStatusFilter("all")}>Todas</button>
+            <button type="button" className={`filter-pill ${statusFilter === 'pending' ? 'active' : ''}`} onClick={() => setStatusFilter("pending")}>Pendientes</button>
+            <button type="button" className={`filter-pill ${statusFilter === 'confirmed' ? 'active' : ''}`} onClick={() => setStatusFilter("confirmed")}>Confirmadas</button>
+            <button type="button" className={`filter-pill ${statusFilter === 'paid' ? 'active' : ''}`} onClick={() => setStatusFilter("paid")}>Pagadas</button>
+          </div>
+          <div style={{ position: "relative", width: "250px" }}>
+            <input
+              type="text"
+              className="input"
+              placeholder="Buscar por cliente..."
+              value={customerFilter}
+              onChange={(e) => setCustomerFilter(e.target.value)}
+            />
+          </div>
         </div>
 
         {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}

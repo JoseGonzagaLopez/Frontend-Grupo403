@@ -135,7 +135,7 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
       setBusinesses((prev) => [created, ...prev]);
       setCreateForm(emptyForm); setIsCreateOpen(false);
       setSuccessMessage("Negocio creado correctamente.");
-    } catch { setErrorMessage("No se pudo crear el negocio. Revisa los datos o el backend."); }
+    } catch { setErrorMessage("No se pudo crear el negocio. Revisa los datos introducidos."); }
     finally { setLoadingCreate(false); }
   }
 

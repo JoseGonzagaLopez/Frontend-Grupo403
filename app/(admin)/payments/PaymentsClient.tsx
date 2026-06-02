@@ -267,6 +267,7 @@ export default function PaymentsClient({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingPaymentId, setEditingPaymentId] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [customerSearch, setCustomerSearch] = useState<string>("");
 
   function updateCreateForm<K extends keyof CreatePagoDto>(
     key: K,
@@ -416,6 +417,13 @@ export default function PaymentsClient({
     return acc;
   }, {});
   const mostUsedMethod = Object.entries(methodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Sin datos';
+
+  const filteredPayments = payments.filter((payment) => {
+    if (customerSearch.trim() === "") return true;
+    const customer = customers.find((c) => c.id === payment.customerId);
+    const name = customer?.Nombre || (customer as any)?.nombre || "";
+    return name.toLowerCase().includes(customerSearch.toLowerCase());
+  });
 
   return (
     <div className="page-stack">
@@ -648,9 +656,15 @@ export default function PaymentsClient({
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Listado de cobros</h3>
-          <span style={{ color: '#6b7280', fontSize: 14 }}>
-            {payments.length} resultados
-          </span>
+          <div style={{ width: "250px" }}>
+            <input
+              type="text"
+              className="input"
+              placeholder="Buscar por cliente..."
+              value={customerSearch}
+              onChange={(e) => setCustomerSearch(e.target.value)}
+            />
+          </div>
         </div>
 
         {successMessage ? <div className="message-success" style={{ marginBottom: 12 }}>{successMessage}</div> : null}
@@ -669,7 +683,7 @@ export default function PaymentsClient({
             </tr>
           </thead>
           <tbody>
-            {payments.map((payment) => {
+            {filteredPayments.map((payment) => {
               const customer = customers.find((c) => c.id === payment.customerId);
               const business = businesses.find((b) => b.id === payment.businessId);
               return (

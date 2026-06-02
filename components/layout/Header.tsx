@@ -81,30 +81,7 @@ export default function Header({
         </div>
       </div>
 
-      <div className="sellix-topbar__center">
-        <label className="sellix-search" aria-label="Buscar en el panel">
-          <Search size={16} className="sellix-search__icon" />
-          <input
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            type="text"
-            placeholder={searchPlaceholder}
-            className="sellix-search__input"
-          />
-          <span className="sellix-search__shortcut">⌘K</span>
-        </label>
-      </div>
-
       <div className="sellix-topbar__actions">
-        <button type="button" className="sellix-icon-btn sellix-icon-btn--soft" aria-label="Ver notificaciones">
-          <Bell size={17} />
-          <span className="sellix-icon-btn__ping" aria-hidden="true" />
-        </button>
-
-        <button type="button" className="sellix-icon-btn sellix-icon-btn--soft" aria-label="Actividad inteligente">
-          <Sparkles size={16} />
-        </button>
-
         <ThemeToggle />
 
         <div className="sellix-profile" ref={dropRef}>

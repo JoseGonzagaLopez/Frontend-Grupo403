@@ -18,12 +18,12 @@ interface SidebarProps {
 }
 
 const menuItems = [
-  { label: "Panel de control", href: "/dashboard",    icon: LayoutDashboard },
-  { label: "Reservas",          href: "/bookings",     icon: CalendarDays    },
-  { label: "Clientes",          href: "/customers",    icon: Users           },
-  { label: "Pagos",             href: "/payments",     icon: CreditCard      },
-  { label: "Negocios",          href: "/negocios",     icon: Building2       },
-  { label: "Solicitudes",       href: "/solicitudes",  icon: ClipboardList   },
+  { label: "Panel de control", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Reservas", href: "/bookings", icon: CalendarDays },
+  { label: "Clientes", href: "/customers", icon: Users },
+  { label: "Pagos", href: "/payments", icon: CreditCard },
+  { label: "Negocios", href: "/negocios", icon: Building2 },
+  { label: "Solicitudes", href: "/solicitudes", icon: ClipboardList },
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
@@ -32,9 +32,8 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   return (
     <>
       <aside
-        className={`buka-sidebar${
-          isOpen ? " buka-sidebar--mobile-open" : ""
-        }`}
+        className={`buka-sidebar${isOpen ? " buka-sidebar--mobile-open" : ""
+          }`}
         aria-label="Navegación principal"
       >
         {/* ── Logo ── */}
@@ -72,9 +71,8 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 key={href}
                 href={href}
                 aria-current={isActive ? "page" : undefined}
-                className={`buka-sidebar__item${
-                  isActive ? " buka-sidebar__item--active" : ""
-                }`}
+                className={`buka-sidebar__item${isActive ? " buka-sidebar__item--active" : ""
+                  }`}
                 style={{ animationDelay: `${i * 50}ms` }}
                 onClick={() => setIsOpen?.(false)}
               >
@@ -86,19 +84,6 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
             );
           })}
         </nav>
-
-        {/* ── User pill at bottom ── */}
-        <div className="buka-sidebar__footer">
-          <div className="buka-sidebar__user">
-            <div className="buka-sidebar__user-avatar" aria-hidden="true">
-              A
-            </div>
-            <div className="buka-sidebar__user-info">
-              <span className="buka-sidebar__user-name">Admin</span>
-              <span className="buka-sidebar__user-role">Super Admin</span>
-            </div>
-          </div>
-        </div>
       </aside>
 
       <style>{`
