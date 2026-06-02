@@ -299,6 +299,20 @@ export async function loginCustomer(identifier: string, password?: string): Prom
   return res.json();
 }
 
+export async function loginCustomerGoogle(token: string): Promise<Customer> {
+  const res = await fetch(`${API_URL}/clientes/google-login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+  if (!res.ok) {
+    let msg = "Error al iniciar sesión con Google.";
+    try { const body = await res.json(); msg = body.message || msg; } catch {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
 export async function registerCustomer(data: CreateCustomerDto): Promise<Customer> {
   const res = await fetch(`${API_URL}/clientes/register`, {
     method: "POST",

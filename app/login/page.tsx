@@ -1,15 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Script from "next/script";
 import { authenticate } from "@/lib/actions";
-import { loginCustomer, registerCustomer, loginBusiness, registerBusiness } from "@/lib/api";
+import { loginCustomer, registerCustomer, loginBusiness, registerBusiness, loginCustomerGoogle } from "@/lib/api";
 import { loginCustomerAction, loginBusinessAction } from "@/lib/actions";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, User, Store } from "lucide-react";
+
+declare global {
+  interface Window {
+    handleCredentialResponse: (response: any) => void;
+  }
+}
 
 type Tab = "login" | "register";
 
 export default function LoginPage() {
   const [tab, setTab] = useState<Tab>("login");
+
+  useEffect(() => {
+    window.handleCredentialResponse = async (response: any) => {
+      try {
+        const customer = await loginCustomerGoogle(response.credential);
+        setSuccessMessage("Sesión iniciada con Google");
+        setIsSuccess(true);
+        await loginCustomerAction(customer.id);
+        setTimeout(() => { window.location.href = "/inicio"; }, 800);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Error al iniciar sesión con Google";
+        setError(msg);
+      }
+    };
+  }, []);
 
   // Login unificado
   const [identifier, setIdentifier] = useState("");
@@ -145,362 +167,415 @@ export default function LoginPage() {
 
   return (
     // Wrapper: flex centrado, cubre toda la pantalla
-    <div
-      style={{
-        minHeight: "100dvh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "var(--space-5)",
-        background:
-          "radial-gradient(ellipse at 20% 30%, var(--glow-primary) 0%, transparent 55%), " +
-          "radial-gradient(ellipse at 80% 70%, var(--glow-accent) 0%, transparent 55%), " +
-          "radial-gradient(ellipse at 50% 50%, var(--glow-teal) 0%, transparent 65%), " +
-          "var(--bg-color)",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Grid tenue de fondo */}
+    <>
+      <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
       <div
-        aria-hidden="true"
+        id="g_id_onload"
+        data-client_id="920872359737-74qfe3ohi1gp7kjmbkll8i5afslnvqbk.apps.googleusercontent.com"
+        data-callback="handleCredentialResponse"
+        data-auto_prompt="false"
+      ></div>
+      <div
         style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0,
-          backgroundImage:
-            "linear-gradient(var(--bg-grid) 1px, transparent 1px), " +
-            "linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px)",
-          backgroundSize: "36px 36px",
-          pointerEvents: "none",
+          minHeight: "100dvh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "var(--space-5)",
+          background:
+            "radial-gradient(ellipse at 20% 30%, var(--glow-primary) 0%, transparent 55%), " +
+            "radial-gradient(ellipse at 80% 70%, var(--glow-accent) 0%, transparent 55%), " +
+            "radial-gradient(ellipse at 50% 50%, var(--glow-teal) 0%, transparent 65%), " +
+            "var(--bg-color)",
+          position: "relative",
+          overflow: "hidden",
         }}
-      />
-
-      {/* Toggle modo oscuro */}
-      {!isSuccess && (
-        <button
-          onClick={toggleTheme}
-          aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+      >
+        {/* Grid tenue de fondo */}
+        <div
+          aria-hidden="true"
           style={{
-            position: "fixed",
-            top: "var(--space-4)",
-            right: "var(--space-4)",
-            zIndex: 200,
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--radius-full)",
-            width: 40,
-            height: 40,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            color: "var(--text)",
-            boxShadow: "var(--shadow-sm)",
-            transition: "all 0.2s ease",
-          }}
-        >
-          {isDark ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
-      )}
-
-      {/* Card centrada */}
-      <div className="surface-card" style={cardStyle}>
-        <img
-          src="/favicon.ico"
-          alt="Logo"
-          style={{
-            position: "relative",
-            margin: "0 auto 32px",
-            width: "56px",
-            height: "56px",
-            borderRadius: "50%",
-            objectFit: "cover",
-            zIndex: 10,
+            position: "absolute",
+            inset: 0,
+            zIndex: 0,
+            backgroundImage:
+              "linear-gradient(var(--bg-grid) 1px, transparent 1px), " +
+              "linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px)",
+            backgroundSize: "36px 36px",
+            pointerEvents: "none",
           }}
         />
 
-        <div
-          style={{
-            opacity: isSuccess ? 0 : 1,
-            transition: "opacity 0.3s ease-out",
-          }}
-        >
-          <div className="flex flex-col items-center text-center gap-1 mb-5">
-            <h1
-              style={{
-                fontSize: "var(--text-xl)",
-                fontWeight: 700,
-                color: "var(--text)",
-                letterSpacing: "-0.03em",
-              }}
-            >
-              Buk-A
-            </h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: "var(--text-sm)" }}>
-              {tab === "login" ? "Accede a tu cuenta" : "Crea tu cuenta"}
-            </p>
-          </div>
+        {/* Toggle modo oscuro */}
+        {!isSuccess && (
+          <button
+            onClick={toggleTheme}
+            aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            style={{
+              position: "fixed",
+              top: "var(--space-4)",
+              right: "var(--space-4)",
+              zIndex: 200,
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-full)",
+              width: 40,
+              height: 40,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "var(--text)",
+              boxShadow: "var(--shadow-sm)",
+              transition: "all 0.2s ease",
+            }}
+          >
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+        )}
 
-          {/* Tab switcher */}
+        {/* Card centrada */}
+        <div className="surface-card" style={cardStyle}>
+          <img
+            src="/favicon.ico"
+            alt="Logo"
+            style={{
+              position: "relative",
+              margin: "0 auto 32px",
+              width: "56px",
+              height: "56px",
+              borderRadius: "50%",
+              objectFit: "cover",
+              zIndex: 10,
+            }}
+          />
+
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              background: "var(--surface-2)",
-              borderRadius: "var(--radius-md)",
-              padding: "3px",
-              marginBottom: "var(--space-5)",
+              opacity: isSuccess ? 0 : 1,
+              transition: "opacity 0.3s ease-out",
             }}
           >
-            {(["login", "register"] as Tab[]).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => { setTab(t); setError(""); }}
+            <div className="flex flex-col items-center text-center gap-1 mb-5">
+              <h1
                 style={{
-                  padding: "var(--space-2) var(--space-3)",
-                  borderRadius: "var(--radius-sm)",
-                  fontSize: "var(--text-sm)",
-                  fontWeight: 600,
-                  background: tab === t ? "var(--surface-solid)" : "transparent",
-                  color: tab === t ? "var(--text)" : "var(--text-secondary)",
-                  boxShadow: tab === t ? "var(--shadow-sm)" : "none",
-                  transition: "all 0.2s ease",
-                  border: "none",
-                  cursor: "pointer",
+                  fontSize: "var(--text-xl)",
+                  fontWeight: 700,
+                  color: "var(--text)",
+                  letterSpacing: "-0.03em",
                 }}
               >
-                {t === "login" ? "Iniciar sesion" : "Registrarse"}
-              </button>
-            ))}
-          </div>
+                Buk-A
+              </h1>
+              <p style={{ color: "var(--text-secondary)", fontSize: "var(--text-sm)" }}>
+                {tab === "login" ? "Accede a tu cuenta" : "Crea tu cuenta"}
+              </p>
+            </div>
 
-          {/* Login form */}
-          {tab === "login" && (
-            <form onSubmit={handleLogin} className="flex flex-col gap-4" autoComplete="off">
-              <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
-                  Usuario o correo
-                </label>
-                <input
-                  type="text"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  className="input"
-                  placeholder="admin / tu@correo.com / username"
-                  required
-                  autoComplete="username"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
-                  Contraseña
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input"
-                  placeholder="••••••••"
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
-              {error && <div className="message-error">{error}</div>}
-              <button
-                type="submit"
-                className="primary-btn w-full flex justify-center items-center mt-1"
-                disabled={isLoading}
-              >
-                {isLoading ? "Verificando..." : "Entrar"}
-              </button>
-            </form>
-          )}
-
-          {/* Register form */}
-          {tab === "register" && (
-            <form onSubmit={handleRegister} className="flex flex-col gap-4" autoComplete="off">
-              <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
-                  Tipo de cuenta
-                </label>
-                <select
-                  value={registerRole}
-                  onChange={(e) => { setRegisterRole(e.target.value as "cliente" | "empresa"); setError(""); }}
-                  className="input"
-                >
-                  <option value="cliente">Cliente</option>
-                  <option value="empresa">Empresa / Negocio</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
-                  {registerRole === "cliente" ? "Nombre completo" : "Nombre del negocio"}
-                </label>
-                <input
-                  type="text"
-                  value={regForm.Nombre}
-                  onChange={(e) => setRegForm({ ...regForm, Nombre: e.target.value })}
-                  className="input"
-                  placeholder={registerRole === "cliente" ? "Ej. Maria Lopez" : "Ej. Peluqueria Carmen"}
-                  required
-                />
-              </div>
-              {registerRole === "cliente" && (
-                <div className="flex flex-col gap-1">
-                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
-                    Nombre de usuario
-                    <span style={{ fontWeight: 400, color: "var(--text-secondary)", marginLeft: 6 }}>
-                      (para iniciar sesion)
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    value={regForm.username}
-                    onChange={(e) =>
-                      setRegForm({ ...regForm, username: e.target.value.toLowerCase().replace(/\s/g, "") })
-                    }
-                    className="input"
-                    placeholder="Ej. marialopez"
-                    pattern="[a-zA-Z0-9_]+"
-                    title="Solo letras, numeros y guion bajo"
-                  />
-                </div>
-              )}
-              <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
-                  Correo electronico
-                </label>
-                <input
-                  type="email"
-                  value={regForm.Correo}
-                  onChange={(e) => setRegForm({ ...regForm, Correo: e.target.value })}
-                  className="input"
-                  placeholder="ejemplo@correo.com"
-                  required
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Telefono</label>
-                <input
-                  type="tel"
-                  value={regForm.Telefono}
-                  onChange={(e) => setRegForm({ ...regForm, Telefono: e.target.value })}
-                  className="input"
-                  placeholder="Ej. 600000000"
-                  pattern="[0-9]{9}"
-                  title="Debe contener 9 numeros"
-                />
-              </div>
-              {registerRole === "empresa" && (
-                <div className="flex flex-col gap-1">
-                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
-                    Direccion / Localizacion
-                  </label>
-                  <input
-                    type="text"
-                    value={regForm.Localicacion}
-                    onChange={(e) => setRegForm({ ...regForm, Localicacion: e.target.value })}
-                    className="input"
-                    placeholder="Ej. Calle Mayor 10, Alicante"
-                  />
-                </div>
-              )}
-              <div className="flex flex-col gap-1">
-                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Contraseña</label>
-                <input
-                  type="password"
-                  value={regForm.password}
-                  onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
-                  className="input"
-                  placeholder="Minimo 6 caracteres"
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                />
-              </div>
-              {error && <div className="message-error">{error}</div>}
-              <button
-                type="submit"
-                className="primary-btn w-full flex justify-center items-center mt-1"
-                disabled={isLoading}
-              >
-                {isLoading ? "Registrando..." : "Crear cuenta"}
-              </button>
-            </form>
-          )}
-
-          <p
-            style={{
-              textAlign: "center",
-              marginTop: "var(--space-4)",
-              fontSize: "var(--text-xs)",
-              color: "var(--text-secondary)",
-            }}
-          >
-            Al registrarte aceptas los terminos de uso del servicio
-          </p>
-        </div>
-      </div>
-
-      {/* Success overlay */}
-      {isSuccess && successMessage && (
-        <div
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            maxWidth: 400,
-            textAlign: "center",
-            zIndex: 200,
-            padding: "var(--space-6)",
-            background: "var(--surface-solid)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--radius-xl)",
-            boxShadow: "var(--shadow-lg)",
-          }}
-        >
-          <p style={{ fontSize: "2rem", marginBottom: "var(--space-3)" }}>✓</p>
-          <p
-            style={{
-              fontSize: "var(--text-lg)",
-              color: "var(--text)",
-              fontWeight: 700,
-              marginBottom: "var(--space-2)",
-            }}
-          >
-            {successMessage}
-          </p>
-          {isBusinessSuccess && (
-            <button
-              onClick={() => {
-                setIsSuccess(false);
-                setSuccessMessage("");
-                setIsBusinessSuccess(false);
-                setTab("login");
-                setRegisterRole("cliente");
-                setRegForm({ Nombre: "", username: "", Telefono: "", Correo: "", password: "", Localicacion: "" });
-                setIsLoading(false);
-                setError("");
-              }}
+            {/* Tab switcher */}
+            <div
               style={{
-                fontSize: "var(--text-sm)",
-                color: "var(--accent)",
-                textDecoration: "underline",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-                marginTop: "var(--space-3)",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                background: "var(--surface-2)",
+                borderRadius: "var(--radius-md)",
+                padding: "3px",
+                marginBottom: "var(--space-5)",
               }}
             >
-              Volver al inicio
-            </button>
-          )}
+              {(["login", "register"] as Tab[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => { setTab(t); setError(""); }}
+                  style={{
+                    padding: "var(--space-2) var(--space-3)",
+                    borderRadius: "var(--radius-sm)",
+                    fontSize: "var(--text-sm)",
+                    fontWeight: 600,
+                    background: tab === t ? "var(--surface-solid)" : "transparent",
+                    color: tab === t ? "var(--text)" : "var(--text-secondary)",
+                    boxShadow: tab === t ? "var(--shadow-sm)" : "none",
+                    transition: "all 0.2s ease",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {t === "login" ? "Iniciar sesion" : "Registrarse"}
+                </button>
+              ))}
+            </div>
+
+            {/* Login form */}
+            {tab === "login" && (
+              <form onSubmit={handleLogin} className="flex flex-col gap-4" autoComplete="off">
+                <div className="flex flex-col gap-1">
+                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
+                    Usuario o correo
+                  </label>
+                  <input
+                    type="text"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    className="input"
+                    placeholder="Username / Tu@correo.com "
+                    required
+                    autoComplete="username"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
+                    Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="input"
+                    placeholder="••••••••"
+                    required
+                    autoComplete="current-password"
+                  />
+                </div>
+                {error && <div className="message-error">{error}</div>}
+                <button
+                  type="submit"
+                  className="primary-btn w-full flex justify-center items-center mt-1"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Verificando..." : "Entrar"}
+                </button>
+
+                {/* Botón de inicio de sesión con Google */}
+                <div className="flex flex-col items-center mt-4 w-full gap-2">
+                  <div
+                    className="g_id_signin"
+                    data-type="standard"
+                    data-size="large"
+                    data-theme="outline"
+                    data-text="sign_in_with"
+                    data-shape="rectangular"
+                    data-logo_alignment="left"
+                  ></div>
+                </div>
+              </form>
+            )}
+
+            {/* Register form */}
+            {tab === "register" && (
+              <form onSubmit={handleRegister} className="flex flex-col gap-4" autoComplete="off">
+                <div className="flex flex-col gap-2">
+                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
+                    Tipo de cuenta
+                  </label>
+                  <div className="flex flex-row gap-3 w-full">
+                    <button
+                      type="button"
+                      onClick={() => { setRegisterRole("cliente"); setError(""); }}
+                      className={`w-1/2 flex items-center justify-center gap-2 p-3 rounded-lg border transition-all duration-200 ${registerRole === "cliente"
+                        ? "border-[var(--accent)] bg-[var(--surface-2)] text-[var(--text)] font-semibold"
+                        : "border-[var(--border)] bg-transparent text-[var(--text-secondary)] hover:bg-gray-100 dark:hover:bg-zinc-800 hover:border-gray-400"
+                        }`}
+                    >
+                      <User size={18} />
+                      <span className="text-sm font-medium">Cliente</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setRegisterRole("empresa"); setError(""); }}
+                      className={`w-1/2 flex items-center justify-center gap-2 p-3 rounded-lg border transition-all duration-200 ${registerRole === "empresa"
+                        ? "border-[var(--accent)] bg-[var(--surface-2)] text-[var(--text)] font-semibold"
+                        : "border-[var(--border)] bg-transparent text-[var(--text-secondary)] hover:bg-gray-100 dark:hover:bg-zinc-800 hover:border-gray-400"
+                        }`}
+                    >
+                      <Store size={18} />
+                      <span className="text-sm font-medium">Negocio</span>
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
+                    {registerRole === "cliente" ? "Nombre completo" : "Nombre del negocio"}
+                  </label>
+                  <input
+                    type="text"
+                    value={regForm.Nombre}
+                    onChange={(e) => setRegForm({ ...regForm, Nombre: e.target.value })}
+                    className="input"
+                    placeholder={registerRole === "cliente" ? "Ej. Maria Lopez" : "Ej. Peluqueria Carmen"}
+                    required
+                  />
+                </div>
+                {registerRole === "cliente" && (
+                  <div className="flex flex-col gap-1">
+                    <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
+                      Nombre de usuario
+                      <span style={{ fontWeight: 400, color: "var(--text-secondary)", marginLeft: 6 }}>
+                        (para iniciar sesion)
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={regForm.username}
+                      onChange={(e) =>
+                        setRegForm({ ...regForm, username: e.target.value.toLowerCase().replace(/\s/g, "") })
+                      }
+                      className="input"
+                      placeholder="Ej. marialopez"
+                      pattern="[a-zA-Z0-9_]+"
+                      title="Solo letras, numeros y guion bajo"
+                    />
+                  </div>
+                )}
+                <div className="flex flex-col gap-1">
+                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
+                    Correo electronico
+                  </label>
+                  <input
+                    type="email"
+                    value={regForm.Correo}
+                    onChange={(e) => setRegForm({ ...regForm, Correo: e.target.value })}
+                    className="input"
+                    placeholder="ejemplo@correo.com"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Telefono</label>
+                  <input
+                    type="tel"
+                    value={regForm.Telefono}
+                    onChange={(e) => setRegForm({ ...regForm, Telefono: e.target.value })}
+                    className="input"
+                    placeholder="Ej. 600000000"
+                    pattern="[0-9]{9}"
+                    title="Debe contener 9 numeros"
+                  />
+                </div>
+                {registerRole === "empresa" && (
+                  <div className="flex flex-col gap-1">
+                    <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
+                      Direccion / Localizacion
+                    </label>
+                    <input
+                      type="text"
+                      value={regForm.Localicacion}
+                      onChange={(e) => setRegForm({ ...regForm, Localicacion: e.target.value })}
+                      className="input"
+                      placeholder="Ej. Calle Mayor 10, Alicante"
+                    />
+                  </div>
+                )}
+                <div className="flex flex-col gap-1">
+                  <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>Contraseña</label>
+                  <input
+                    type="password"
+                    value={regForm.password}
+                    onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
+                    className="input"
+                    placeholder="Minimo 6 caracteres"
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
+                  />
+                </div>
+                {error && <div className="message-error">{error}</div>}
+                <button
+                  type="submit"
+                  className="primary-btn w-full flex justify-center items-center mt-1"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Registrando..." : "Crear cuenta"}
+                </button>
+
+                {/* Botón de inicio de sesión con Google (solo clientes) */}
+                {registerRole === "cliente" && (
+                  <div className="flex flex-col items-center mt-4 w-full gap-2">
+                    <div
+                      className="g_id_signin"
+                      data-type="standard"
+                      data-size="large"
+                      data-theme="outline"
+                      data-text="signup_with"
+                      data-shape="rectangular"
+                      data-logo_alignment="left"
+                    ></div>
+                  </div>
+                )}
+              </form>
+            )}
+
+            <p
+              style={{
+                textAlign: "center",
+                marginTop: "var(--space-4)",
+                fontSize: "var(--text-xs)",
+                color: "var(--text-secondary)",
+              }}
+            >
+              Al registrarte aceptas los terminos de uso del servicio
+            </p>
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Success overlay */}
+        {isSuccess && successMessage && (
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              maxWidth: 400,
+              textAlign: "center",
+              zIndex: 200,
+              padding: "var(--space-6)",
+              background: "var(--surface-solid)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-xl)",
+              boxShadow: "var(--shadow-lg)",
+            }}
+          >
+            <p style={{ fontSize: "2rem", marginBottom: "var(--space-3)" }}>✓</p>
+            <p
+              style={{
+                fontSize: "var(--text-lg)",
+                color: "var(--text)",
+                fontWeight: 700,
+                marginBottom: "var(--space-2)",
+              }}
+            >
+              {successMessage}
+            </p>
+            {isBusinessSuccess && (
+              <button
+                onClick={() => {
+                  setIsSuccess(false);
+                  setSuccessMessage("");
+                  setIsBusinessSuccess(false);
+                  setTab("login");
+                  setRegisterRole("cliente");
+                  setRegForm({ Nombre: "", username: "", Telefono: "", Correo: "", password: "", Localicacion: "" });
+                  setIsLoading(false);
+                  setError("");
+                }}
+                style={{
+                  fontSize: "var(--text-sm)",
+                  color: "var(--accent)",
+                  textDecoration: "underline",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  marginTop: "var(--space-3)",
+                }}
+              >
+                Volver al inicio
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
