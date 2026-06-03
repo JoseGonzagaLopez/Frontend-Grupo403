@@ -251,7 +251,7 @@ export default function PaymentsClient({
     customerId: 0,
     businessId: 0,
     Importe: "" as any,
-    Metodo: "",
+    Metodo: "Pendiente",
     Fecha: "",
     Estado: "Por cobrar",
   };
@@ -275,20 +275,50 @@ export default function PaymentsClient({
     key: K,
     value: CreatePagoDto[K]
   ) {
-    setCreateForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setCreateForm((prev) => {
+      if (key === "Estado") {
+        return {
+          ...prev,
+          Estado: value as string,
+          Metodo:
+            value === "Por cobrar"
+              ? "Pendiente"
+              : prev.Metodo === "Pendiente"
+              ? ""
+              : prev.Metodo,
+        };
+      }
+
+      return {
+        ...prev,
+        [key]: value,
+      };
+    });
   }
 
   function updateEditForm<K extends keyof CreatePagoDto>(
     key: K,
     value: CreatePagoDto[K]
   ) {
-    setEditForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setEditForm((prev) => {
+      if (key === "Estado") {
+        return {
+          ...prev,
+          Estado: value as string,
+          Metodo:
+            value === "Por cobrar"
+              ? "Pendiente"
+              : prev.Metodo === "Pendiente"
+              ? ""
+              : prev.Metodo,
+        };
+      }
+
+      return {
+        ...prev,
+        [key]: value,
+      };
+    });
   }
 
   function openCreateForm() {
@@ -418,6 +448,8 @@ export default function PaymentsClient({
     new Set(payments.map((payment) => payment.Metodo).filter((method) => method && method.trim() !== ""))
   ).sort();
 
+  const filteredPaymentMethods = paymentMethods.filter((method) => method !== "Pendiente");
+
   const methodCounts = payments.reduce<Record<string, number>>((acc, payment) => {
     acc[payment.Metodo] = (acc[payment.Metodo] ?? 0) + 1;
     return acc;
@@ -510,13 +542,13 @@ export default function PaymentsClient({
                 value={createForm.Metodo}
                 onChange={(e) => updateCreateForm("Metodo", e.target.value)}
                 required
+                disabled={createForm.Estado === "Por cobrar"}
               >
                 <option value="">Seleccionar método</option>
                 <option value="Tarjeta">Tarjeta</option>
                 <option value="Bizum">Bizum</option>
                 <option value="Efectivo">Efectivo</option>
                 <option value="Transferencia">Transferencia</option>
-                <option value="Pendiente">Pendiente</option>
               </select>
               <input
                 className="input"
@@ -589,13 +621,13 @@ export default function PaymentsClient({
                 value={editForm.Metodo}
                 onChange={(e) => updateEditForm("Metodo", e.target.value)}
                 required
+                disabled={editForm.Estado === "Por cobrar"}
               >
                 <option value="">Seleccionar método</option>
                 <option value="Tarjeta">Tarjeta</option>
                 <option value="Bizum">Bizum</option>
                 <option value="Efectivo">Efectivo</option>
                 <option value="Transferencia">Transferencia</option>
-                <option value="Pendiente">Pendiente</option>
               </select>
               <input
                 className="input"
@@ -695,6 +727,7 @@ export default function PaymentsClient({
             gap: 16,
             flexWrap: 'wrap',
             marginTop: 16,
+            marginBottom: 12,
           }}
         >
           <div className="filter-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -721,7 +754,7 @@ export default function PaymentsClient({
             </button>
           </div>
           <div className="filter-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', minWidth: 0 }}>
-            {paymentMethods.map((method) => (
+            {filteredPaymentMethods.map((method) => (
               <button
                 key={method}
                 type="button"
