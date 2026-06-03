@@ -1,74 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { Business, Customer, Service } from "@/lib/api";
 import { createAppointment, getServices } from "@/lib/api";
 import { CustomDatePicker } from "@/components/CustomDatePicker";
-
-function SearchableSelect({
-  options,
-  value,
-  onChange,
-  placeholder,
-  className = "",
-}: {
-  options: { id: number; label: string }[];
-  value: number | "";
-  onChange: (id: number | "") => void;
-  placeholder: string;
-  className?: string;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const filtered = options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()));
-  const selectedLabel = options.find((o) => o.id === value)?.label || "";
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setIsOpen(false);
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => { if (isOpen && inputRef.current) inputRef.current.focus(); }, [isOpen]);
-
-  return (
-    <div ref={containerRef} className={`searchable-select ${className}`} style={{ position: "relative", width: "100%" }}>
-      <button type="button" className="input" style={{ textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", width: "100%" }} onClick={() => setIsOpen(!isOpen)}>
-        <span style={{ color: value === "" ? "var(--text-tertiary)" : "inherit" }}>{selectedLabel || placeholder}</span>
-        <span style={{ fontSize: "12px", opacity: 0.5 }}>▼</span>
-      </button>
-      {isOpen && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)", marginTop: "4px", maxHeight: "300px", display: "flex", flexDirection: "column" }}>
-          <div style={{ padding: "8px", borderBottom: "1px solid var(--border)" }}>
-            <input ref={inputRef} type="text" className="input" style={{ height: "36px", fontSize: "14px" }} placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} onClick={(e) => e.stopPropagation()} />
-          </div>
-          <div style={{ overflowY: "auto", flex: 1 }}>
-            {value !== "" && (
-              <div style={{ padding: "8px 12px", cursor: "pointer", color: "var(--danger)", fontSize: "14px", borderBottom: "1px solid var(--border)" }}
-                onClick={() => { onChange(""); setSearch(""); setIsOpen(false); }}>
-                ✕ Quitar selección
-              </div>
-            )}
-            {filtered.length > 0 ? filtered.map((opt) => (
-              <div key={opt.id}
-                style={{ padding: "8px 12px", cursor: "pointer", fontSize: "14px", background: value === opt.id ? "var(--surface-2)" : "transparent", fontWeight: value === opt.id ? 600 : 400 }}
-                className="searchable-select__option"
-                onClick={() => { onChange(opt.id); setSearch(""); setIsOpen(false); }}>
-                {opt.label}
-              </div>
-            )) : (
-              <div style={{ padding: "12px", textAlign: "center", color: "var(--text-tertiary)", fontSize: "14px" }}>No hay resultados</div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function ReservarClient({
   initialBusinesses,
@@ -79,6 +14,9 @@ export default function ReservarClient({
   loggedCustomer?: Customer;
   serverError?: string;
 }) {
+  const [selectedBusinessProfile, setSelectedBusinessProfile] = useState<Business | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [form, setForm] = useState({ businessId: "" as number | "", serviceName: "", date: "", time: "" });
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(false);
@@ -325,10 +263,10 @@ export default function ReservarClient({
 
           {/* Acciones secundarias */}
           <div style={{ display: "flex", gap: "var(--space-3)", width: "100%" }}>
-            <button className="secondary-btn" style={{ flex: 1 }} onClick={() => window.history.back()}>← Volver</button>
+            <button className="secondary-btn" style={{ flex: 1 }} onClick={() => { setIsSuccess(false); setSelectedBusinessProfile(null); }}>← Volver</button>
             <button className="primary-btn" style={{ flex: 1 }} onClick={() => {
-              setForm({ businessId: "", serviceName: "", date: "", time: "" });
-              setSubmittedForm({ businessId: "", serviceName: "", date: "", time: "" });
+              setForm({ businessId: selectedBusinessProfile?.id || "", serviceName: "", date: "", time: "" });
+              setSubmittedForm({ businessId: selectedBusinessProfile?.id || "", serviceName: "", date: "", time: "" });
               setIsSuccess(false);
               setCalendarStatus(null);
               setCalendarLink(null);
@@ -339,58 +277,165 @@ export default function ReservarClient({
     );
   }
 
+  if (!selectedBusinessProfile) {
+    const filteredBusinesses = initialBusinesses.filter((b) =>
+      b.Nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.tipoNegocio && b.tipoNegocio.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+
+    return (
+      <div className="page-stack">
+        <section className="page-hero">
+          <div>
+            <h2>Selecciona un negocio</h2>
+            <p>Explora y elige el negocio para realizar tu reserva.</p>
+          </div>
+        </section>
+        <section className="section-card">
+          <div style={{ marginBottom: 24, position: "relative" }}>
+            <svg style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "var(--text-tertiary)", pointerEvents: "none" }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input 
+              type="text" 
+              className="input" 
+              style={{ paddingLeft: 44, height: 48, fontSize: 16, width: "100%", borderRadius: "var(--radius-full)", background: "var(--surface-hover)", border: "1px solid var(--border)" }} 
+              placeholder="Buscar negocio por nombre o tipo..." 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+            />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 24 }}>
+            {filteredBusinesses.map(b => (
+              <div 
+                key={b.id} 
+                onClick={() => { setSelectedBusinessProfile(b); setForm(f => ({...f, businessId: b.id})); }} 
+                style={{ 
+                  border: "1px solid var(--border)", 
+                  borderRadius: "var(--radius-xl)", 
+                  overflow: "hidden", 
+                  cursor: "pointer", 
+                  background: "var(--surface)",
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: "transform 0.2s, box-shadow 0.2s, border-color 0.2s"
+                }} 
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "var(--shadow-md)"; e.currentTarget.style.borderColor = "var(--border-strong)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.borderColor = "var(--border)"; }}
+              >
+                <div style={{ height: 140, background: b.bannerUrl ? `url(${b.bannerUrl}) center/cover` : "var(--surface-2)", position: "relative" }}>
+                  <div style={{ 
+                    position: "absolute", bottom: -24, left: 20, 
+                    width: 60, height: 60, borderRadius: "50%", 
+                    background: b.fotoUrl ? `url(${b.fotoUrl}) center/cover` : "var(--primary)", 
+                    border: "3px solid var(--surface)", 
+                    display: "flex", alignItems: "center", justifyContent: "center", 
+                    color: "white", fontSize: 24, fontWeight: "bold" 
+                  }}>
+                    {!b.fotoUrl && b.Nombre.charAt(0).toUpperCase()}
+                  </div>
+                </div>
+                <div style={{ padding: "36px 20px 20px", display: "flex", flexDirection: "column", flex: 1 }}>
+                  <h3 style={{ margin: "0 0 6px", fontSize: "18px", fontWeight: 700, color: "var(--text)" }}>{b.Nombre}</h3>
+                  {b.tipoNegocio && (
+                    <span style={{ 
+                      fontSize: "12px", color: "var(--primary)", background: "var(--accent-soft)", 
+                      padding: "4px 10px", borderRadius: "12px", display: "inline-block", 
+                      marginBottom: 12, fontWeight: 600, alignSelf: "flex-start" 
+                    }}>
+                      {b.tipoNegocio}
+                    </span>
+                  )}
+                  <p style={{ 
+                    margin: 0, fontSize: "14px", color: "var(--text-secondary)", 
+                    display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", 
+                    overflow: "hidden", lineHeight: 1.5, flex: 1
+                  }}>
+                    {b.descripcion || "Este negocio no tiene descripción. Contacta para más información."}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {filteredBusinesses.length === 0 && (
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "60px 20px", color: "var(--text-secondary)" }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.3, marginBottom: 16, display: "inline-block" }}>
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 600, color: "var(--text)", marginBottom: 8 }}>No se encontraron negocios</h3>
+                <p>No hay resultados para "{searchQuery}". Intenta con otra búsqueda.</p>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="page-stack">
-      <section className="page-hero">
+      <section className="page-hero" style={{ padding: "24px 28px" }}>
         <div>
-          <h2>Reserva tu cita</h2>
+          <h2>Reserva en {selectedBusinessProfile.Nombre}</h2>
           <p>Completa el formulario a continuación para solicitar una reserva.</p>
         </div>
       </section>
       <section className="section-card">
-        <form onSubmit={handleSubmit} className="page-stack" style={{ gap: 24 }}>
-          {error && <div className="message-error">{error}</div>}
-          <div className="form-grid">
-            <div>
-              <label className="block text-sm font-semibold mb-1">Selecciona el Negocio <span style={{ color: "var(--danger)" }}>*</span></label>
-              <SearchableSelect
-                options={businessOptions}
-                value={form.businessId}
-                onChange={(id) => setForm((f) => ({ ...f, businessId: id }))}
-                placeholder="Busca y selecciona un negocio..."
-              />
-            </div>
+        <div style={{ marginBottom: 24, paddingBottom: 24, borderBottom: "1px solid var(--border)" }}>
+           <button 
+             type="button"
+             onClick={() => { setSelectedBusinessProfile(null); setForm({ businessId: "", serviceName: "", date: "", time: "" }); setServices([]); }} 
+             style={{ 
+               display: "inline-flex", alignItems: "center", gap: 8, 
+               fontSize: "14px", fontWeight: 600, color: "var(--text-secondary)", 
+               background: "var(--surface-2)", padding: "8px 16px", borderRadius: "var(--radius-full)",
+               border: "1px solid var(--border)", transition: "all 0.2s" 
+             }}
+             onMouseEnter={e => { e.currentTarget.style.background = "var(--surface-hover)"; e.currentTarget.style.color = "var(--text)"; }}
+             onMouseLeave={e => { e.currentTarget.style.background = "var(--surface-2)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+           >
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+               <line x1="19" y1="12" x2="5" y2="12"></line>
+               <polyline points="12 19 5 12 12 5"></polyline>
+             </svg>
+             Cambiar de negocio
+           </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="page-stack" style={{ gap: 24, padding: 0 }}>
+          {error && <div className="message-error" style={{ background: "var(--danger-bg)", color: "var(--danger)", padding: 16, borderRadius: "var(--radius-md)", fontSize: 14 }}>{error}</div>}
+          
+          <div className="form-grid" style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24 }}>
             <div>
               <label className="block text-sm font-semibold mb-1">Servicio <span style={{ color: "var(--danger)" }}>*</span></label>
-              {form.businessId === "" ? (
-                <div className="input" style={{ color: "var(--text-faint)", cursor: "not-allowed", display: "flex", alignItems: "center" }}>Primero selecciona un negocio</div>
-              ) : loadingServices ? (
-                <div className="input" style={{ color: "var(--text-secondary)", display: "flex", alignItems: "center" }}>Cargando servicios...</div>
+              {loadingServices ? (
+                <div className="input" style={{ color: "var(--text-secondary)", display: "flex", alignItems: "center", background: "var(--surface-2)" }}>Cargando servicios...</div>
               ) : services.length > 0 ? (
-                <select className="input" value={form.serviceName} onChange={(e) => setForm((f) => ({ ...f, serviceName: e.target.value }))} required>
+                <select className="input" style={{ width: "100%" }} value={form.serviceName} onChange={(e) => setForm((f) => ({ ...f, serviceName: e.target.value }))} required>
                   <option value="">Selecciona un servicio...</option>
                   {services.map((s) => (
                     <option key={s.id} value={s.nombre}>{s.nombre}{s.precio ? ` — ${s.precio}€` : ""}{s.duracion ? ` (${s.duracion} min)` : ""}</option>
                   ))}
                 </select>
               ) : (
-                <input type="text" className="input" placeholder="Este negocio no tiene servicios definidos, escribe el servicio..." value={form.serviceName} onChange={(e) => setForm((f) => ({ ...f, serviceName: e.target.value }))} required />
+                <input type="text" className="input" style={{ width: "100%" }} placeholder="Este negocio no tiene servicios definidos, escribe el servicio..." value={form.serviceName} onChange={(e) => setForm((f) => ({ ...f, serviceName: e.target.value }))} required />
               )}
             </div>
           </div>
-          <div className="form-grid">
+          <div className="form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
             <div>
               <label className="block text-sm font-semibold mb-1">Fecha <span style={{ color: "var(--danger)" }}>*</span></label>
               <CustomDatePicker value={form.date} onChange={(date) => setForm((f) => ({ ...f, date }))} />
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">Hora <span style={{ color: "var(--danger)" }}>*</span></label>
-              <input type="time" className="input" value={form.time} onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))} required
+              <input type="time" className="input" style={{ width: "100%" }} value={form.time} onChange={(e) => setForm((f) => ({ ...f, time: e.target.value }))} required
                 onClick={(e) => { if ("showPicker" in HTMLInputElement.prototype) (e.currentTarget as any).showPicker(); }} />
             </div>
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
-            <button type="submit" className="primary-btn" disabled={isLoading} style={{ minWidth: 200 }}>
+            <button type="submit" className="primary-btn" disabled={isLoading} style={{ minWidth: 200, padding: "12px 24px", borderRadius: "var(--radius-full)", background: "var(--primary)", color: "white", fontWeight: 600, border: "none", cursor: isLoading ? "not-allowed" : "pointer", opacity: isLoading ? 0.7 : 1 }}>
               {isLoading ? "Procesando..." : "Confirmar reserva"}
             </button>
           </div>
