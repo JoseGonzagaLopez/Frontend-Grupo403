@@ -269,6 +269,7 @@ export default function PaymentsClient({
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [customerSearch, setCustomerSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<'all' | 'Por cobrar' | 'Pagado'>('all');
+  const [methodFilter, setMethodFilter] = useState<string>('all');
 
   function updateCreateForm<K extends keyof CreatePagoDto>(
     key: K,
@@ -413,6 +414,10 @@ export default function PaymentsClient({
   const collectedTotal = paidPayments.reduce((total, payment) => total + payment.Importe, 0);
   const conversion = payments.length > 0 ? Math.round((paidPayments.length / payments.length) * 100) : 0;
 
+  const paymentMethods = Array.from(
+    new Set(payments.map((payment) => payment.Metodo).filter((method) => method && method.trim() !== ""))
+  ).sort();
+
   const methodCounts = payments.reduce<Record<string, number>>((acc, payment) => {
     acc[payment.Metodo] = (acc[payment.Metodo] ?? 0) + 1;
     return acc;
@@ -421,6 +426,9 @@ export default function PaymentsClient({
 
   const filteredPayments = payments.filter((payment) => {
     if (statusFilter !== 'all' && payment.Estado !== statusFilter) {
+      return false;
+    }
+    if (methodFilter !== 'all' && payment.Metodo !== methodFilter) {
       return false;
     }
     if (customerSearch.trim() === "") return true;
@@ -669,32 +677,7 @@ export default function PaymentsClient({
           }}
         >
           <h3 className="panel-title">Listado de cobros</h3>
-          <div style={{ display: 'flex', justifyContent: 'center', flex: 1, minWidth: 0 }}>
-            <div className="filter-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <button
-                type="button"
-                className={`filter-pill ${statusFilter === 'all' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('all')}
-              >
-                Todos
-              </button>
-              <button
-                type="button"
-                className={`filter-pill ${statusFilter === 'Por cobrar' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('Por cobrar')}
-              >
-                Por cobrar
-              </button>
-              <button
-                type="button"
-                className={`filter-pill ${statusFilter === 'Pagado' ? 'active' : ''}`}
-                onClick={() => setStatusFilter('Pagado')}
-              >
-                Pagado
-              </button>
-            </div>
-          </div>
-          <div style={{ width: '250px' }}>
+          <div style={{ width: '250px', minWidth: '250px' }}>
             <input
               type="text"
               className="input"
@@ -702,6 +685,59 @@ export default function PaymentsClient({
               value={customerSearch}
               onChange={(e) => setCustomerSearch(e.target.value)}
             />
+          </div>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            flexWrap: 'wrap',
+            marginTop: 16,
+          }}
+        >
+          <div className="filter-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className={`filter-pill ${statusFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('all')}
+            >
+              Todos
+            </button>
+            <button
+              type="button"
+              className={`filter-pill ${statusFilter === 'Por cobrar' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('Por cobrar')}
+            >
+              Por cobrar
+            </button>
+            <button
+              type="button"
+              className={`filter-pill ${statusFilter === 'Pagado' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('Pagado')}
+            >
+              Pagado
+            </button>
+          </div>
+          <div className="filter-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end', minWidth: 0 }}>
+            {paymentMethods.map((method) => (
+              <button
+                key={method}
+                type="button"
+                className={`filter-pill ${methodFilter === method ? 'active' : ''}`}
+                onClick={() => setMethodFilter(method)}
+              >
+                {method}
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`filter-pill ${methodFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setMethodFilter('all')}
+            >
+              Todos
+            </button>
           </div>
         </div>
 
