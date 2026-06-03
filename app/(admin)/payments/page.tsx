@@ -1,11 +1,18 @@
-﻿import { getPagos, getCustomers } from '@/lib/api';
+import { getPagos, getCustomers, getBusinesses } from '@/lib/api';
 import PaymentsClient from './PaymentsClient';
+import ErrorView from '@/components/ErrorView';
 
 export default async function PaymentsPage() {
-  const [pagos, customers] = await Promise.all([
-    getPagos(),
-    getCustomers(),
-  ]);
+  try {
+    const [pagos, customers, businesses] = await Promise.all([
+      getPagos(),
+      getCustomers(),
+      getBusinesses(),
+    ]);
 
-  return <PaymentsClient initialPayments={pagos} initialCustomers={customers} />;
+    return <PaymentsClient initialPayments={pagos} initialCustomers={customers} initialBusinesses={businesses} />;
+  } catch (error) {
+    console.error("Error loading payments:", error);
+    return <ErrorView />;
+  }
 }

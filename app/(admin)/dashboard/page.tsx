@@ -1,5 +1,9 @@
-﻿import { getAppointments, type Booking, type BookingStatus } from '@/lib/api';
+import { getAppointments, getCustomers, getBusinesses, type Booking, type BookingStatus, type Business } from '@/lib/api';
 import Link from 'next/link';
+import { CalendarDays, CreditCard, Clock3, Sparkles, TrendingUp } from 'lucide-react';
+import ExportButton from "./ExportButton";
+import ErrorView from '@/components/ErrorView';
+import ReservationsChart from './ReservationsChart';
 
 function Badge({ status }: { status: BookingStatus }) {
   const label =
@@ -17,15 +21,35 @@ function KpiCard({
   value,
   subtitle,
   variant,
+  icon,
 }: {
   title: string;
   value: string;
   subtitle: string;
   variant?: 'positive' | 'warning';
+  icon: React.ReactNode;
 }) {
   return (
     <div className="kpi-card">
-      <p className="kpi-card__label">{title}</p>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+        <p className="kpi-card__label">{title}</p>
+        <span
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 14,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid var(--border)',
+            color: 'var(--accent)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+          }}
+        >
+          {icon}
+        </span>
+      </div>
       <h3 className="kpi-card__value">{value}</h3>
       <p
         className={`kpi-card__meta ${variant === 'positive'
@@ -49,152 +73,191 @@ function sortByDateTime(a: Booking, b: Booking) {
   return parseBookingDate(a).getTime() - parseBookingDate(b).getTime();
 }
 
+function formatImporte(value: number) {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 2,
+  }).format(value);
+}
+
 export default async function DashboardPage() {
-  const appointments = await getAppointments();
-  const today = new Date().toISOString().slice(0, 10);
-  const now = new Date();
+  try {
+    const appointments = await getAppointments();
+    const customers = await getCustomers();
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
 
-  const sortedAppointments = [...appointments].sort(sortByDateTime);
-  const appointmentsToday = sortedAppointments.filter((appointment) => appointment.date === today);
-  const upcomingAppointments = sortedAppointments.filter((appointment) => parseBookingDate(appointment) >= now);
-  const appointmentsNext = upcomingAppointments.slice(0, 5);
-  const pendingToday = appointmentsToday.filter((appointment) => appointment.status === 'pending').length;
-  const paidToday = appointmentsToday.filter((appointment) => appointment.status === 'paid').length;
+    const sortedAppointments = [...appointments].sort(sortByDateTime);
+    const businesses = await getBusinesses();
+    const businessMap = new Map<number, Business>(businesses.map((b) => [b.id, b]));
+    const appointmentsToday = sortedAppointments.filter((appointment) => appointment.date === today);
+    const upcomingAppointments = sortedAppointments.filter((appointment) => parseBookingDate(appointment) >= now);
+    const appointmentsNext = upcomingAppointments.slice(0, 5);
+    const pendingToday = appointmentsToday.filter((appointment) => appointment.status === 'pending').length;
+    const paidToday = appointmentsToday.filter((appointment) => appointment.status === 'paid').length;
 
-  const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const appointmentsThisMonth = sortedAppointments.filter((appointment) => {
-    const appointmentDate = new Date(appointment.date);
-    return appointmentDate >= currentMonth && appointmentDate <= now;
-  });
+    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const appointmentsThisMonth = sortedAppointments.filter((appointment) => {
+      const appointmentDate = new Date(appointment.date);
+      return appointmentDate >= currentMonth && appointmentDate <= now;
+    });
 
-  const uniqueCustomersThisMonth = new Set(appointmentsThisMonth.map((appointment) => appointment.customerId)).size;
+    const uniqueCustomersThisMonth = new Set(appointmentsThisMonth.map((appointment) => appointment.customerId)).size;
 
-  const businessCountsToday = appointmentsToday.reduce<Record<number, number>>((acc, appointment) => {
-    acc[appointment.businessId] = (acc[appointment.businessId] ?? 0) + 1;
-    return acc;
-  }, {});
+    const businessCountsToday = appointmentsToday.reduce<Record<number, number>>((acc, appointment) => {
+      acc[appointment.businessId] = (acc[appointment.businessId] ?? 0) + 1;
+      return acc;
+    }, {});
 
-  const topBusinessEntry = Object.entries(businessCountsToday).sort(([, aCount], [, bCount]) => bCount - aCount)[0];
-  const topBusinessLabel = topBusinessEntry
-    ? `Comercio #${topBusinessEntry[0]}`
-    : 'Sin actividad hoy';
-  const topBusinessSubtitle = topBusinessEntry
-    ? `${topBusinessEntry[1]} reserva${topBusinessEntry[1] === 1 ? '' : 's'} hoy`
-    : 'No hay reservas en el día';
+    const topBusinessEntry = Object.entries(businessCountsToday).sort(([, aCount], [, bCount]) => bCount - aCount)[0];
+    const topBusinessId = topBusinessEntry ? Number(topBusinessEntry[0]) : null;
+    const topBusiness = topBusinessId !== null ? businessMap.get(topBusinessId) : undefined;
+    const topBusinessLabel = topBusiness
+      ? topBusiness.Nombre
+      : topBusinessId
+        ? `Comercio #${topBusinessId}`
+        : 'Sin actividad hoy';
+    const topBusinessSubtitle = topBusinessEntry
+      ? `${topBusinessEntry[1]} reserva${topBusinessEntry[1] === 1 ? '' : 's'} hoy`
+      : 'No hay reservas en el día';
 
-  const nextBooking = upcomingAppointments[0];
-  const nextBookingLabel = nextBooking
-    ? `${nextBooking.serviceName}`
-    : 'No hay reservas pendientes';
-  const nextBookingMeta = nextBooking
-    ? `${nextBooking.time} · Comercio #${nextBooking.businessId}`
-    : 'Agrega nuevas reservas para que aparezcan aquí';
+    const nextBooking = upcomingAppointments[0];
+    const nextBookingLabel = nextBooking
+      ? `${nextBooking.serviceName}`
+      : 'No hay reservas pendientes';
+    const nextBookingMeta = nextBooking
+      ? `${nextBooking.time} · ${businessMap.get(nextBooking.businessId)?.Nombre || `Comercio #${nextBooking.businessId}`}`
+      : 'Agrega nuevas reservas para que aparezcan aquí';
 
-  const infoReminderText = pendingToday > 0
-    ? `${pendingToday} confirmación${pendingToday === 1 ? '' : 'es'} pendientes`
-    : 'No hay confirmaciones pendientes';
+    const infoReminderText = pendingToday > 0
+      ? `${pendingToday} confirmación${pendingToday === 1 ? '' : 'es'} pendientes`
+      : 'No hay confirmaciones pendientes';
 
-  return (
-    <div className="page-stack">
-      <section className="page-hero">
-        <div>
-          <h2>Panel de control</h2>
-          <p>Control diario de reservas, actividad y pagos.</p>
-        </div>
-
-        <button className="primary-btn" type="button">
-          Exportar reporte
-        </button>
-      </section>
-
-      <section className="kpi-grid">
-        <KpiCard
-          title="Reservas hoy"
-          value={`${appointmentsToday.length}`}
-          subtitle={appointmentsToday.length > 0 ? `${appointmentsToday.length} reservas hoy` : 'Sin reservas hoy'}
-          variant="positive"
-        />
-        <KpiCard
-          title="Pagos hoy"
-          value={`${paidToday}`}
-          subtitle={`${paidToday} pago${paidToday === 1 ? '' : 's'} registrados`}
-        />
-        <KpiCard
-          title="Pendientes"
-          value={`${pendingToday}`}
-          subtitle="Seguimiento necesario"
-          variant="warning"
-        />
-        <KpiCard
-          title="Clientes activos"
-          value={`${uniqueCustomersThisMonth}`}
-          subtitle="Este mes"
-        />
-      </section>
-
-      <section className="dashboard-grid">
-        <div className="section-card">
-          <div className="panel-title-row">
-            <h3 className="panel-title">Próximas reservas</h3>
-               <Link href="/reservas" className="panel-subtle-link">
-               Ver todas
-               </Link>
+    return (
+      <div className="page-stack">
+        <section className="page-hero">
+          <div>
+            <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700, color: 'var(--teal)' }}>
+              Resumen diario
+            </p>
+            <h2>Panel de control</h2>
+            <p>Controla reservas, clientes activos, pagos y la actividad más relevante del día desde un único espacio visual.</p>
           </div>
 
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Servicio</th>
-                <th>Cliente</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointmentsNext.length > 0 ? (
-                appointmentsNext.map((appointment) => (
-                  <tr key={appointment.id}>
-                    <td>{appointment.date}</td>
-                    <td style={{ fontWeight: 600 }}>{appointment.time}</td>
-                    <td>{appointment.serviceName}</td>
-                    <td>Cliente #{appointment.customerId}</td>
-                    <td>
-                      <Badge status={appointment.status} />
+          <ExportButton appointments={appointments} customers={customers} />
+        </section>
+
+        <section className="kpi-grid">
+          <KpiCard
+            title="Reservas hoy"
+            value={`${appointmentsToday.length}`}
+            subtitle={appointmentsToday.length > 0 ? `${appointmentsToday.length} reservas hoy` : 'Sin reservas hoy'}
+            variant="positive"
+            icon={<CalendarDays size={18} />}
+          />
+          <KpiCard
+            title="Pagos hoy"
+            value={`${paidToday}`}
+            subtitle={`${paidToday} pago${paidToday === 1 ? '' : 's'} registrados`}
+            icon={<CreditCard size={18} />}
+          />
+          <KpiCard
+            title="Pendientes"
+            value={`${pendingToday}`}
+            subtitle="Seguimiento necesario"
+            variant="warning"
+            icon={<Clock3 size={18} />}
+          />
+          <KpiCard
+            title="Clientes activos"
+            value={`${uniqueCustomersThisMonth}`}
+            subtitle="Este mes"
+            icon={<TrendingUp size={18} />}
+          />
+        </section>
+
+        <div className="chart-card">
+          <ReservationsChart appointments={appointments} />
+        </div>
+
+        <section className="dashboard-grid">
+          <div className="section-card">
+            <div className="panel-title-row">
+              <div>
+                <h3 className="panel-title">Próximas reservas</h3>
+                <p style={{ marginTop: 6, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                  Las siguientes citas programadas con su importe y estado actual.
+                </p>
+              </div>
+              <Link href="/reservas" className="panel-subtle-link">
+                Ver todas
+              </Link>
+            </div>
+
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Servicio</th>
+                  <th>Cliente</th>
+                  <th>Importe</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {appointmentsNext.length > 0 ? (
+                  appointmentsNext.map((appointment) => (
+                    <tr key={appointment.id}>
+                      <td style={{ color: 'var(--text)' }}>{appointment.date}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--text)' }}>{appointment.time}</td>
+                      <td>{appointment.serviceName}</td>
+                      <td>{customers.find(c => c.id === appointment.customerId)?.Nombre || `Cliente #${appointment.customerId}`}</td>
+                      <td style={{ color: 'var(--text)' }}>{formatImporte(appointment.importe)}</td>
+                      <td>
+                        <Badge status={appointment.status} />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6}>
+                      <div className="empty-glass">
+                        <Sparkles size={18} style={{ margin: '0 auto 10px', color: 'var(--teal)' }} />
+                        No hay reservas pendientes.
+                      </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '2rem 0', color: '#6b7280' }}>
-                    No hay reservas pendientes.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="info-stack">
-          <div className="info-box">
-            <p className="info-box__eyebrow">Siguiente reserva</p>
-            <p className="info-box__title">{nextBookingLabel}</p>
-            <p className="info-box__text">{nextBookingMeta}</p>
+                )}
+              </tbody>
+            </table>
           </div>
 
-          <div className="info-box">
-            <p className="info-box__eyebrow">Comercio destacado</p>
-            <p className="info-box__title">{topBusinessLabel}</p>
-            <p className="info-box__text">{topBusinessSubtitle}</p>
-          </div>
+          <div className="info-stack">
+            <div className="info-box">
+              <b className="info-box__eyebrow">Siguiente reserva</b>
+              <p className="info-box__title">{nextBookingLabel}</p>
+              <p className="info-box__text">{nextBookingMeta}</p>
+            </div>
 
-          <div className="info-box">
-            <p className="info-box__eyebrow">Recordatorios</p>
-            <p className="info-box__title">{infoReminderText}</p>
-            <p className="info-box__text">Revisión recomendada esta mañana</p>
+            <div className="info-box">
+              <b className="info-box__eyebrow">Comercio destacado</b>
+              <p className="info-box__title">{topBusinessLabel}</p>
+              <p className="info-box__text">{topBusinessSubtitle}</p>
+            </div>
+
+            <div className="info-box">
+              <b className="info-box__eyebrow">Recordatorios</b>
+              <p className="info-box__title">{infoReminderText}</p>
+              <p className="info-box__text">Revisión recomendada esta mañana</p>
+            </div>
           </div>
-        </div>
-      </section>
-    </div>
-  );
+        </section>
+      </div>
+    );
+  } catch (error) {
+    console.error("Error loading dashboard:", error);
+    return <ErrorView />;
+  }
 }

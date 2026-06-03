@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState } from "react";
 import type {
   Booking,
   BookingStatus,
@@ -8,12 +8,15 @@ import type {
   UpdateBookingDto,
   Customer,
   Business,
+  Service,
 } from "@/lib/api";
 import {
   createAppointment,
   deleteAppointment,
+  getServices,
   updateAppointment,
 } from "@/lib/api";
+import { useEffect, useRef } from "react";
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const label =
@@ -38,27 +41,54 @@ function formatDate(date: string) {
   }
 }
 
+type BookingForm = {
+  date: string;
+  time: string;
+  status: BookingStatus;
+  customerId: number | "";
+  businessId: number | "";
+  serviceName: string;
+  importe: number | "";
+};
+
+function formatImporte(value: number | undefined) {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+  }).format(value ?? 0);
+}
+
 function SearchableSelect({
   options,
   value,
   onChange,
   placeholder,
-  className = ""
+  className = "",
 }: {
-  options: { id: number, label: string }[],
-  value: number | '',
-  onChange: (id: number | '') => void,
-  placeholder: string,
-  className?: string
+  options: { id: number; label: string }[];
+  value: number | "";
+  onChange: (id: number | "") => void;
+  placeholder: string;
+  className?: string;
 }) {
-  const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const filteredOptions = options.filter((opt) =>
+    opt.label.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const selectedLabel = options.find((opt) => opt.id === value)?.label || "";
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -67,78 +97,80 @@ function SearchableSelect({
   }, []);
 
   useEffect(() => {
-    if (isOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
     }
   }, [isOpen]);
 
-  const selectedOption = options.find(o => o.id === value);
-
-  const filteredOptions = useMemo(() => {
-    if (!search) return options;
-    return options.filter(o =>
-      (o.label || "").toLowerCase().includes(search.toLowerCase())
-    );
-  }, [options, search]);
-
   return (
-    <div className={`searchable-select ${className}`} ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
-      <div
-        className="input input--full"
-        onClick={() => {
-          setIsOpen(!isOpen);
-          setSearch("");
-        }}
+    <div
+      ref={containerRef}
+      className={`searchable-select ${className}`}
+      style={{ position: "relative", width: "100%" }}
+    >
+      <button
+        type="button"
+        className="input"
         style={{
-          cursor: 'pointer',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          backgroundColor: 'white',
-          minHeight: '42px'
+          textAlign: "left",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          cursor: "pointer",
+          width: "100%",
         }}
+        onClick={() => setIsOpen(!isOpen)}
       >
-        <span style={{ color: selectedOption ? 'inherit' : '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {selectedOption ? selectedOption.label : placeholder}
+        <span style={{ color: value === "" ? "#94a3b8" : "inherit" }}>
+          {selectedLabel || placeholder}
         </span>
-        <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>{isOpen ? '▲' : '▼'}</span>
-      </div>
+        <span style={{ fontSize: "12px", opacity: 0.5 }}>▼</span>
+      </button>
 
       {isOpen && (
-        <div style={{
-          position: 'absolute',
-          top: '100%',
-          left: 0,
-          right: 0,
-          maxHeight: '300px',
-          display: 'flex',
-          flexDirection: 'column',
-          background: 'white',
-          border: '1px solid #e2e8f0',
-          borderRadius: '0.5rem',
-          zIndex: 100,
-          boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
-          marginTop: '4px',
-          overflow: 'hidden'
-        }}>
-          <div style={{ padding: '8px', borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}>
+        <div
+          className="searchable-select__dropdown"
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "8px",
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+            marginTop: "4px",
+            maxHeight: "300px",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div style={{ padding: "8px", borderBottom: "1px solid var(--border)" }}>
             <input
-              ref={searchInputRef}
+              ref={inputRef}
               type="text"
-              className="input input--full"
+              className="input"
+              style={{ height: "36px", fontSize: "14px" }}
               placeholder="Buscar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ fontSize: '0.9rem', padding: '6px 10px' }}
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
 
-          <div style={{ overflowY: 'auto', flex: 1 }}>
-            {value !== '' && (
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            {value !== "" && (
               <div
-                style={{ padding: '8px 12px', cursor: 'pointer', color: '#ef4444', borderBottom: '1px solid #f1f5f9', fontSize: '0.9rem' }}
+                style={{
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                  color: "#ef4444",
+                  fontSize: "14px",
+                  borderBottom: "1px solid var(--border)",
+                }}
                 onClick={() => {
-                  onChange('');
+                  onChange("");
                   setSearch("");
                   setIsOpen(false);
                 }}
@@ -146,33 +178,38 @@ function SearchableSelect({
                 ✕ Quitar selección
               </div>
             )}
-            {filteredOptions.length === 0 ? (
-              <div style={{ padding: '12px', color: '#64748b', textAlign: 'center', fontSize: '0.9rem' }}>
-                No hay resultados
-              </div>
-            ) : (
-              filteredOptions.map(option => (
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt) => (
                 <div
-                  key={option.id}
+                  key={opt.id}
                   style={{
-                    padding: '10px 12px',
-                    cursor: 'pointer',
-                    borderBottom: '1px solid #f1f5f9',
-                    backgroundColor: option.id === value ? '#f8fafc' : 'transparent',
-                    fontWeight: option.id === value ? '600' : '400',
-                    fontSize: '0.9rem'
+                    padding: "8px 12px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    background: value === opt.id ? "var(--surface-2)" : "transparent",
+                    fontWeight: value === opt.id ? "600" : "400",
                   }}
+                  className="searchable-select__option"
                   onClick={() => {
-                    onChange(option.id);
+                    onChange(opt.id);
                     setSearch("");
                     setIsOpen(false);
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = option.id === value ? '#f8fafc' : 'transparent'}
                 >
-                  {option.label}
+                  {opt.label}
                 </div>
               ))
+            ) : (
+              <div
+                style={{
+                  padding: "12px",
+                  textAlign: "center",
+                  color: "#94a3b8",
+                  fontSize: "14px",
+                }}
+              >
+                No hay resultados
+              </div>
             )}
           </div>
         </div>
@@ -181,33 +218,39 @@ function SearchableSelect({
   );
 }
 
+
 export default function BookingsClient({
   initialBookings,
-  initialCustomers = [],
-  initialBusinesses = [],
+  initialCustomers,
+  initialBusinesses,
 }: {
   initialBookings: Booking[];
-  initialCustomers?: Customer[];
-  initialBusinesses?: Business[];
+  initialCustomers: Customer[];
+  initialBusinesses: Business[];
 }) {
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
-  const customers = initialCustomers || [];
-  const businesses = initialBusinesses || [];
+  const [customers] = useState<Customer[]>(initialCustomers);
+  const [businesses] = useState<Business[]>(initialBusinesses);
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
+  const [loadingServices, setLoadingServices] = useState(false);
+  const [selectedCreateServiceId, setSelectedCreateServiceId] = useState<number | "">("");
+  const [selectedEditServiceId, setSelectedEditServiceId] = useState<number | "">("");
 
-  const emptyForm: CreateBookingDto = {
+  const emptyForm: BookingForm = {
     date: "",
     time: "",
     status: "pending",
-    customerId: 0,
-    businessId: 0,
+    customerId: "" as any,
+    businessId: "" as any,
     serviceName: "",
+    importe: "",
   };
 
-  const [createForm, setCreateForm] = useState<CreateBookingDto>(emptyForm);
-  const [editForm, setEditForm] = useState<CreateBookingDto>(emptyForm);
+  const [createForm, setCreateForm] = useState<BookingForm>(emptyForm);
+  const [editForm, setEditForm] = useState<BookingForm>(emptyForm);
 
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
-  const [customerFilter, setCustomerFilter] = useState<number | "">("");
+  const [customerFilter, setCustomerFilter] = useState<string>("");
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
@@ -224,8 +267,12 @@ export default function BookingsClient({
       filtered = filtered.filter((booking) => booking.status === statusFilter);
     }
 
-    if (customerFilter !== "") {
-      filtered = filtered.filter((booking) => booking.customerId === customerFilter);
+    if (customerFilter.trim() !== "") {
+      filtered = filtered.filter((booking) => {
+        const customer = customers.find((c) => c.id === booking.customerId);
+        const name = customer?.Nombre || (customer as any)?.nombre || "";
+        return name.toLowerCase().includes(customerFilter.toLowerCase());
+      });
     }
 
     return filtered.sort((a, b) => {
@@ -240,9 +287,9 @@ export default function BookingsClient({
   const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
   const paidCount = bookings.filter((b) => b.status === "paid").length;
 
-  function updateCreateForm<K extends keyof CreateBookingDto>(
+  function updateCreateForm<K extends keyof BookingForm>(
     key: K,
-    value: CreateBookingDto[K]
+    value: BookingForm[K]
   ) {
     setCreateForm((prev) => ({
       ...prev,
@@ -250,13 +297,105 @@ export default function BookingsClient({
     }));
   }
 
-  function updateEditForm<K extends keyof CreateBookingDto>(
+  function updateEditForm<K extends keyof BookingForm>(
     key: K,
-    value: CreateBookingDto[K]
+    value: BookingForm[K]
   ) {
     setEditForm((prev) => ({
       ...prev,
       [key]: value,
+    }));
+  }
+
+  useEffect(() => {
+    const businessId =
+      editingBookingId !== null
+        ? editForm.businessId
+        : isCreateOpen
+          ? createForm.businessId
+          : "";
+
+    if (businessId === "") {
+      setAvailableServices([]);
+      return;
+    }
+
+    setLoadingServices(true);
+    getServices(businessId)
+      .then(setAvailableServices)
+      .catch(() => setAvailableServices([]))
+      .finally(() => setLoadingServices(false));
+  }, [createForm.businessId, editForm.businessId, editingBookingId, isCreateOpen]);
+
+  useEffect(() => {
+    if (editingBookingId === null) return;
+    const matchingService = availableServices.find(
+      (service) => service.nombre === editForm.serviceName
+    );
+    setSelectedEditServiceId(matchingService?.id ?? "");
+  }, [availableServices, editingBookingId, editForm.businessId, editForm.serviceName]);
+
+  function handleCreateBusinessChange(id: number | "") {
+    setCreateForm((prev) => ({
+      ...prev,
+      businessId: id,
+      serviceName: "",
+      importe: "",
+    }));
+    setSelectedCreateServiceId("");
+  }
+
+  function handleEditBusinessChange(id: number | "") {
+    setEditForm((prev) => ({
+      ...prev,
+      businessId: id,
+      serviceName: "",
+      importe: "",
+    }));
+    setSelectedEditServiceId("");
+  }
+
+  function handleCreateServiceChange(id: number | "") {
+    if (id === "") {
+      setSelectedCreateServiceId("");
+      setCreateForm((prev) => ({
+        ...prev,
+        serviceName: "",
+        importe: "",
+      }));
+      return;
+    }
+
+    const service = availableServices.find((item) => item.id === id);
+    if (!service) return;
+
+    setSelectedCreateServiceId(id);
+    setCreateForm((prev) => ({
+      ...prev,
+      serviceName: service.nombre,
+      importe: service.precio,
+    }));
+  }
+
+  function handleEditServiceChange(id: number | "") {
+    if (id === "") {
+      setSelectedEditServiceId("");
+      setEditForm((prev) => ({
+        ...prev,
+        serviceName: "",
+        importe: "",
+      }));
+      return;
+    }
+
+    const service = availableServices.find((item) => item.id === id);
+    if (!service) return;
+
+    setSelectedEditServiceId(id);
+    setEditForm((prev) => ({
+      ...prev,
+      serviceName: service.nombre,
+      importe: service.precio,
     }));
   }
 
@@ -296,6 +435,7 @@ export default function BookingsClient({
       customerId: booking.customerId,
       businessId: booking.businessId,
       serviceName: booking.serviceName,
+      importe: booking.importe ?? 0,
     });
   }
 
@@ -317,12 +457,38 @@ export default function BookingsClient({
 
   async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (
+      !createForm.date ||
+      !createForm.time ||
+      (createForm.customerId as any) === "" ||
+      (createForm.businessId as any) === "" ||
+      !createForm.serviceName ||
+      createForm.importe === ""
+    ) {
+      setErrorMessage("Completa todos los campos");
+      setSuccessMessage("");
+      return;
+    }
     setLoadingCreate(true);
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
-      const created = await createAppointment(createForm);
+      const importeValue =
+        (createForm.importe as any) === ""
+          ? NaN
+          : Number(createForm.importe);
+
+      if ((createForm.importe as any) === "" || Number.isNaN(importeValue)) {
+        throw new Error("Importe inválido");
+      }
+
+      const created = await createAppointment({
+        ...createForm,
+        customerId: createForm.customerId as number,
+        businessId: createForm.businessId as number,
+        importe: importeValue,
+      });
       setBookings((prev) => [created, ...prev]);
       resetCreateForm();
       setIsCreateOpen(false);
@@ -338,19 +504,41 @@ export default function BookingsClient({
     e.preventDefault();
 
     if (!editingBookingId) return;
+    if (
+      !editForm.date ||
+      !editForm.time ||
+      (editForm.customerId as any) === "" ||
+      (editForm.businessId as any) === "" ||
+      !editForm.serviceName ||
+      editForm.importe === ""
+    ) {
+      setErrorMessage("Completa todos los campos");
+      setSuccessMessage("");
+      return;
+    }
 
     setLoadingEdit(true);
     setSuccessMessage("");
     setErrorMessage("");
 
     try {
+      const importeValue =
+        (editForm.importe as any) === ""
+          ? NaN
+          : Number(editForm.importe);
+
+      if ((editForm.importe as any) === "" || Number.isNaN(importeValue)) {
+        throw new Error("Importe inválido");
+      }
+
       const payload: UpdateBookingDto = {
         date: editForm.date,
         time: editForm.time,
         status: editForm.status,
-        customerId: editForm.customerId,
-        businessId: editForm.businessId,
+        customerId: editForm.customerId as number,
+        businessId: editForm.businessId as number,
         serviceName: editForm.serviceName,
+        importe: importeValue,
       };
 
       const updated = await updateAppointment(editingBookingId, payload);
@@ -461,6 +649,11 @@ export default function BookingsClient({
                 type="time"
                 value={createForm.time}
                 onChange={(e) => updateCreateForm("time", e.target.value)}
+                onClick={(e) => {
+                  if ('showPicker' in HTMLInputElement.prototype) {
+                    e.currentTarget.showPicker();
+                  }
+                }}
                 required
               />
               <select
@@ -475,25 +668,75 @@ export default function BookingsClient({
                 <option value="paid">Pagada</option>
               </select>
               <SearchableSelect
-                options={customers.map(c => ({ id: c.id, label: c.Nombre || (c as any).nombre || `Cliente ${c.id}` }))}
-                value={createForm.customerId || ""}
-                onChange={(id) => updateCreateForm("customerId", id || 0)}
-                placeholder="Nombre Cliente"
+                options={customers.map((c) => ({
+                  id: c.id,
+                  label: c.Nombre || (c as any).nombre || `Cliente ${c.id}`,
+                }))}
+                value={createForm.customerId}
+                onChange={(id) => updateCreateForm("customerId", id as number)}
+                placeholder="Seleccionar Cliente"
               />
               <SearchableSelect
-                options={businesses.map(b => ({ id: b.id, label: b.Nombre || (b as any).nombre || `Negocio ${b.id}` }))}
-                value={createForm.businessId || ""}
-                onChange={(id) => updateCreateForm("businessId", id || 0)}
-                placeholder="Nombre Empresa"
+                options={businesses.map((b) => ({
+                  id: b.id,
+                  label: b.Nombre || (b as any).nombre || `Empresa ${b.id}`,
+                }))}
+                value={createForm.businessId}
+                onChange={handleCreateBusinessChange}
+                placeholder="Seleccionar Empresa"
               />
-              <input
-                className="input input--full"
-                type="text"
-                value={createForm.serviceName}
-                onChange={(e) => updateCreateForm("serviceName", e.target.value)}
-                placeholder="Servicio"
-                required
-              />
+              {createForm.businessId === "" ? (
+                <div className="input" style={{ color: "var(--text-faint)", cursor: "not-allowed" }}>
+                  Selecciona un negocio primero
+                </div>
+              ) : loadingServices ? (
+                <div className="input" style={{ color: "var(--text-secondary)" }}>
+                  Cargando servicios...
+                </div>
+              ) : availableServices.length > 0 ? (
+                <>
+                  <SearchableSelect
+                    options={availableServices.map((service) => ({
+                      id: service.id,
+                      label: `${service.nombre} — ${formatImporte(service.precio)}`,
+                    }))}
+                    value={selectedCreateServiceId}
+                    onChange={handleCreateServiceChange}
+                    placeholder="Seleccionar Servicio"
+                  />
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={createForm.importe}
+                    readOnly
+                    placeholder="Importe"
+                    required
+                  />
+                </>
+              ) : (
+                <>
+                  <input
+                    className="input"
+                    type="text"
+                    value={createForm.serviceName}
+                    onChange={(e) => updateCreateForm("serviceName", e.target.value)}
+                    placeholder="Servicio"
+                    required
+                  />
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={createForm.importe}
+                    onChange={(e) => updateCreateForm("importe", Number(e.target.value))}
+                    placeholder="Importe"
+                    required
+                  />
+                </>
+              )}
             </div>
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
@@ -530,6 +773,11 @@ export default function BookingsClient({
                 type="time"
                 value={editForm.time}
                 onChange={(e) => updateEditForm("time", e.target.value)}
+                onClick={(e) => {
+                  if ('showPicker' in HTMLInputElement.prototype) {
+                    e.currentTarget.showPicker();
+                  }
+                }}
                 required
               />
               <select
@@ -544,25 +792,75 @@ export default function BookingsClient({
                 <option value="paid">Pagada</option>
               </select>
               <SearchableSelect
-                options={customers.map(c => ({ id: c.id, label: c.Nombre || (c as any).nombre || `Cliente ${c.id}` }))}
-                value={editForm.customerId || ""}
-                onChange={(id) => updateEditForm("customerId", id || 0)}
-                placeholder="Nombre Cliente"
+                options={customers.map((c) => ({
+                  id: c.id,
+                  label: c.Nombre || (c as any).nombre || `Cliente ${c.id}`,
+                }))}
+                value={editForm.customerId}
+                onChange={(id) => updateEditForm("customerId", id as number)}
+                placeholder="Seleccionar Cliente"
               />
               <SearchableSelect
-                options={businesses.map(b => ({ id: b.id, label: b.Nombre || (b as any).nombre || `Negocio ${b.id}` }))}
-                value={editForm.businessId || ""}
-                onChange={(id) => updateEditForm("businessId", id || 0)}
-                placeholder="Nombre Empresa"
+                options={businesses.map((b) => ({
+                  id: b.id,
+                  label: b.Nombre || (b as any).nombre || `Empresa ${b.id}`,
+                }))}
+                value={editForm.businessId}
+                onChange={handleEditBusinessChange}
+                placeholder="Seleccionar Empresa"
               />
-              <input
-                className="input input--full"
-                type="text"
-                value={editForm.serviceName}
-                onChange={(e) => updateEditForm("serviceName", e.target.value)}
-                placeholder="Servicio"
-                required
-              />
+              {editForm.businessId === "" ? (
+                <div className="input" style={{ color: "var(--text-faint)", cursor: "not-allowed" }}>
+                  Selecciona un negocio primero
+                </div>
+              ) : loadingServices ? (
+                <div className="input" style={{ color: "var(--text-secondary)" }}>
+                  Cargando servicios...
+                </div>
+              ) : availableServices.length > 0 ? (
+                <>
+                  <SearchableSelect
+                    options={availableServices.map((service) => ({
+                      id: service.id,
+                      label: `${service.nombre} — ${formatImporte(service.precio)}`,
+                    }))}
+                    value={selectedEditServiceId}
+                    onChange={handleEditServiceChange}
+                    placeholder="Seleccionar Servicio"
+                  />
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={editForm.importe}
+                    readOnly
+                    placeholder="Importe"
+                    required
+                  />
+                </>
+              ) : (
+                <>
+                  <input
+                    className="input"
+                    type="text"
+                    value={editForm.serviceName}
+                    onChange={(e) => updateEditForm("serviceName", e.target.value)}
+                    placeholder="Servicio"
+                    required
+                  />
+                  <input
+                    className="input"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={editForm.importe}
+                    onChange={(e) => updateEditForm("importe", Number(e.target.value))}
+                    placeholder="Importe"
+                    required
+                  />
+                </>
+              )}
             </div>
 
             {errorMessage ? <div className="message-error">{errorMessage}</div> : null}
@@ -619,22 +917,20 @@ export default function BookingsClient({
       <section className="section-card">
         <div className="panel-title-row">
           <h3 className="panel-title">Reservas registradas</h3>
-          <div className="filter-row" style={{ flexWrap: 'wrap', gap: '12px' }}>
-            <div className="filter-group" style={{ display: 'flex', gap: '8px' }}>
-              <button type="button" className={`filter-pill ${statusFilter === 'all' ? 'active' : ''}`} onClick={() => setStatusFilter("all")}>Todas</button>
-              <button type="button" className={`filter-pill ${statusFilter === 'pending' ? 'active' : ''}`} onClick={() => setStatusFilter("pending")}>Pendientes</button>
-              <button type="button" className={`filter-pill ${statusFilter === 'confirmed' ? 'active' : ''}`} onClick={() => setStatusFilter("confirmed")}>Confirmadas</button>
-              <button type="button" className={`filter-pill ${statusFilter === 'paid' ? 'active' : ''}`} onClick={() => setStatusFilter("paid")}>Pagadas</button>
-            </div>
-
-            <div style={{ width: '200px' }}>
-              <SearchableSelect
-                options={customers.map(c => ({ id: c.id, label: c.Nombre || (c as any).nombre || `Cliente ${c.id}` }))}
-                value={customerFilter}
-                onChange={(id) => setCustomerFilter(id)}
-                placeholder="Filtrar por Cliente"
-              />
-            </div>
+          <div className="filter-row">
+            <button type="button" className={`filter-pill ${statusFilter === 'all' ? 'active' : ''}`} onClick={() => setStatusFilter("all")}>Todas</button>
+            <button type="button" className={`filter-pill ${statusFilter === 'pending' ? 'active' : ''}`} onClick={() => setStatusFilter("pending")}>Pendientes</button>
+            <button type="button" className={`filter-pill ${statusFilter === 'confirmed' ? 'active' : ''}`} onClick={() => setStatusFilter("confirmed")}>Confirmadas</button>
+            <button type="button" className={`filter-pill ${statusFilter === 'paid' ? 'active' : ''}`} onClick={() => setStatusFilter("paid")}>Pagadas</button>
+          </div>
+          <div style={{ position: "relative", width: "250px" }}>
+            <input
+              type="text"
+              className="input"
+              placeholder="Buscar por cliente..."
+              value={customerFilter}
+              onChange={(e) => setCustomerFilter(e.target.value)}
+            />
           </div>
         </div>
 
@@ -647,6 +943,7 @@ export default function BookingsClient({
               <th>Fecha</th>
               <th>Hora</th>
               <th>Servicio</th>
+              <th>Importe</th>
               <th>Cliente</th>
               <th>Negocio</th>
               <th>Estado</th>
@@ -659,8 +956,17 @@ export default function BookingsClient({
                 <td>{formatDate(booking.date)}</td>
                 <td>{booking.time}</td>
                 <td>{booking.serviceName}</td>
-                <td>{customers.find(c => c.id === booking.customerId)?.Nombre || (customers.find(c => c.id === booking.customerId) as any)?.nombre || `Cliente ${booking.customerId}`}</td>
-                <td>{businesses.find(b => b.id === booking.businessId)?.Nombre || (businesses.find(b => b.id === booking.businessId) as any)?.nombre || `Negocio ${booking.businessId}`}</td>
+                <td>{formatImporte(booking.importe)}</td>
+                <td>
+                  {customers.find((c) => c.id === booking.customerId)?.Nombre ||
+                    (customers.find((c) => c.id === booking.customerId) as any)?.nombre ||
+                    `Cliente ${booking.customerId}`}
+                </td>
+                <td>
+                  {businesses.find((b) => b.id === booking.businessId)?.Nombre ||
+                    (businesses.find((b) => b.id === booking.businessId) as any)?.nombre ||
+                    `Empresa ${booking.businessId}`}
+                </td>
                 <td><StatusBadge status={booking.status} /></td>
                 <td>
                   <div style={{ display: "flex", gap: 8 }}>
