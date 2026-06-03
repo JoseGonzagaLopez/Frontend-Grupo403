@@ -368,14 +368,11 @@ export default function LoginPage() {
                   <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, color: "var(--text)" }}>
                     Tipo de cuenta
                   </label>
-                  <div className="flex flex-row gap-3 w-full">
+                  <div className="role-select-container">
                     <button
                       type="button"
                       onClick={() => { setRegisterRole("cliente"); setError(""); }}
-                      className={`w-1/2 flex items-center justify-center gap-2 p-3 rounded-lg border transition-all duration-200 ${registerRole === "cliente"
-                        ? "border-[var(--accent)] bg-[var(--surface-2)] text-[var(--text)] font-semibold"
-                        : "border-[var(--border)] bg-transparent text-[var(--text-secondary)] hover:bg-gray-100 dark:hover:bg-zinc-800 hover:border-gray-400"
-                        }`}
+                      className={`role-select-btn ${registerRole === "cliente" ? "active" : ""}`}
                     >
                       <User size={18} />
                       <span className="text-sm font-medium">Cliente</span>
@@ -383,10 +380,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => { setRegisterRole("empresa"); setError(""); }}
-                      className={`w-1/2 flex items-center justify-center gap-2 p-3 rounded-lg border transition-all duration-200 ${registerRole === "empresa"
-                        ? "border-[var(--accent)] bg-[var(--surface-2)] text-[var(--text)] font-semibold"
-                        : "border-[var(--border)] bg-transparent text-[var(--text-secondary)] hover:bg-gray-100 dark:hover:bg-zinc-800 hover:border-gray-400"
-                        }`}
+                      className={`role-select-btn ${registerRole === "empresa" ? "active" : ""}`}
                     >
                       <Store size={18} />
                       <span className="text-sm font-medium">Negocio</span>

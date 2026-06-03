@@ -1662,3 +1662,49 @@ body::after {
   border-color: var(--teal);
   color: #fff;
 }
+
+/* ────────────────────────────────────────────────────────
+   ROLE SELECT BUTTONS (Cliente/Negocio)
+   ──────────────────────────────────────────────────────── */
+.role-select-container {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-4); /* Separados un poco más */
+  width: 100%;
+}
+
+.role-select-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: none;
+}
+
+.role-select-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.role-select-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm), 0 0 12px var(--accent-glow);
+}
+
+.role-select-btn.active svg {
+  color: var(--accent);
+}
