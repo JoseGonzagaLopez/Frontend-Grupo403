@@ -236,19 +236,19 @@ export default async function DashboardPage() {
 
           <div className="info-stack">
             <div className="info-box">
-              <p className="info-box__eyebrow">Siguiente reserva</p>
+              <b className="info-box__eyebrow">Siguiente reserva</b>
               <p className="info-box__title">{nextBookingLabel}</p>
               <p className="info-box__text">{nextBookingMeta}</p>
             </div>
 
             <div className="info-box">
-              <p className="info-box__eyebrow">Comercio destacado</p>
+              <b className="info-box__eyebrow">Comercio destacado</b>
               <p className="info-box__title">{topBusinessLabel}</p>
               <p className="info-box__text">{topBusinessSubtitle}</p>
             </div>
 
             <div className="info-box">
-              <p className="info-box__eyebrow">Recordatorios</p>
+              <b className="info-box__eyebrow">Recordatorios</b>
               <p className="info-box__title">{infoReminderText}</p>
               <p className="info-box__text">Revisión recomendada esta mañana</p>
             </div>
