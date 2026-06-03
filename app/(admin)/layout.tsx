@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
 
 export default function AdminLayout({
   children,
@@ -27,10 +26,9 @@ export default function AdminLayout({
         />
       )}
 
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} role="admin" />
 
       <div className="admin-main">
-        <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} role="admin" />
         <main className="admin-content">
           <div className="admin-content-inner">{children}</div>
         </main>

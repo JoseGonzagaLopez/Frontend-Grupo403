@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import NegocioSidebar from "@/components/layout/NegocioSidebar";
-import Header from "@/components/layout/Header";
 import { Calendar, Scissors, Star } from "lucide-react";
 import { logOutBusiness } from "@/lib/actions";
 
@@ -15,20 +14,17 @@ export default function NegocioLayout({ children }: { children: React.ReactNode 
       {isSidebarOpen && (
         <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
       )}
-      <NegocioSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <NegocioSidebar 
+        isOpen={isSidebarOpen} 
+        setIsOpen={setIsSidebarOpen} 
+        userName="Negocio"
+        onEditProfile={() => router.push("/negocio/perfil")}
+        onLogout={async () => {
+           await logOutBusiness();
+           window.location.href = "/login";
+        }}
+      />
       <div className="admin-main">
-        <Header 
-          title="Mi Negocio" 
-          subtitle="Portal de gestión" 
-          userName="Negocio" 
-          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          forceHamburger={true}
-          onEditProfile={() => router.push("/negocio/perfil")}
-          onLogout={async () => {
-             await logOutBusiness();
-             window.location.href = "/login";
-          }}
-        />
         <main className="admin-content">{children}</main>
       </div>
 

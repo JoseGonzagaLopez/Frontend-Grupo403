@@ -1,18 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { logOut } from "@/lib/actions";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, LogOut, Search, Sparkles, Edit2 } from "lucide-react";
+import { useState, useMemo } from "react";
 
 interface HeaderProps {
   title?: string;
   subtitle?: string;
-  userName?: string;
-  role?: string;
-  onLogout?: () => Promise<void>;
-  onEditProfile?: () => Promise<void> | void;
   onMenuClick?: () => void;
   hideHamburger?: boolean;
   forceHamburger?: boolean;
@@ -32,46 +24,15 @@ const placeholderByTitle: Record<string, string> = {
 export default function Header({
   title = "Buk-A Admin",
   subtitle = "Plataforma de gestión de reservas y cobros",
-  userName = "Administrador",
-  role,
-  onLogout,
-  onEditProfile,
   onMenuClick,
   hideHamburger,
   forceHamburger,
 }: HeaderProps) {
-  const [dropOpen, setDropOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const dropRef = useRef<HTMLDivElement>(null);
 
   const searchPlaceholder = useMemo(() => {
     return placeholderByTitle[title] ?? "Buscar cualquier cosa";
   }, [title]);
-
-  const handleLogout = async () => {
-    if (onLogout) await onLogout();
-    else {
-      await logOut();
-      window.location.href = "/login";
-    }
-  };
-
-  const handleEditProfile = async () => {
-    if (onEditProfile) {
-      await onEditProfile();
-      setDropOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    const h = (e: MouseEvent) => {
-      if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
-        setDropOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
-  }, []);
 
   return (
     <header className="sellix-topbar">
@@ -89,51 +50,6 @@ export default function Header({
             <h1 className="sellix-topbar__title">{title}</h1>
             <p className="sellix-topbar__subtitle">{subtitle}</p>
           </div>
-        </div>
-      </div>
-
-      <div className="sellix-topbar__actions">
-        <ThemeToggle />
-
-        <div className="sellix-profile" ref={dropRef}>
-          <button
-            type="button"
-            className={`sellix-profile__trigger${dropOpen ? " is-open" : ""}`}
-            aria-expanded={dropOpen}
-            aria-haspopup="menu"
-            onClick={() => setDropOpen((v) => !v)}
-          >
-            <div className="sellix-profile__avatar-wrap">
-              <Image src="/favicon.ico" alt="Avatar" width={36} height={36} className="sellix-profile__avatar" />
-              <span className="sellix-profile__status" aria-hidden="true" />
-            </div>
-            <div className="sellix-profile__meta">
-              <span className="sellix-profile__name">{userName}</span>
-              {role ? <span className="sellix-profile__role">{role}</span> : null}
-            </div>
-          </button>
-
-          {dropOpen && (
-            <div className="sellix-profile__dropdown" role="menu" aria-label="Menú de usuario">
-              <div className="sellix-profile__dropdown-head">
-                <p className="sellix-profile__dropdown-name">{userName}</p>
-                <p className="sellix-profile__dropdown-status">
-                  <span className="sellix-profile__dropdown-status-dot" />
-                  Sesión activa
-                </p>
-              </div>
-              {onEditProfile && (
-                <button type="button" className="sellix-profile__dropdown-item sellix-profile__dropdown-item--edit" onClick={handleEditProfile}>
-                  <Edit2 size={15} />
-                  Editar perfil
-                </button>
-              )}
-              <button type="button" className="sellix-profile__dropdown-item" onClick={handleLogout}>
-                <LogOut size={15} />
-                Cerrar sesión
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -260,192 +176,6 @@ export default function Header({
           letter-spacing: 0.04em;
         }
 
-        /* ── Actions ── */
-        .sellix-topbar__actions {
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          gap: 8px;
-        }
-
-        .sellix-icon-btn {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 40px;
-          height: 40px;
-          border-radius: var(--radius-md, 10px);
-          border: 1px solid var(--border);
-          color: var(--text-secondary);
-          transition:
-            transform 160ms ease,
-            border-color 160ms ease,
-            background 160ms ease,
-            color 160ms ease;
-        }
-
-        .sellix-icon-btn--soft {
-          background: var(--surface-hover);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-        }
-
-        .sellix-icon-btn:hover {
-          transform: translateY(-1px);
-          border-color: var(--border-strong);
-          color: var(--text);
-          background: var(--accent-soft);
-        }
-
-        .sellix-icon-btn__ping {
-          position: absolute;
-          top: 9px; right: 9px;
-          width: 7px; height: 7px;
-          border-radius: 9999px;
-          background: var(--teal);
-          box-shadow: 0 0 8px var(--teal-glow);
-        }
-
-        /* ── Profile ── */
-        .sellix-profile { position: relative; }
-
-        .sellix-profile__trigger {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          min-height: 44px;
-          padding: 5px 10px 5px 5px;
-          border-radius: var(--radius-lg, 14px);
-          border: 1px solid var(--border);
-          background: var(--surface-hover);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
-          transition:
-            transform 160ms ease,
-            border-color 160ms ease,
-            background 160ms ease;
-        }
-
-        .sellix-profile__trigger:hover,
-        .sellix-profile__trigger.is-open {
-          transform: translateY(-1px);
-          border-color: var(--border-strong);
-          background: var(--accent-soft);
-        }
-
-        .sellix-profile__avatar-wrap {
-          position: relative;
-          width: 32px; height: 32px;
-          border-radius: 10px;
-          overflow: hidden;
-          flex-shrink: 0;
-          border: 1px solid var(--border-strong);
-        }
-
-        .sellix-profile__avatar {
-          width: 100%; height: 100%;
-          object-fit: cover;
-        }
-
-        .sellix-profile__status {
-          position: absolute;
-          right: 1px; bottom: 1px;
-          width: 8px; height: 8px;
-          border-radius: 50%;
-          border: 2px solid var(--surface-solid, var(--color-surface-solid));
-          background: var(--teal);
-          box-shadow: 0 0 8px var(--teal-glow);
-        }
-
-        .sellix-profile__meta {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          min-width: 0;
-        }
-
-        .sellix-profile__name {
-          font-size: 0.82rem;
-          color: var(--text);
-          font-weight: 700;
-          max-width: 130px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .sellix-profile__role {
-          font-size: 0.70rem;
-          color: var(--text-secondary);
-          font-weight: 500;
-        }
-
-        /* ── Dropdown ── */
-        .sellix-profile__dropdown {
-          position: absolute;
-          top: calc(100% + 8px);
-          right: 0;
-          width: 230px;
-          overflow: hidden;
-          border-radius: var(--radius-lg, 14px);
-          border: 1px solid var(--border-strong);
-          background: var(--surface-solid, var(--color-surface-solid));
-          backdrop-filter: blur(26px) saturate(190%);
-          -webkit-backdrop-filter: blur(26px) saturate(190%);
-          box-shadow: var(--shadow-float);
-          animation: dropdownIn 200ms var(--ease-out, cubic-bezier(0.16,1,0.3,1)) both;
-          transition: background var(--transition-smooth), border-color var(--transition-smooth);
-        }
-
-        .sellix-profile__dropdown-head {
-          padding: 12px 14px;
-          border-bottom: 1px solid var(--border);
-        }
-
-        .sellix-profile__dropdown-name {
-          color: var(--text);
-          font-size: 0.86rem;
-          font-weight: 700;
-        }
-
-        .sellix-profile__dropdown-status {
-          margin-top: 5px;
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          color: var(--teal);
-          font-size: 0.72rem;
-          font-weight: 600;
-        }
-
-        .sellix-profile__dropdown-status-dot {
-          width: 6px; height: 6px;
-          border-radius: 50%;
-          background: currentColor;
-          box-shadow: 0 0 6px currentColor;
-        }
-
-        .sellix-profile__dropdown-item {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 11px 14px;
-          color: var(--danger);
-          font-size: 0.82rem;
-          font-weight: 600;
-          transition: background 160ms ease;
-        }
-
-        .sellix-profile__dropdown-item:hover {
-          background: var(--surface-hover);
-        }
-
-        .sellix-profile__dropdown-item--edit {
-          color: var(--accent, var(--text));
-        }
-
         /* ── Animations ── */
         @keyframes topbarIn {
           from { opacity: 0; transform: translateY(-10px) scale(0.985); }
@@ -473,7 +203,6 @@ export default function Header({
             border-radius: var(--radius-lg, 14px);
             grid-template-columns: 1fr auto;
           }
-          .sellix-profile__meta,
           .sellix-topbar__subtitle {
             display: none;
           }

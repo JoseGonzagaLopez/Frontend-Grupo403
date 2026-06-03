@@ -12,15 +12,21 @@ const menuItems = [
 interface NegocioSidebarProps {
   isOpen?: boolean;
   setIsOpen?: (open: boolean) => void;
+  userName?: string;
+  onLogout?: () => Promise<void>;
+  onEditProfile?: () => Promise<void> | void;
 }
 
-export default function NegocioSidebar({ isOpen, setIsOpen }: NegocioSidebarProps = {}) {
+export default function NegocioSidebar({ isOpen, setIsOpen, userName, onLogout, onEditProfile }: NegocioSidebarProps = {}) {
   return (
     <Sidebar
       isOpen={isOpen}
       setIsOpen={setIsOpen}
       menuItems={menuItems}
       logoText="Mi Negocio"
+      userName={userName}
+      onLogout={onLogout}
+      onEditProfile={onEditProfile}
     />
   );
 }

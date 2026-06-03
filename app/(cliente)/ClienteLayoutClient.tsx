@@ -1,5 +1,4 @@
 "use client";
-import Header from "@/components/layout/Header";
 import { logOutCustomer } from "@/lib/actions";
 import Sidebar from "@/components/layout/Sidebar";
 import { Home, CalendarPlus, CalendarDays } from "lucide-react";
@@ -19,17 +18,15 @@ export default function ClienteLayoutClient({
 }) {
   return (
     <div className="admin-shell cliente-shell">
-      <Sidebar menuItems={clienteMenu} />
+      <Sidebar 
+        menuItems={clienteMenu} 
+        userName={customerName}
+        onLogout={async () => {
+          await logOutCustomer();
+          window.location.href = "/login";
+        }}
+      />
       <div className="admin-main">
-        <Header
-          title="Buk-A"
-          subtitle="Portal de cliente"
-          userName={customerName}
-          onLogout={async () => {
-            await logOutCustomer();
-            window.location.href = "/login";
-          }}
-        />
         <main className="admin-content">{children}</main>
       </div>
 
