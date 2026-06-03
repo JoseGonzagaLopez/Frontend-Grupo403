@@ -149,7 +149,7 @@ export default function Header({
           top: 0;
           z-index: 40;
           display: grid;
-          grid-template-columns: minmax(220px, 320px) minmax(280px, 1fr) auto;
+          /*grid-template-columns: 1fr auto;*/
           align-items: center;
           gap: 18px;
           padding: 14px 20px;

@@ -25,10 +25,13 @@ export default async function ReservarPage() {
   }
 
   return (
-    <ReservarClient
-      initialBusinesses={initialBusinesses}
-      loggedCustomer={loggedCustomer}
-      serverError={serverError}
-    />
+    <>
+      <script src="https://accounts.google.com/gsi/client" async defer></script>
+      <ReservarClient
+        initialBusinesses={initialBusinesses}
+        loggedCustomer={loggedCustomer}
+        serverError={serverError}
+      />
+    </>
   );
 }

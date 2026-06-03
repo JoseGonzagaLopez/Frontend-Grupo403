@@ -155,6 +155,105 @@ export function CustomDatePicker({ value, onChange, placeholder = "Seleccionar f
           </div>
         </div>
       )}
+
+      <style>{`
+        .custom-datepicker__popover {
+          position: absolute;
+          top: calc(100% + 8px);
+          left: 0;
+          z-index: 50;
+          background: var(--surface-solid, #ffffff);
+          border: 1px solid var(--border-strong, #e5e7eb);
+          border-radius: var(--radius-lg, 12px);
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+          padding: 16px;
+          width: 320px;
+          animation: slideDown 0.2s ease-out;
+        }
+
+        .custom-datepicker__header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+
+        .custom-datepicker__title {
+          font-weight: 600;
+          font-size: 1rem;
+          color: var(--text, #111827);
+        }
+
+        .custom-datepicker__nav {
+          padding: 6px;
+          border-radius: var(--radius-md, 8px);
+          color: var(--text-secondary, #6b7280);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.2s;
+        }
+        
+        .custom-datepicker__nav:hover {
+          background-color: var(--surface-hover, #f3f4f6);
+          color: var(--text, #111827);
+        }
+
+        .custom-datepicker__grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 6px;
+          text-align: center;
+        }
+
+        .custom-datepicker__weekday {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--text-tertiary, #9ca3af);
+          margin-bottom: 8px;
+        }
+
+        .custom-datepicker__day {
+          width: 36px;
+          height: 36px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          border-radius: 50%;
+          font-size: 0.875rem;
+          margin: auto;
+          transition: all 0.2s;
+          color: var(--text, #111827);
+        }
+
+        .custom-datepicker__day:not(.empty):hover {
+          background-color: var(--surface-hover, #f3f4f6);
+        }
+
+        .custom-datepicker__day.today {
+          color: var(--accent, #4f46e5);
+          font-weight: bold;
+          background-color: var(--accent-soft, #eef2ff);
+        }
+
+        .custom-datepicker__day.selected {
+          background-color: var(--accent, #4f46e5);
+          color: white;
+          font-weight: 600;
+          box-shadow: 0 4px 12px var(--accent-glow, rgba(79, 70, 229, 0.4));
+        }
+
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

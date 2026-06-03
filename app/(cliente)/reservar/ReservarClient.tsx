@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { Business, Customer, Service } from "@/lib/api";
 import { createAppointment, getServices } from "@/lib/api";
+import { CustomDatePicker } from "@/components/CustomDatePicker";
 
 function SearchableSelect({
   options,
@@ -84,6 +85,10 @@ export default function ReservarClient({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(serverError || "");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [calendarStatus, setCalendarStatus] = useState<string | null>(null);
+  const [calendarLink, setCalendarLink] = useState<string | null>(null);
+  // Guardamos el formulario al enviar para mostrarlo en la pantalla de éxito
+  const [submittedForm, setSubmittedForm] = useState(form);
 
   const businessOptions = initialBusinesses.map((b) => ({ id: b.id, label: b.Nombre || `Empresa ${b.id}` }));
 
@@ -112,6 +117,8 @@ export default function ReservarClient({
         serviceName: form.serviceName,
         importe: services.find((s) => s.nombre === form.serviceName)?.precio ?? 0,
       });
+      // Guardamos el formulario actual antes de resetear el estado
+      setSubmittedForm({ ...form });
       setIsSuccess(true);
     } catch {
       setError("Ha ocurrido un error al procesar tu reserva. Por favor, inténtalo de nuevo.");
@@ -120,10 +127,88 @@ export default function ReservarClient({
     }
   };
 
+  const syncWithGoogleCalendar = () => {
+    setCalendarStatus("Abriendo Google...");
+    setCalendarLink(null);
+
+    if (!(window as any).google) {
+      setCalendarStatus("Error: La librería de Google no ha cargado aún. Recarga la página.");
+      return;
+    }
+
+    const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+      client_id: "920872359737-74qfe3ohi1gp7kjmbkll8i5afslnvqbk.apps.googleusercontent.com",
+      scope: "https://www.googleapis.com/auth/calendar.events",
+      callback: (tokenResponse: any) => {
+        if (!tokenResponse || !tokenResponse.access_token) {
+          setCalendarStatus("❌ No se pudo obtener el token de Google.");
+          return;
+        }
+
+        setCalendarStatus("Autenticado. Creando evento en tu calendario...");
+
+        const businessLabel = businessOptions.find((b) => b.id === submittedForm.businessId)?.label || "Negocio";
+        const title = `Reserva: ${submittedForm.serviceName} en ${businessLabel}`;
+        const startDateTime = new Date(`${submittedForm.date}T${submittedForm.time}`).toISOString();
+        const endDateTime = new Date(
+          new Date(`${submittedForm.date}T${submittedForm.time}`).getTime() + 60 * 60 * 1000
+        ).toISOString();
+
+        const evento = {
+          summary: title,
+          description: `Reserva creada automáticamente desde Buk-A.\nCliente: ${loggedCustomer?.Nombre || ""}`,
+          start: {
+            dateTime: startDateTime,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
+          end: {
+            dateTime: endDateTime,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
+        };
+
+        fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${tokenResponse.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(evento),
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Error en la respuesta de Google");
+            return res.json();
+          })
+          .then((data) => {
+            setCalendarStatus("¡Evento añadido con éxito a tu Google Calendar!");
+            setCalendarLink(data.htmlLink);
+          })
+          .catch(() => {
+            setCalendarStatus("❌ Error al crear el evento. Inténtalo de nuevo.");
+          });
+      },
+    });
+
+    tokenClient.requestAccessToken();
+  };
+
+  // Trigger sync automatically when isSuccess becomes true
+  useEffect(() => {
+    if (isSuccess && typeof window !== 'undefined') {
+      // Small timeout to allow UI to render first
+      const timer = setTimeout(() => {
+        syncWithGoogleCalendar();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess]);
+
   if (isSuccess) {
-    const selectedBusiness = businessOptions.find((b) => b.id === form.businessId)?.label;
-    const dateFormatted = form.date
-      ? new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(form.date + "T12:00:00"))
+    const selectedBusiness = businessOptions.find((b) => b.id === submittedForm.businessId)?.label;
+    const dateFormatted = submittedForm.date
+      ? new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" }).format(
+          new Date(submittedForm.date + "T12:00:00")
+        )
       : "";
 
     return (
@@ -138,28 +223,31 @@ export default function ReservarClient({
           borderRadius: "var(--radius-xl)",
           boxShadow: "0 12px 40px rgba(0,0,0,0.10)",
           padding: "clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 2.5rem)",
-          maxWidth: 480, width: "100%",
+          maxWidth: 500, width: "100%",
           textAlign: "center",
           display: "flex", flexDirection: "column", alignItems: "center",
           gap: "var(--space-4)",
         }}>
+          {/* Icono de éxito */}
           <div style={{
             width: 72, height: 72, borderRadius: "50%",
-            background: "rgba(150,66,25,0.1)",
+            background: "rgba(34,197,94,0.1)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none"
-              stroke="var(--warning, #964219)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
+              stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
+
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-            <h2 style={{ fontSize: "var(--text-xl)", fontWeight: 700, margin: 0 }}>Reserva enviada</h2>
+            <h2 style={{ fontSize: "var(--text-xl)", fontWeight: 700, margin: 0 }}>¡Reserva enviada!</h2>
             <p style={{ color: "var(--text-secondary)", margin: 0, maxWidth: "34ch", lineHeight: 1.6 }}>
               Tu reserva está <strong>pendiente de confirmación</strong> por parte del negocio.
             </p>
           </div>
+
+          {/* Detalles de la reserva */}
           <div style={{
             background: "var(--surface-2)", border: "1px solid var(--border)",
             borderRadius: "var(--radius-lg)",
@@ -168,21 +256,83 @@ export default function ReservarClient({
             display: "flex", flexDirection: "column", gap: "var(--space-2)",
           }}>
             {selectedBusiness && <p style={{ margin: 0 }}><strong>Negocio:</strong> {selectedBusiness}</p>}
-            <p style={{ margin: 0 }}><strong>Servicio:</strong> {form.serviceName}</p>
+            <p style={{ margin: 0 }}><strong>Servicio:</strong> {submittedForm.serviceName}</p>
             <p style={{ margin: 0 }}><strong>Fecha:</strong> {dateFormatted}</p>
-            <p style={{ margin: 0 }}><strong>Hora:</strong> {form.time}</p>
+            <p style={{ margin: 0 }}><strong>Hora:</strong> {submittedForm.time}</p>
             <p style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
               <strong>Estado:</strong>
               <span style={{
-                background: "rgba(150,66,25,0.12)", color: "var(--warning, #964219)",
+                background: "rgba(234,179,8,0.12)", color: "#b45309",
                 padding: "2px 12px", borderRadius: "var(--radius-full)",
                 fontSize: "var(--text-sm)", fontWeight: 600,
               }}>Pendiente</span>
             </p>
           </div>
+
+          {/* Botón Google Calendar */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", width: "100%" }}>
+            <button
+              onClick={syncWithGoogleCalendar}
+              style={{
+                width: "100%",
+                backgroundColor: "#4285F4",
+                border: "none",
+                borderRadius: "var(--radius-md)",
+                color: "white",
+                padding: "12px 20px",
+                fontSize: "var(--text-sm)",
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "10px",
+                transition: "opacity 0.2s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5z"/>
+              </svg>
+              Añadir a Google Calendar
+            </button>
+
+            {calendarStatus && (
+              <div style={{
+                padding: "10px 14px",
+                borderRadius: "var(--radius-md)",
+                background: calendarStatus.includes("❌") ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)",
+                border: `1px solid ${calendarStatus.includes("❌") ? "rgba(239,68,68,0.2)" : "rgba(34,197,94,0.2)"}`,
+                fontSize: "var(--text-sm)",
+                color: calendarStatus.includes("❌") ? "var(--danger)" : "#16a34a",
+                textAlign: "left",
+              }}>
+                {calendarStatus}
+                {calendarLink && (
+                  <a
+                    href={calendarLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: "block", marginTop: "6px", color: "#4285F4", fontWeight: 600, textDecoration: "underline" }}
+                  >
+                    → Ver evento en Google Calendar
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Acciones secundarias */}
           <div style={{ display: "flex", gap: "var(--space-3)", width: "100%" }}>
             <button className="secondary-btn" style={{ flex: 1 }} onClick={() => window.history.back()}>← Volver</button>
-            <button className="primary-btn" style={{ flex: 1 }} onClick={() => { setForm({ businessId: "", serviceName: "", date: "", time: "" }); setIsSuccess(false); }}>Nueva reserva</button>
+            <button className="primary-btn" style={{ flex: 1 }} onClick={() => {
+              setForm({ businessId: "", serviceName: "", date: "", time: "" });
+              setSubmittedForm({ businessId: "", serviceName: "", date: "", time: "" });
+              setIsSuccess(false);
+              setCalendarStatus(null);
+              setCalendarLink(null);
+            }}>Nueva reserva</button>
           </div>
         </div>
       </div>
@@ -231,13 +381,7 @@ export default function ReservarClient({
           <div className="form-grid">
             <div>
               <label className="block text-sm font-semibold mb-1">Fecha <span style={{ color: "var(--danger)" }}>*</span></label>
-              <input
-                type="date"
-                className="input"
-                value={form.date}
-                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-                required
-              />
+              <CustomDatePicker value={form.date} onChange={(date) => setForm((f) => ({ ...f, date }))} />
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">Hora <span style={{ color: "var(--danger)" }}>*</span></label>
