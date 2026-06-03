@@ -268,6 +268,7 @@ export default function PaymentsClient({
   const [editingPaymentId, setEditingPaymentId] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [customerSearch, setCustomerSearch] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Por cobrar' | 'Pagado'>('all');
 
   function updateCreateForm<K extends keyof CreatePagoDto>(
     key: K,
@@ -419,6 +420,9 @@ export default function PaymentsClient({
   const mostUsedMethod = Object.entries(methodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Sin datos';
 
   const filteredPayments = payments.filter((payment) => {
+    if (statusFilter !== 'all' && payment.Estado !== statusFilter) {
+      return false;
+    }
     if (customerSearch.trim() === "") return true;
     const customer = customers.find((c) => c.id === payment.customerId);
     const name = customer?.Nombre || (customer as any)?.nombre || "";
@@ -654,9 +658,43 @@ export default function PaymentsClient({
       )}
 
       <section className="section-card">
-        <div className="panel-title-row">
+        <div
+          className="panel-title-row"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}
+        >
           <h3 className="panel-title">Listado de cobros</h3>
-          <div style={{ width: "250px" }}>
+          <div style={{ display: 'flex', justifyContent: 'center', flex: 1, minWidth: 0 }}>
+            <div className="filter-row" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button
+                type="button"
+                className={`filter-pill ${statusFilter === 'all' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('all')}
+              >
+                Todos
+              </button>
+              <button
+                type="button"
+                className={`filter-pill ${statusFilter === 'Por cobrar' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('Por cobrar')}
+              >
+                Por cobrar
+              </button>
+              <button
+                type="button"
+                className={`filter-pill ${statusFilter === 'Pagado' ? 'active' : ''}`}
+                onClick={() => setStatusFilter('Pagado')}
+              >
+                Pagado
+              </button>
+            </div>
+          </div>
+          <div style={{ width: '250px' }}>
             <input
               type="text"
               className="input"
