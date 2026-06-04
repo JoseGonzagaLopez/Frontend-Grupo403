@@ -27,10 +27,12 @@ export default function NegocioReservasClient({
   appointments: initial,
   business,
   businessId,
+  customerNames,
 }: {
   appointments: Booking[];
   business: Business | null;
   businessId: number;
+  customerNames: Record<number, string>;
 }) {
   const [appointments, setAppointments] = useState<Booking[]>(initial);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -206,11 +208,10 @@ export default function NegocioReservasClient({
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>#</th>
                   <th>Fecha</th>
                   <th>Hora</th>
                   <th>Servicio</th>
-                  <th>Cliente ID</th>
+                  <th>Cliente</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
@@ -218,11 +219,10 @@ export default function NegocioReservasClient({
               <tbody>
                 {filtered.map((a) => (
                   <tr key={a.id}>
-                    <td style={{ fontVariantNumeric: "tabular-nums", fontWeight: 600 }}>{a.id}</td>
                     <td>{new Intl.DateTimeFormat("es-ES").format(new Date(a.date + "T12:00:00"))}</td>
                     <td>{a.time}</td>
                     <td>{a.serviceName}</td>
-                    <td>{a.customerId}</td>
+                    <td>{customerNames[a.customerId] || `ID: ${a.customerId}`}</td>
                     <td>
                       <span className="badge" style={{
                         background: STATUS_COLORS[a.status as ExtendedStatus] + "22",
