@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 
 interface CustomDatePickerProps {
@@ -27,7 +28,9 @@ function getFirstDayOfMonth(year: number, month: number) {
 
 export function CustomDatePicker({ value, onChange, placeholder = "Seleccionar fecha" }: CustomDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null);
 
   // Initialize display month based on value or current date
   const initialDate = value ? new Date(value + "T12:00:00") : new Date();
@@ -44,15 +47,57 @@ export function CustomDatePicker({ value, onChange, placeholder = "Seleccionar f
     }
   }, [value]);
 
+  // Calculate popover position when opened
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const popoverWidth = 320;
+    const popoverHeight = 360; // approximate max height
+
+    let top = rect.bottom + 8 + window.scrollY;
+    let left = rect.left + window.scrollX;
+
+    // Prevent popover from going off the right edge
+    if (left + popoverWidth > window.innerWidth - 16) {
+      left = window.innerWidth - popoverWidth - 16;
+    }
+    // Prevent going off the left edge
+    if (left < 16) left = 16;
+
+    // If not enough space below, open above
+    if (rect.bottom + popoverHeight + 16 > window.innerHeight) {
+      top = rect.top - popoverHeight - 8 + window.scrollY;
+    }
+
+    setPopoverPos({ top, left });
+  }, []);
+
   useEffect(() => {
+    if (isOpen) {
+      updatePosition();
+      window.addEventListener("scroll", updatePosition, true);
+      window.addEventListener("resize", updatePosition);
+      return () => {
+        window.removeEventListener("scroll", updatePosition, true);
+        window.removeEventListener("resize", updatePosition);
+      };
+    }
+  }, [isOpen, updatePosition]);
+
+  useEffect(() => {
+    if (!isOpen) return;
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        triggerRef.current && !triggerRef.current.contains(target) &&
+        popoverRef.current && !popoverRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isOpen]);
 
   const handlePrevMonth = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -88,9 +133,66 @@ export function CustomDatePicker({ value, onChange, placeholder = "Seleccionar f
     year: "numeric"
   }).format(new Date(value + "T12:00:00")) : "";
 
+  const popoverContent = isOpen && popoverPos ? createPortal(
+    <div
+      ref={popoverRef}
+      className="custom-datepicker__popover"
+      style={{
+        position: "absolute",
+        top: popoverPos.top,
+        left: popoverPos.left,
+      }}
+    >
+      <div className="custom-datepicker__header">
+        <button type="button" onClick={handlePrevMonth} className="custom-datepicker__nav">
+          <ChevronLeft size={20} />
+        </button>
+        <span className="custom-datepicker__title">
+          {monthNames[currentMonth.month]} {currentMonth.year}
+        </span>
+        <button type="button" onClick={handleNextMonth} className="custom-datepicker__nav">
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      <div className="custom-datepicker__grid">
+        {daysOfWeek.map((day) => (
+          <div key={day} className="custom-datepicker__weekday">
+            {day}
+          </div>
+        ))}
+        
+        {emptyDays.map((_, i) => (
+          <div key={`empty-${i}`} className="custom-datepicker__day empty" />
+        ))}
+        
+        {days.map((day) => {
+          const currentDateStr = `${currentMonth.year}-${String(currentMonth.month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const isSelected = value === currentDateStr;
+          
+          const today = new Date();
+          const isToday = today.getDate() === day && today.getMonth() === currentMonth.month && today.getFullYear() === currentMonth.year;
+
+          return (
+            <button
+              key={day}
+              type="button"
+              onClick={() => handleDateClick(day)}
+              className={`custom-datepicker__day ${isSelected ? "selected" : ""} ${isToday && !isSelected ? "today" : ""}`}
+            >
+              {day}
+            </button>
+          );
+        })}
+      </div>
+    </div>,
+    document.body
+  ) : null;
+
   return (
-    <div ref={containerRef} className="custom-datepicker" style={{ position: "relative", width: "100%" }}>
+    <div className="custom-datepicker" style={{ position: "relative", width: "100%" }}>
       <button
+        ref={triggerRef}
         type="button"
         className="input custom-datepicker__trigger"
         onClick={() => setIsOpen(!isOpen)}
@@ -109,63 +211,15 @@ export function CustomDatePicker({ value, onChange, placeholder = "Seleccionar f
         <Calendar size={18} style={{ color: "var(--text-tertiary)" }} />
       </button>
 
-      {isOpen && (
-        <div className="custom-datepicker__popover">
-          <div className="custom-datepicker__header">
-            <button type="button" onClick={handlePrevMonth} className="custom-datepicker__nav">
-              <ChevronLeft size={20} />
-            </button>
-            <span className="custom-datepicker__title">
-              {monthNames[currentMonth.month]} {currentMonth.year}
-            </span>
-            <button type="button" onClick={handleNextMonth} className="custom-datepicker__nav">
-              <ChevronRight size={20} />
-            </button>
-          </div>
-
-          <div className="custom-datepicker__grid">
-            {daysOfWeek.map((day) => (
-              <div key={day} className="custom-datepicker__weekday">
-                {day}
-              </div>
-            ))}
-            
-            {emptyDays.map((_, i) => (
-              <div key={`empty-${i}`} className="custom-datepicker__day empty" />
-            ))}
-            
-            {days.map((day) => {
-              const currentDateStr = `${currentMonth.year}-${String(currentMonth.month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-              const isSelected = value === currentDateStr;
-              
-              const today = new Date();
-              const isToday = today.getDate() === day && today.getMonth() === currentMonth.month && today.getFullYear() === currentMonth.year;
-
-              return (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => handleDateClick(day)}
-                  className={`custom-datepicker__day ${isSelected ? "selected" : ""} ${isToday && !isSelected ? "today" : ""}`}
-                >
-                  {day}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {popoverContent}
 
       <style>{`
         .custom-datepicker__popover {
-          position: absolute;
-          top: calc(100% + 8px);
-          left: 0;
-          z-index: 50;
+          z-index: 9999;
           background: var(--surface-solid, #ffffff);
           border: 1px solid var(--border-strong, #e5e7eb);
           border-radius: var(--radius-lg, 12px);
-          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
           padding: 16px;
           width: 320px;
           animation: slideDown 0.2s ease-out;
