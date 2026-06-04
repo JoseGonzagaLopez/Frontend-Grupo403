@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { Booking, Resena, CreateResenaDto } from "@/lib/api";
 import { getAppointments, getCustomers, getResenas, createResena } from "@/lib/api";
 import { CalendarDays, Clock, Star, MessageSquarePlus } from "lucide-react";
@@ -69,18 +70,19 @@ function ModalResena({ appt, customerName, onClose, onSaved }: {
     finally { setLoading(false); }
   }
 
-  return (
+  return createPortal(
     <div
       style={{
-        position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.45)",
+        position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.5)",
+        backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
         display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-4)",
       }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)",
+        background: "var(--surface-solid)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)",
         padding: "var(--space-8) var(--space-6)", width: "100%", maxWidth: 460,
-        boxShadow: "0 20px 60px rgba(0,0,0,0.2)", display: "flex", flexDirection: "column", gap: "var(--space-5)",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.25)", display: "flex", flexDirection: "column", gap: "var(--space-5)",
       }}>
         <div>
           <h3 style={{ margin: 0, fontSize: "var(--text-lg)", fontWeight: 700 }}>Dejar reseña</h3>
@@ -108,7 +110,8 @@ function ModalResena({ appt, customerName, onClose, onSaved }: {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
