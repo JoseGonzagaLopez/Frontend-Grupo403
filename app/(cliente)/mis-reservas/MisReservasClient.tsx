@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import type { Booking, Resena, CreateResenaDto } from "@/lib/api";
-import { getAppointments, getCustomers, getResenas, createResena } from "@/lib/api";
-import { CalendarDays, Clock, Star, MessageSquarePlus } from "lucide-react";
+import { getAppointments, getCustomers, getResenas, createResena, updateAppointment } from "@/lib/api";
+import { CalendarDays, Clock, Star, MessageSquarePlus, XCircle } from "lucide-react";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   pending:   { label: "Pendiente",  color: "#964219", bg: "rgba(150,66,25,0.12)" },
@@ -115,12 +115,87 @@ function ModalResena({ appt, customerName, onClose, onSaved }: {
   );
 }
 
-function TarjetaReserva({ appt, resena, customerName, onResenaGuardada }: {
-  appt: Booking; resena: Resena | undefined; customerName: string; onResenaGuardada: (r: Resena) => void;
+function ModalCancelar({ appt, onClose, onCancelled }: {
+  appt: Booking; onClose: () => void; onCancelled: (updated: Booking) => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const dateFormatted = new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "long", year: "numeric" })
+    .format(new Date(appt.date + "T12:00:00"));
+
+  async function handleCancel() {
+    setLoading(true); setError("");
+    try {
+      const updated = await updateAppointment(appt.id, { status: "cancelled" });
+      onCancelled(updated);
+      onClose();
+    } catch { setError("No se pudo cancelar la reserva. Inténtalo de nuevo."); }
+    finally { setLoading(false); }
+  }
+
+  return createPortal(
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.5)",
+        backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-4)",
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{
+        background: "var(--surface-solid)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)",
+        padding: "var(--space-8) var(--space-6)", width: "100%", maxWidth: 440,
+        boxShadow: "0 20px 60px rgba(0,0,0,0.25)", display: "flex", flexDirection: "column", alignItems: "center",
+        gap: "var(--space-5)", textAlign: "center",
+      }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: "50%",
+          background: "rgba(220,38,38,0.1)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <XCircle size={28} style={{ color: "var(--danger, #dc2626)" }} />
+        </div>
+        <div>
+          <h3 style={{ margin: 0, fontSize: "var(--text-lg)", fontWeight: 700 }}>¿Cancelar reserva?</h3>
+          <p style={{ margin: "8px 0 0", color: "var(--text-secondary)", fontSize: "var(--text-sm)", lineHeight: 1.6 }}>
+            Estás a punto de cancelar tu reserva de <strong>{appt.serviceName}</strong> del <strong>{dateFormatted}</strong> a las <strong>{appt.time}</strong>. Esta acción no se puede deshacer.
+          </p>
+        </div>
+        {error && <p style={{ color: "var(--danger, #c0392b)", fontSize: "var(--text-sm)", margin: 0 }}>{error}</p>}
+        <div style={{ display: "flex", gap: "var(--space-3)", width: "100%" }}>
+          <button
+            type="button" className="secondary-btn"
+            style={{ flex: 1 }}
+            onClick={onClose} disabled={loading}
+          >Volver</button>
+          <button
+            type="button"
+            style={{
+              flex: 1, padding: "10px 20px", borderRadius: "var(--radius-md)",
+              background: "var(--danger, #dc2626)", color: "white", fontWeight: 600,
+              fontSize: "var(--text-sm)", border: "none", cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.7 : 1, transition: "opacity 0.2s",
+            }}
+            onClick={handleCancel} disabled={loading}
+          >{loading ? "Cancelando..." : "Sí, cancelar"}</button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function TarjetaReserva({ appt, resena, customerName, onResenaGuardada, onCancelled }: {
+  appt: Booking; resena: Resena | undefined; customerName: string;
+  onResenaGuardada: (r: Resena) => void; onCancelled: (updated: Booking) => void;
 }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const st = STATUS_CONFIG[appt.status] ?? STATUS_CONFIG.pending;
   const pasada = hasPassed(appt.date, appt.time);
+  const isCancelled = appt.status === "cancelled";
+  const canCancel = !pasada && !isCancelled;
   const dateFormatted = new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "long", year: "numeric" })
     .format(new Date(appt.date + "T12:00:00"));
 
@@ -157,21 +232,45 @@ function TarjetaReserva({ appt, resena, customerName, onResenaGuardada }: {
           </div>
         )}
 
-        {pasada && !resena && (
-          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "var(--space-3)" }}>
-            <button
-              className="secondary-btn"
-              style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "var(--text-sm)" }}
-              onClick={() => setModalOpen(true)}
-            >
-              <MessageSquarePlus size={15} /> Dejar reseña
-            </button>
+        {(pasada && !resena || canCancel) && (
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "var(--space-3)", display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            {pasada && !resena && (
+              <button
+                className="secondary-btn"
+                style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "var(--text-sm)" }}
+                onClick={() => setModalOpen(true)}
+              >
+                <MessageSquarePlus size={15} /> Dejar reseña
+              </button>
+            )}
+            {canCancel && (
+              <button
+                type="button"
+                onClick={() => setCancelModalOpen(true)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  fontSize: "var(--text-sm)", fontWeight: 600,
+                  padding: "6px 14px", borderRadius: "var(--radius-md)",
+                  background: "rgba(220,38,38,0.08)", color: "var(--danger, #dc2626)",
+                  border: "1px solid rgba(220,38,38,0.2)", cursor: "pointer",
+                  transition: "background 0.2s, border-color 0.2s",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(220,38,38,0.15)"; e.currentTarget.style.borderColor = "rgba(220,38,38,0.35)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(220,38,38,0.08)"; e.currentTarget.style.borderColor = "rgba(220,38,38,0.2)"; }}
+              >
+                <XCircle size={15} /> Cancelar reserva
+              </button>
+            )}
           </div>
         )}
       </div>
       {modalOpen && (
         <ModalResena appt={appt} customerName={customerName}
           onClose={() => setModalOpen(false)} onSaved={onResenaGuardada} />
+      )}
+      {cancelModalOpen && (
+        <ModalCancelar appt={appt}
+          onClose={() => setCancelModalOpen(false)} onCancelled={onCancelled} />
       )}
     </>
   );
@@ -277,6 +376,7 @@ export default function MisReservasClient({ customerId }: { customerId: number }
                     key={appt.id} appt={appt} resena={resenas[appt.id]}
                     customerName={customerName}
                     onResenaGuardada={(r) => setResenas((prev) => ({ ...prev, [appt.id]: r }))}
+                    onCancelled={(updated) => setAppointments((prev) => prev.map((a) => a.id === updated.id ? { ...a, status: "cancelled" } : a))}
                   />
                 ))}
               </div>
