@@ -133,8 +133,8 @@ export default function NegocioReservasClient({
               <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Ordenar por fecha</label>
               <select className="input" value={sortOrder} onChange={(e) => setSortOrder(e.target.value as any)}>
                 <option value="none">Sin ordenar</option>
-                <option value="asc">Más antiguas primero</option>
-                <option value="desc">Más recientes primero</option>
+                <option value="desc">Más antiguas primero</option>
+                <option value="asc">Más recientes primero</option>
               </select>
             </div>
             <div style={{ display: "flex", alignItems: "flex-end" }}>
