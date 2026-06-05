@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { ArrowUp, ArrowDown, Minus, Plus } from "lucide-react";
 import type { Pago, CreatePagoDto, Customer, Business } from "@/lib/api";
 import {
   createPago,
@@ -270,6 +271,25 @@ export default function PaymentsClient({
   const [customerSearch, setCustomerSearch] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<'all' | 'Por cobrar' | 'Pagado'>('all');
   const [methodFilter, setMethodFilter] = useState<string>('all');
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | "mid" | "extra" | null>(null);
+
+  function handleSort(column: string) {
+    if (sortColumn === column) {
+      if (column === "Método") {
+        if (sortDirection === "asc") setSortDirection("desc");
+        else if (sortDirection === "desc") setSortDirection("mid");
+        else if (sortDirection === "mid") setSortDirection("extra");
+        else { setSortColumn(null); setSortDirection(null); }
+      } else {
+        if (sortDirection === "asc") setSortDirection("desc");
+        else { setSortColumn(null); setSortDirection(null); }
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  }
 
   function updateCreateForm<K extends keyof CreatePagoDto>(
     key: K,
@@ -468,6 +488,68 @@ export default function PaymentsClient({
     const name = customer?.Nombre || (customer as any)?.nombre || "";
     return name.toLowerCase().includes(customerSearch.toLowerCase());
   });
+
+  let sortedPayments = [...filteredPayments];
+  if (sortColumn && sortDirection) {
+    sortedPayments = sortedPayments.sort((a, b) => {
+      let valA: any;
+      let valB: any;
+
+      switch (sortColumn) {
+        case "Cliente": {
+          const cA = customers.find((c) => c.id === a.customerId);
+          const cB = customers.find((c) => c.id === b.customerId);
+          valA = (cA?.Nombre || (cA as any)?.nombre || `Cliente #${a.customerId}`).toLowerCase();
+          valB = (cB?.Nombre || (cB as any)?.nombre || `Cliente #${b.customerId}`).toLowerCase();
+          break;
+        }
+        case "Comercio": {
+          const bA = businesses.find((biz) => biz.id === a.businessId);
+          const bB = businesses.find((biz) => biz.id === b.businessId);
+          valA = (bA?.Nombre || a.Comercio || `Negocio #${a.businessId}`).toLowerCase();
+          valB = (bB?.Nombre || b.Comercio || `Negocio #${b.businessId}`).toLowerCase();
+          break;
+        }
+        case "Importe":
+          valA = Number(a.Importe);
+          valB = Number(b.Importe);
+          break;
+        case "Método": {
+          const methodStrA = a.Metodo?.toLowerCase().trim() || "";
+          const methodStrB = b.Metodo?.toLowerCase().trim() || "";
+
+          let order: Record<string, number> = {};
+          if (sortDirection === "asc") order = { bizum: 1, transferencia: 2, tarjeta: 3, efectivo: 4 };
+          else if (sortDirection === "desc") order = { transferencia: 1, bizum: 2, tarjeta: 3, efectivo: 4 };
+          else if (sortDirection === "mid") order = { tarjeta: 1, bizum: 2, transferencia: 3, efectivo: 4 };
+          else if (sortDirection === "extra") order = { efectivo: 1, bizum: 2, transferencia: 3, tarjeta: 4 };
+
+          valA = order[methodStrA] || 5;
+          valB = order[methodStrB] || 5;
+          break;
+        }
+        case "Fecha":
+          valA = new Date(a.Fecha).getTime();
+          valB = new Date(b.Fecha).getTime();
+          break;
+        case "Estado":
+          valA = a.Estado.toLowerCase();
+          valB = b.Estado.toLowerCase();
+          break;
+      }
+
+      if (typeof valA === "string" && typeof valB === "string") {
+        const cmp = valA.localeCompare(valB);
+        if (cmp !== 0) return sortDirection === "asc" ? cmp : -cmp;
+        return 0;
+      }
+
+      const isAsc = sortDirection === "asc" || sortColumn === "Método";
+      if (valA < valB) return isAsc ? -1 : 1;
+      if (valA > valB) return isAsc ? 1 : -1;
+      return 0;
+    });
+  }
 
   return (
     <div className="page-stack">
@@ -780,17 +862,39 @@ export default function PaymentsClient({
         <table className="data-table">
           <thead>
             <tr>
-              <th>Cliente</th>
-              <th>Comercio</th>
-              <th>Importe</th>
-              <th>Método</th>
-              <th>Fecha</th>
-              <th>Estado</th>
+              {["Cliente", "Comercio", "Importe", "Método", "Fecha", "Estado"].map((col) => (
+                <th key={col}>
+                  <button
+                    type="button"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      background: "transparent",
+                      border: "none",
+                      color: "inherit",
+                      fontWeight: "inherit",
+                      fontSize: "inherit",
+                      cursor: "pointer",
+                      padding: 0
+                    }}
+                    onClick={() => handleSort(col)}
+                  >
+                    {col}
+                    {sortColumn === col && (
+                      sortDirection === "asc" ? <ArrowUp size={14} /> :
+                      sortDirection === "desc" ? <ArrowDown size={14} /> :
+                      sortDirection === "mid" ? <Minus size={14} /> :
+                      <Plus size={14} />
+                    )}
+                  </button>
+                </th>
+              ))}
               <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {filteredPayments.map((payment) => {
+            {sortedPayments.map((payment) => {
               const customer = customers.find((c) => c.id === payment.customerId);
               const business = businesses.find((b) => b.id === payment.businessId);
               return (

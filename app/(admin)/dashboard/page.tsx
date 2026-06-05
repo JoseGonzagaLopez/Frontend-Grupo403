@@ -2,6 +2,7 @@ import { getAppointments, getCustomers, getBusinesses, type Booking, type Bookin
 import Link from 'next/link';
 import { CalendarDays, CreditCard, Clock3, Sparkles, TrendingUp } from 'lucide-react';
 import ExportButton from "./ExportButton";
+import UpcomingBookingsTable from "./UpcomingBookingsTable";
 import ErrorView from '@/components/ErrorView';
 import ReservationsChart from './ReservationsChart';
 
@@ -195,43 +196,7 @@ export default async function DashboardPage() {
               </Link>
             </div>
 
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Hora</th>
-                  <th>Servicio</th>
-                  <th>Cliente</th>
-                  <th>Importe</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {appointmentsNext.length > 0 ? (
-                  appointmentsNext.map((appointment) => (
-                    <tr key={appointment.id}>
-                      <td style={{ color: 'var(--text)' }}>{appointment.date}</td>
-                      <td style={{ fontWeight: 700, color: 'var(--text)' }}>{appointment.time}</td>
-                      <td>{appointment.serviceName}</td>
-                      <td>{customers.find(c => c.id === appointment.customerId)?.Nombre || `Cliente #${appointment.customerId}`}</td>
-                      <td style={{ color: 'var(--text)' }}>{formatImporte(appointment.importe)}</td>
-                      <td>
-                        <Badge status={appointment.status} />
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6}>
-                      <div className="empty-glass">
-                        <Sparkles size={18} style={{ margin: '0 auto 10px', color: 'var(--teal)' }} />
-                        No hay reservas pendientes.
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+            <UpcomingBookingsTable appointments={appointmentsNext} customers={customers} />
           </div>
 
           <div className="info-stack">

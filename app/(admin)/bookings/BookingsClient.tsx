@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import type {
   Booking,
   BookingStatus,
@@ -251,6 +252,24 @@ export default function BookingsClient({
 
   const [statusFilter, setStatusFilter] = useState<"all" | BookingStatus>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("");
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | "mid" | null>(null);
+
+  function handleSort(column: string) {
+    if (sortColumn === column) {
+      if (column === "Estado") {
+        if (sortDirection === "asc") setSortDirection("desc");
+        else if (sortDirection === "desc") setSortDirection("mid");
+        else { setSortColumn(null); setSortDirection(null); }
+      } else {
+        if (sortDirection === "asc") setSortDirection("desc");
+        else { setSortColumn(null); setSortDirection(null); }
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  }
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [loadingEdit, setLoadingEdit] = useState(false);
   const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
@@ -275,12 +294,79 @@ export default function BookingsClient({
       });
     }
 
-    return filtered.sort((a, b) => {
+    let sorted = [...filtered].sort((a, b) => {
       const dateA = new Date(`${a.date}T${a.time}`);
       const dateB = new Date(`${b.date}T${b.time}`);
       return dateB.getTime() - dateA.getTime();
     });
-  }, [bookings, statusFilter, customerFilter]);
+
+    if (sortColumn && sortDirection) {
+      sorted = sorted.sort((a, b) => {
+        let valA: any;
+        let valB: any;
+
+        switch (sortColumn) {
+          case "Fecha":
+            valA = new Date(`${a.date}T${a.time || "00:00"}`).getTime() || new Date(a.date).getTime() || 0;
+            valB = new Date(`${b.date}T${b.time || "00:00"}`).getTime() || new Date(b.date).getTime() || 0;
+            break;
+          case "Hora":
+            valA = a.time;
+            valB = b.time;
+            break;
+          case "Servicio":
+            valA = a.serviceName.toLowerCase();
+            valB = b.serviceName.toLowerCase();
+            break;
+          case "Importe":
+            valA = a.importe;
+            valB = b.importe;
+            break;
+          case "Cliente": {
+            const cA = customers.find((c) => c.id === a.customerId);
+            const cB = customers.find((c) => c.id === b.customerId);
+            valA = (cA?.Nombre || (cA as any)?.nombre || `Cliente ${a.customerId}`).toLowerCase();
+            valB = (cB?.Nombre || (cB as any)?.nombre || `Cliente ${b.customerId}`).toLowerCase();
+            break;
+          }
+          case "Negocio": {
+            const bA = businesses.find((biz) => biz.id === a.businessId);
+            const bB = businesses.find((biz) => biz.id === b.businessId);
+            valA = (bA?.Nombre || (bA as any)?.nombre || `Empresa ${a.businessId}`).toLowerCase();
+            valB = (bB?.Nombre || (bB as any)?.nombre || `Empresa ${b.businessId}`).toLowerCase();
+            break;
+          }
+          case "Estado": {
+            const statusStrA = a.status?.toLowerCase().trim() || "";
+            const statusStrB = b.status?.toLowerCase().trim() || "";
+            if (sortDirection === "mid") {
+              const statusOrder: Record<string, number> = { confirmed: 1, pending: 2, paid: 3 };
+              valA = statusOrder[statusStrA] || 4;
+              valB = statusOrder[statusStrB] || 4;
+            } else {
+              const statusOrder: Record<string, number> = { pending: 1, confirmed: 2, paid: 3 };
+              valA = statusOrder[statusStrA] || 4;
+              valB = statusOrder[statusStrB] || 4;
+            }
+            break;
+          }
+        }
+
+        if (typeof valA === "string" && typeof valB === "string") {
+          const cmp = valA.localeCompare(valB);
+          if (cmp !== 0) return (sortDirection === "asc" || sortDirection === "mid") ? cmp : -cmp;
+          return 0;
+        }
+
+        const isAsc = sortDirection === "asc" || sortDirection === "mid";
+        if (valA < valB) return isAsc ? -1 : 1;
+        if (valA > valB) return isAsc ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return sorted;
+  }, [bookings, statusFilter, customerFilter, sortColumn, sortDirection, customers, businesses]);
 
   const totalCount = bookings.length;
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
@@ -940,13 +1026,33 @@ export default function BookingsClient({
         <table className="data-table">
           <thead>
             <tr>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Servicio</th>
-              <th>Importe</th>
-              <th>Cliente</th>
-              <th>Negocio</th>
-              <th>Estado</th>
+              {["Fecha", "Hora", "Servicio", "Importe", "Cliente", "Negocio", "Estado"].map((col) => (
+                <th key={col}>
+                  <button
+                    type="button"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      background: "transparent",
+                      border: "none",
+                      color: "inherit",
+                      fontWeight: "inherit",
+                      fontSize: "inherit",
+                      cursor: "pointer",
+                      padding: 0
+                    }}
+                    onClick={() => handleSort(col)}
+                  >
+                    {col}
+                    {sortColumn === col && (
+                      sortDirection === "asc" ? <ArrowUp size={14} /> :
+                      sortDirection === "desc" ? <ArrowDown size={14} /> :
+                      <Minus size={14} />
+                    )}
+                  </button>
+                </th>
+              ))}
               <th>Acciones</th>
             </tr>
           </thead>
