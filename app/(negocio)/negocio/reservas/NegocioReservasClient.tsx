@@ -101,6 +101,17 @@ export default function NegocioReservasClient({
     finally { setLoading(false); }
   }
 
+  async function markPaid(id: number) {
+    setLoading(true);
+    try {
+      const updated = await updateAppointment(id, { status: "paid" } as any);
+      setAppointments((prev) => prev.map((a) => (a.id === id ? updated : a)));
+      setSuccess("Reserva marcada como pagada.");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch { setError("No se pudo marcar como pagada."); }
+    finally { setLoading(false); }
+  }
+
   return (
     <div className="page-stack">
       <section className="page-hero">
@@ -242,6 +253,9 @@ export default function NegocioReservasClient({
                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                           {a.status === "pending" && (
                             <button className="secondary-btn" style={{ padding: "4px 10px", fontSize: "var(--text-xs)" }} onClick={() => quickConfirm(a.id)} disabled={loading}>Confirmar</button>
+                          )}
+                          {a.status === "confirmed" && (new Date(a.date + "T" + (a.time || "00:00")).getTime() < Date.now()) && (
+                            <button className="secondary-btn" style={{ padding: "4px 10px", fontSize: "var(--text-xs)" }} onClick={() => markPaid(a.id)} disabled={loading}>Pagado</button>
                           )}
                           <button className="secondary-btn" style={{ padding: "4px 10px", fontSize: "var(--text-xs)" }} onClick={() => openEdit(a)}>Editar</button>
                           <button className="danger-btn" style={{ padding: "4px 10px", fontSize: "var(--text-xs)" }} onClick={() => setDeleteTargetId(a.id)}>Borrar</button>
