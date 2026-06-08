@@ -28,6 +28,23 @@ export default function NegocioResenasClient({ resenas }: { resenas: Resena[] })
         )}
       </section>
 
+      {/* Summary cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px", marginBottom: "16px" }}>
+        <div style={{
+          display: "flex", flexDirection: "column", gap: "6px",
+          padding: "18px 20px", background: "var(--surface)",
+          border: "1px solid var(--border)", borderLeft: `3px solid #eab308`,
+          borderRadius: "12px",
+        }}>
+          <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Total Reseñas
+          </span>
+          <span style={{ fontSize: "1.6rem", fontWeight: 700, color: "#eab308", lineHeight: 1 }}>
+            {resenas.length}
+          </span>
+        </div>
+      </div>
+
       {resenas.length === 0 ? (
         <section className="section-card" style={{ textAlign: "center", padding: "64px 24px" }}>
           <p style={{ fontSize: "2rem", marginBottom: 12 }}>⭐</p>

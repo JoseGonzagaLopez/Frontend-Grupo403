@@ -455,6 +455,8 @@ export default function PaymentsClient({
   const paidPayments = payments.filter((p) => p.Estado === 'paid' || p.Estado === 'Pagado');
   const pendingPayments = payments.filter((p) => p.Estado === 'pending' || p.Estado === 'Por cobrar');
   const collectedTotal = paidPayments.reduce((total, payment) => total + payment.Importe, 0);
+  const pendingTotal = pendingPayments.reduce((total, payment) => total + payment.Importe, 0);
+  const overallTotal = payments.reduce((total, payment) => total + payment.Importe, 0);
   const conversion = payments.length > 0 ? Math.round((paidPayments.length / payments.length) * 100) : 0;
 
   const paymentMethods = Array.from(
@@ -549,6 +551,11 @@ export default function PaymentsClient({
 
       <section className="kpi-grid">
         <KpiCard
+          title="Total Pagos"
+          value={`${payments.length}`}
+          subtitle={`${formatCurrency(overallTotal)} € en total`}
+        />
+        <KpiCard
           title="Cobrado"
           value={`${formatCurrency(collectedTotal)} €`}
           subtitle={`${paidPayments.length} operaciones registradas`}
@@ -556,7 +563,7 @@ export default function PaymentsClient({
         />
         <KpiCard
           title="Pendiente"
-          value={`${pendingPayments.length}`}
+          value={`${formatCurrency(pendingTotal)} €`}
           subtitle={`${pendingPayments.length} cobros por revisar`}
           variant="warning"
         />

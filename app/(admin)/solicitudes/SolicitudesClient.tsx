@@ -163,6 +163,27 @@ export default function SolicitudesClient({ initialChanges }: { initialChanges: 
         </span>
       </section>
 
+      {/* Summary cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px", marginBottom: "16px" }}>
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+          padding: "18px 20px",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderLeft: `3px solid #f472b6`,
+          borderRadius: "12px",
+        }}>
+          <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Total Solicitudes
+          </span>
+          <span style={{ fontSize: "1.6rem", fontWeight: 700, color: "#f472b6", lineHeight: 1 }}>
+            {changes.length}
+          </span>
+        </div>
+      </div>
+
       {success && <div className="message-success">{success}</div>}
       {error && <div className="message-error">{error}</div>}
 

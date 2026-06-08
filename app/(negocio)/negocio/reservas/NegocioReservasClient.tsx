@@ -184,6 +184,27 @@ export default function NegocioReservasClient({
         </button>
       </section>
 
+      {/* Summary cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px", marginBottom: "16px" }}>
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+          padding: "18px 20px",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderLeft: `3px solid #fbbf24`,
+          borderRadius: "12px",
+        }}>
+          <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Total Reservas
+          </span>
+          <span style={{ fontSize: "1.6rem", fontWeight: 700, color: "#fbbf24", lineHeight: 1 }}>
+            {appointments.length}
+          </span>
+        </div>
+      </div>
+
       {showFilters && (
         <section className="section-card">
           <div className="form-grid" style={{ gap: 12 }}>

@@ -187,6 +187,27 @@ export default function CustomersClient({ initialCustomers }: { initialCustomers
         <button className="primary-btn" type="button" onClick={openCreateForm}>Nuevo cliente</button>
       </section>
 
+      {/* Summary cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "16px", marginBottom: "16px" }}>
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+          padding: "18px 20px",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderLeft: `3px solid #a78bfa`,
+          borderRadius: "12px",
+        }}>
+          <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Total Clientes
+          </span>
+          <span style={{ fontSize: "1.6rem", fontWeight: 700, color: "#a78bfa", lineHeight: 1 }}>
+            {customers.length}
+          </span>
+        </div>
+      </div>
+
       {successMessage && <div className="message-success">{successMessage}</div>}
 
       <section className="section-card">
