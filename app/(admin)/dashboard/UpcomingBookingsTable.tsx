@@ -31,27 +31,15 @@ export default function UpcomingBookingsTable({
   customers: Customer[];
 }) {
   const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | "mid" | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
   function handleSort(column: string) {
     if (sortColumn === column) {
-      if (column === "Estado") {
-        if (sortDirection === "asc") setSortDirection("desc");
-        else if (sortDirection === "desc") setSortDirection("mid");
-        else { setSortColumn(null); setSortDirection(null); }
-      } else if (column === "Fecha" || column === "Hora") {
-        if (sortDirection === "desc") { setSortColumn(null); setSortDirection(null); }
-      } else {
-        if (sortDirection === "asc") setSortDirection("desc");
-        else { setSortColumn(null); setSortDirection(null); }
-      }
+      if (sortDirection === "asc") setSortDirection("desc");
+      else { setSortColumn(null); setSortDirection(null); }
     } else {
       setSortColumn(column);
-      if (column === "Fecha" || column === "Hora") {
-        setSortDirection("desc");
-      } else {
-        setSortDirection("asc");
-      }
+      setSortDirection("asc");
     }
   }
 
@@ -88,28 +76,20 @@ export default function UpcomingBookingsTable({
             valB = b.importe;
             break;
           case "Estado": {
-            const statusStrA = a.status?.toLowerCase().trim() || "";
-            const statusStrB = b.status?.toLowerCase().trim() || "";
-            if (sortDirection === "mid") {
-              const statusOrder: Record<string, number> = { confirmed: 1, pending: 2, paid: 3 };
-              valA = statusOrder[statusStrA] || 4;
-              valB = statusOrder[statusStrB] || 4;
-            } else {
-              const statusOrder: Record<string, number> = { pending: 1, confirmed: 2, paid: 3 };
-              valA = statusOrder[statusStrA] || 4;
-              valB = statusOrder[statusStrB] || 4;
-            }
+            const labelMap: Record<string, string> = { pending: "Pendiente", confirmed: "Confirmada", paid: "Pagada" };
+            valA = (labelMap[a.status?.toLowerCase().trim() || ""] || "").toLowerCase();
+            valB = (labelMap[b.status?.toLowerCase().trim() || ""] || "").toLowerCase();
             break;
           }
         }
 
         if (typeof valA === "string" && typeof valB === "string") {
           const cmp = valA.localeCompare(valB);
-          if (cmp !== 0) return (sortDirection === "asc" || sortDirection === "mid") ? cmp : -cmp;
+          if (cmp !== 0) return sortDirection === "asc" ? cmp : -cmp;
           return 0;
         }
 
-        const isAsc = sortDirection === "asc" || sortDirection === "mid";
+        const isAsc = sortDirection === "asc";
         if (valA < valB) return isAsc ? -1 : 1;
         if (valA > valB) return isAsc ? 1 : -1;
         return 0;

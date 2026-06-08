@@ -1,5 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
+import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import type { Booking, Business } from "@/lib/api";
 import { updateAppointment, deleteAppointment } from "@/lib/api";
 
@@ -45,17 +46,76 @@ export default function NegocioReservasClient({
   // Filtros
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterService, setFilterService] = useState("");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "none">("none");
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+
+  function handleSort(column: string) {
+    if (sortColumn === column) {
+      if (sortDirection === "asc") setSortDirection("desc");
+      else { setSortColumn(null); setSortDirection(null); }
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  }
 
   const filtered = useMemo(() => {
     let list = [...appointments];
     if (filterStatus !== "all") list = list.filter((a) => a.status === filterStatus);
     if (filterService.trim()) list = list.filter((a) => a.serviceName?.toLowerCase().includes(filterService.toLowerCase()));
-    if (sortOrder === "asc") list.sort((a, b) => new Date(a.date + "T" + (a.time || "00:00")).getTime() - new Date(b.date + "T" + (b.time || "00:00")).getTime());
-    if (sortOrder === "desc") list.sort((a, b) => new Date(b.date + "T" + (b.time || "00:00")).getTime() - new Date(a.date + "T" + (a.time || "00:00")).getTime());
-    return list;
-  }, [appointments, filterStatus, filterService, sortOrder]);
+    
+    let sorted = list.sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.time || "00:00"}`).getTime() || new Date(a.date).getTime() || 0;
+      const dateB = new Date(`${b.date}T${b.time || "00:00"}`).getTime() || new Date(b.date).getTime() || 0;
+      return dateB - dateA;
+    });
+
+    if (sortColumn && sortDirection) {
+      sorted = sorted.sort((a, b) => {
+        let valA: any;
+        let valB: any;
+
+        switch (sortColumn) {
+          case "Fecha":
+            valA = new Date(`${a.date}T${a.time || "00:00"}`).getTime() || new Date(a.date).getTime() || 0;
+            valB = new Date(`${b.date}T${b.time || "00:00"}`).getTime() || new Date(b.date).getTime() || 0;
+            break;
+          case "Hora":
+            valA = a.time;
+            valB = b.time;
+            break;
+          case "Servicio":
+            valA = a.serviceName?.toLowerCase() || "";
+            valB = b.serviceName?.toLowerCase() || "";
+            break;
+          case "Cliente": {
+            valA = (customerNames[a.customerId] || `ID: ${a.customerId}`).toLowerCase();
+            valB = (customerNames[b.customerId] || `ID: ${b.customerId}`).toLowerCase();
+            break;
+          }
+          case "Estado": {
+            const labelMap: Record<string, string> = { pending: "Pendiente", confirmed: "Confirmada", paid: "Pagado" };
+            valA = (labelMap[a.status?.toLowerCase().trim() || ""] || "").toLowerCase();
+            valB = (labelMap[b.status?.toLowerCase().trim() || ""] || "").toLowerCase();
+            break;
+          }
+        }
+
+        if (typeof valA === "string" && typeof valB === "string") {
+          const cmp = valA.localeCompare(valB);
+          if (cmp !== 0) return sortDirection === "asc" ? cmp : -cmp;
+          return 0;
+        }
+
+        const isAsc = sortDirection === "asc";
+        if (valA < valB) return isAsc ? -1 : 1;
+        if (valA > valB) return isAsc ? 1 : -1;
+        return 0;
+      });
+    }
+    return sorted;
+  }, [appointments, filterStatus, filterService, sortColumn, sortDirection, customerNames]);
 
   function openEdit(a: Booking) {
     setEditingId(a.id);
@@ -140,16 +200,8 @@ export default function NegocioReservasClient({
               <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Servicio</label>
               <input className="input" placeholder="Buscar servicio..." value={filterService} onChange={(e) => setFilterService(e.target.value)} />
             </div>
-            <div>
-              <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Ordenar por fecha</label>
-              <select className="input" value={sortOrder} onChange={(e) => setSortOrder(e.target.value as any)}>
-                <option value="none">Sin ordenar</option>
-                <option value="desc">Más antiguas primero</option>
-                <option value="asc">Más recientes primero</option>
-              </select>
-            </div>
             <div style={{ display: "flex", alignItems: "flex-end" }}>
-              <button className="secondary-btn" onClick={() => { setFilterStatus("all"); setFilterService(""); setSortOrder("none"); }}>Limpiar filtros</button>
+              <button className="secondary-btn" onClick={() => { setFilterStatus("all"); setFilterService(""); setSortColumn(null); setSortDirection(null); }}>Limpiar filtros</button>
             </div>
           </div>
         </section>
@@ -219,11 +271,33 @@ export default function NegocioReservasClient({
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Fecha</th>
-                  <th>Hora</th>
-                  <th>Servicio</th>
-                  <th>Cliente</th>
-                  <th>Estado</th>
+                  {["Fecha", "Hora", "Servicio", "Cliente", "Estado"].map((col) => (
+                    <th key={col}>
+                      <button
+                        type="button"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          background: "transparent",
+                          border: "none",
+                          color: "inherit",
+                          fontWeight: "inherit",
+                          fontSize: "inherit",
+                          cursor: "pointer",
+                          padding: 0
+                        }}
+                        onClick={() => handleSort(col)}
+                      >
+                        {col}
+                        {sortColumn === col && (
+                          sortDirection === "asc" ? <ArrowUp size={14} /> :
+                          sortDirection === "desc" ? <ArrowDown size={14} /> :
+                          <Minus size={14} />
+                        )}
+                      </button>
+                    </th>
+                  ))}
                   <th>Acciones</th>
                 </tr>
               </thead>

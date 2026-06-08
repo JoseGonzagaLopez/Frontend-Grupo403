@@ -272,19 +272,12 @@ export default function PaymentsClient({
   const [statusFilter, setStatusFilter] = useState<'all' | 'Por cobrar' | 'Pagado'>('all');
   const [methodFilter, setMethodFilter] = useState<string>('all');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | "mid" | "extra" | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
   function handleSort(column: string) {
     if (sortColumn === column) {
-      if (column === "Método") {
-        if (sortDirection === "asc") setSortDirection("desc");
-        else if (sortDirection === "desc") setSortDirection("mid");
-        else if (sortDirection === "mid") setSortDirection("extra");
-        else { setSortColumn(null); setSortDirection(null); }
-      } else {
-        if (sortDirection === "asc") setSortDirection("desc");
-        else { setSortColumn(null); setSortDirection(null); }
-      }
+      if (sortDirection === "asc") setSortDirection("desc");
+      else { setSortColumn(null); setSortDirection(null); }
     } else {
       setSortColumn(column);
       setSortDirection("asc");
@@ -515,17 +508,8 @@ export default function PaymentsClient({
           valB = Number(b.Importe);
           break;
         case "Método": {
-          const methodStrA = a.Metodo?.toLowerCase().trim() || "";
-          const methodStrB = b.Metodo?.toLowerCase().trim() || "";
-
-          let order: Record<string, number> = {};
-          if (sortDirection === "asc") order = { bizum: 1, transferencia: 2, tarjeta: 3, efectivo: 4 };
-          else if (sortDirection === "desc") order = { transferencia: 1, bizum: 2, tarjeta: 3, efectivo: 4 };
-          else if (sortDirection === "mid") order = { tarjeta: 1, bizum: 2, transferencia: 3, efectivo: 4 };
-          else if (sortDirection === "extra") order = { efectivo: 1, bizum: 2, transferencia: 3, tarjeta: 4 };
-
-          valA = order[methodStrA] || 5;
-          valB = order[methodStrB] || 5;
+          valA = (a.Metodo?.toLowerCase().trim() || "");
+          valB = (b.Metodo?.toLowerCase().trim() || "");
           break;
         }
         case "Fecha":
@@ -544,9 +528,8 @@ export default function PaymentsClient({
         return 0;
       }
 
-      const isAsc = sortDirection === "asc" || sortColumn === "Método";
-      if (valA < valB) return isAsc ? -1 : 1;
-      if (valA > valB) return isAsc ? 1 : -1;
+      if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+      if (valA > valB) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
   }
@@ -883,9 +866,7 @@ export default function PaymentsClient({
                     {col}
                     {sortColumn === col && (
                       sortDirection === "asc" ? <ArrowUp size={14} /> :
-                      sortDirection === "desc" ? <ArrowDown size={14} /> :
-                      sortDirection === "mid" ? <Minus size={14} /> :
-                      <Plus size={14} />
+                      <ArrowDown size={14} />
                     )}
                   </button>
                 </th>
