@@ -455,3 +455,74 @@ export async function rejectProfileChange(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/solicitudes-perfil/${id}/rechazar`, { method: "PATCH" });
   if (!res.ok) throw new Error("Error al rechazar el cambio");
 }
+
+// ── SORTEOS ───────────────────────────────────────────────────────────────────────────────────
+
+export type Sorteo = {
+  id: number;
+  businessId: number;
+  nombre: string;
+  fechaInicio: string;
+  fechaFin: string;
+  minReservasPrevias: number;
+  minGastoPrevio: number;
+  condicionReservasDurante: number;
+  serviciosValidosId: string | null;
+  premioServicioId: number;
+  premioDescuento: number;
+  cantidadGanadores: number;
+  estado: string;
+  servicioPremio?: Service;
+};
+
+export type CreateSorteoDto = {
+  businessId: number;
+  nombre: string;
+  fechaInicio: string;
+  fechaFin: string;
+  minReservasPrevias?: number;
+  minGastoPrevio?: number;
+  condicionReservasDurante?: number;
+  serviciosValidosId?: string;
+  premioServicioId: number;
+  premioDescuento: number;
+  cantidadGanadores: number;
+};
+
+export type GanadorSorteo = {
+  id: number;
+  sorteoId: number;
+  customerId: number;
+  fechaGanado: string;
+  premioReclamado: boolean;
+  sorteo?: Sorteo;
+};
+
+export async function createSorteo(data: CreateSorteoDto): Promise<Sorteo> {
+  const res = await fetch(`${API_URL}/sorteos`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Error al crear el sorteo");
+  return res.json();
+}
+
+export async function getSorteos(businessId?: number): Promise<Sorteo[]> {
+  const url = businessId ? `${API_URL}/sorteos?businessId=${businessId}` : `${API_URL}/sorteos`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener los sorteos");
+  return res.json();
+}
+
+export async function getMisPremios(customerId: number): Promise<GanadorSorteo[]> {
+  const res = await fetch(`${API_URL}/ganadores/${customerId}`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Error al obtener los premios");
+  return res.json();
+}
+
+export async function reclamarPremio(id: number): Promise<GanadorSorteo> {
+  const res = await fetch(`${API_URL}/ganadores/${id}/reclamar`, { method: "POST" });
+  if (!res.ok) throw new Error("Error al reclamar el premio");
+  return res.json();
+}

@@ -89,6 +89,10 @@ export default function NegocioReservasClient({
             valA = a.serviceName?.toLowerCase() || "";
             valB = b.serviceName?.toLowerCase() || "";
             break;
+          case "Importe":
+            valA = a.importe || 0;
+            valB = b.importe || 0;
+            break;
           case "Cliente": {
             valA = (customerNames[a.customerId] || `ID: ${a.customerId}`).toLowerCase();
             valB = (customerNames[b.customerId] || `ID: ${b.customerId}`).toLowerCase();
@@ -117,9 +121,13 @@ export default function NegocioReservasClient({
     return sorted;
   }, [appointments, filterStatus, filterService, sortColumn, sortDirection, customerNames]);
 
+  const totalImporte = useMemo(() => {
+    return filtered.reduce((sum, a) => sum + (Number(a.importe) || 0), 0);
+  }, [filtered]);
+
   function openEdit(a: Booking) {
     setEditingId(a.id);
-    setEditForm({ date: a.date, time: a.time, serviceName: a.serviceName, status: a.status });
+    setEditForm({ date: a.date, time: a.time, serviceName: a.serviceName, status: a.status, importe: a.importe });
     setError("");
   }
 
@@ -200,7 +208,25 @@ export default function NegocioReservasClient({
             Total Reservas
           </span>
           <span style={{ fontSize: "1.6rem", fontWeight: 700, color: "#fbbf24", lineHeight: 1 }}>
-            {appointments.length}
+            {filtered.length}
+          </span>
+        </div>
+
+        <div style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "6px",
+          padding: "18px 20px",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderLeft: `3px solid var(--success-text)`,
+          borderRadius: "12px",
+        }}>
+          <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Total Importe
+          </span>
+          <span style={{ fontSize: "1.6rem", fontWeight: 700, color: "var(--success-text)", lineHeight: 1 }}>
+            {Number(totalImporte).toFixed(2)} €
           </span>
         </div>
       </div>
@@ -253,6 +279,10 @@ export default function NegocioReservasClient({
                 <input type="text" className="input" value={editForm.serviceName || ""} onChange={(e) => setEditForm({ ...editForm, serviceName: e.target.value })} />
               </div>
               <div>
+                <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Importe (€)</label>
+                <input type="number" step="0.01" className="input" value={editForm.importe !== undefined ? editForm.importe : ""} onChange={(e) => setEditForm({ ...editForm, importe: parseFloat(e.target.value) || 0 })} />
+              </div>
+              <div>
                 <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Estado</label>
                 <select className="input" value={editForm.status || ""} onChange={(e) => setEditForm({ ...editForm, status: e.target.value as any })}>
                   {(Object.keys(STATUS_LABELS) as ExtendedStatus[]).map((s) => (
@@ -292,7 +322,7 @@ export default function NegocioReservasClient({
             <table className="data-table">
               <thead>
                 <tr>
-                  {["Fecha", "Hora", "Servicio", "Cliente", "Estado"].map((col) => (
+                  {["Fecha", "Hora", "Servicio", "Importe", "Cliente", "Estado"].map((col) => (
                     <th key={col}>
                       <button
                         type="button"
@@ -328,6 +358,7 @@ export default function NegocioReservasClient({
                     <td>{new Intl.DateTimeFormat("es-ES").format(new Date(a.date + "T12:00:00"))}</td>
                     <td>{a.time}</td>
                     <td>{a.serviceName}</td>
+                    <td>{a.importe !== undefined ? `${Number(a.importe).toFixed(2)} €` : "—"}</td>
                     <td>{customerNames[a.customerId] || `ID: ${a.customerId}`}</td>
                     <td>
                       <span className="badge" style={{

@@ -1,12 +1,13 @@
 "use client";
 import { logOutCustomer } from "@/lib/actions";
 import Sidebar from "@/components/layout/Sidebar";
-import { Home, CalendarPlus, CalendarDays } from "lucide-react";
+import { Home, CalendarPlus, CalendarDays, Gift } from "lucide-react";
 
 const clienteMenu = [
   { label: "Inicio", href: "/inicio", icon: Home },
   { label: "Hacer reserva", href: "/reservar", icon: CalendarPlus },
   { label: "Mis reservas", href: "/mis-reservas", icon: CalendarDays },
+  { label: "Mis premios", href: "/mis-premios", icon: Gift },
 ];
 
 export default function ClienteLayoutClient({
