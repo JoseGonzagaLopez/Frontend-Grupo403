@@ -353,10 +353,10 @@ export default function BookingsClient({
     return sorted;
   }, [bookings, statusFilter, customerFilter, sortColumn, sortDirection, customers, businesses]);
 
-  const totalCount = bookings.length;
-  const pendingCount = bookings.filter((b) => b.status === "pending").length;
-  const confirmedCount = bookings.filter((b) => b.status === "confirmed").length;
-  const paidCount = bookings.filter((b) => b.status === "paid").length;
+  const totalCount = filteredBookings.length;
+  const pendingCount = filteredBookings.filter((b) => b.status === "pending").length;
+  const confirmedCount = filteredBookings.filter((b) => b.status === "confirmed").length;
+  const paidCount = filteredBookings.filter((b) => b.status === "paid").length;
 
   function updateCreateForm<K extends keyof BookingForm>(
     key: K,
