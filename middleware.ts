@@ -18,7 +18,9 @@ export function middleware(request: NextRequest) {
                          pathname === '/reservar' ||
                          pathname.startsWith('/reservar/') ||
                          pathname === '/mis-reservas' ||
-                         pathname.startsWith('/mis-reservas/')
+                         pathname.startsWith('/mis-reservas/') ||
+                         pathname === '/mis-premios' ||
+                         pathname.startsWith('/mis-premios/')
 
   // Rutas del area privada del cliente (antiguo /cliente/*)
   const isClientePrivado = pathname.startsWith('/cliente/') &&
