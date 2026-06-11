@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { GanadorSorteo, getMisPremios, reclamarPremio, createAppointment, CreateBookingDto } from "@/lib/api";
 import { Gift, CalendarCheck, Calendar } from "lucide-react";
-import CustomDatePicker from "@/components/CustomDatePicker";
+import { CustomDatePicker } from "@/components/CustomDatePicker";
 import { useRouter } from "next/navigation";
 
 export default function MisPremiosClient({ customerId }: { customerId: number }) {
@@ -54,7 +54,7 @@ export default function MisPremiosClient({ customerId }: { customerId: number })
         status: "pending",
         customerId,
         businessId: negocio.id,
-        serviceName: servicio.nombre,
+        serviceId: servicio.id,
         importe: finalPrice
       };
 
