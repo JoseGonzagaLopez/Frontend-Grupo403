@@ -93,7 +93,9 @@ export default async function DashboardPage() {
     const businesses = await getBusinesses();
     const businessMap = new Map<number, Business>(businesses.map((b) => [b.id, b]));
     const appointmentsToday = sortedAppointments.filter((appointment) => appointment.date === today);
-    const upcomingAppointments = sortedAppointments.filter((appointment) => parseBookingDate(appointment) >= now);
+    const upcomingAppointments = sortedAppointments
+      .filter((appointment) => appointment.date >= today)
+      .sort(sortByDateTime);
     const appointmentsNext = upcomingAppointments.slice(0, 5);
     const pendingToday = appointmentsToday.filter((appointment) => appointment.status === 'pending').length;
     const paidToday = appointmentsToday.filter((appointment) => appointment.status === 'paid').length;
@@ -125,7 +127,7 @@ export default async function DashboardPage() {
 
     const nextBooking = upcomingAppointments[0];
     const nextBookingLabel = nextBooking
-      ? `${nextBooking.serviceName}`
+      ? `${(nextBooking as any).servicio?.nombre || nextBooking.servicio?.nombre || 'Servicio'}`
       : 'No hay reservas pendientes';
     const nextBookingMeta = nextBooking
       ? `${nextBooking.time} · ${businessMap.get(nextBooking.businessId)?.Nombre || `Comercio #${nextBooking.businessId}`}`

@@ -63,7 +63,7 @@ export default function NegocioReservasClient({
   const filtered = useMemo(() => {
     let list = [...appointments];
     if (filterStatus !== "all") list = list.filter((a) => a.status === filterStatus);
-    if (filterService.trim()) list = list.filter((a) => a.serviceName?.toLowerCase().includes(filterService.toLowerCase()));
+    if (filterService.trim()) list = list.filter((a) => a.servicio?.nombre?.toLowerCase().includes(filterService.toLowerCase()));
     
     let sorted = list.sort((a, b) => {
       const dateA = new Date(`${a.date}T${a.time || "00:00"}`).getTime() || new Date(a.date).getTime() || 0;
@@ -86,8 +86,8 @@ export default function NegocioReservasClient({
             valB = b.time;
             break;
           case "Servicio":
-            valA = a.serviceName?.toLowerCase() || "";
-            valB = b.serviceName?.toLowerCase() || "";
+            valA = a.servicio?.nombre?.toLowerCase() || "";
+            valB = b.servicio?.nombre?.toLowerCase() || "";
             break;
           case "Importe":
             valA = a.importe || 0;
@@ -127,16 +127,32 @@ export default function NegocioReservasClient({
 
   function openEdit(a: Booking) {
     setEditingId(a.id);
-    setEditForm({ date: a.date, time: a.time, serviceName: a.serviceName, status: a.status, importe: a.importe });
+    setEditForm({ date: a.date, time: a.time, serviceId: a.serviceId, status: a.status, importe: a.importe });
     setError("");
   }
 
   async function handleSave() {
     if (!editingId) return;
+    
+    // Validar que no se modifique a una fecha pasada
+    const now = new Date();
+    const selectedDateTime = new Date(`${editForm.date}T${editForm.time || "00:00"}`);
+    if (selectedDateTime < now) {
+      setError("No puedes mover una reserva a una fecha/hora pasada.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
-      const updated = await updateAppointment(editingId, editForm as any);
+      const payload: any = {
+        date: editForm.date,
+        time: editForm.time,
+        status: editForm.status,
+        importe: editForm.importe ?? 0,
+      };
+      if (editForm.serviceId) payload.serviceId = editForm.serviceId;
+      const updated = await updateAppointment(editingId, payload);
       setAppointments((prev) => prev.map((a) => (a.id === editingId ? updated : a)));
       setEditingId(null);
       setSuccess("Reserva actualizada.");
@@ -268,7 +284,7 @@ export default function NegocioReservasClient({
             <div className="form-grid" style={{ gap: 16 }}>
               <div>
                 <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Fecha</label>
-                <input type="date" className="input" value={editForm.date || ""} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} />
+                <input type="date" className="input" value={editForm.date || ""} min={new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2, '0') + '-' + String(new Date().getDate()).padStart(2, '0')} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} />
               </div>
               <div>
                 <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Hora</label>
@@ -276,7 +292,7 @@ export default function NegocioReservasClient({
               </div>
               <div>
                 <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Servicio</label>
-                <input type="text" className="input" value={editForm.serviceName || ""} onChange={(e) => setEditForm({ ...editForm, serviceName: e.target.value })} />
+                <input type="number" className="input" value={editForm.serviceId || ""} onChange={(e) => setEditForm({ ...editForm, serviceId: Number(e.target.value) })} />
               </div>
               <div>
                 <label style={{ fontSize: "var(--text-sm)", fontWeight: 600, display: "block", marginBottom: 4 }}>Importe (€)</label>
@@ -357,7 +373,7 @@ export default function NegocioReservasClient({
                   <tr key={a.id}>
                     <td>{new Intl.DateTimeFormat("es-ES").format(new Date(a.date + "T12:00:00"))}</td>
                     <td>{a.time}</td>
-                    <td>{a.serviceName}</td>
+                    <td>{a.servicio?.nombre || 'Servicio eliminado'}</td>
                     <td>{a.importe !== undefined ? `${Number(a.importe).toFixed(2)} €` : "—"}</td>
                     <td>{customerNames[a.customerId] || `ID: ${a.customerId}`}</td>
                     <td>

@@ -48,7 +48,7 @@ type BookingForm = {
   status: BookingStatus;
   customerId: number | "";
   businessId: number | "";
-  serviceName: string;
+  serviceId: number | "";
   importe: number | "";
 };
 
@@ -107,7 +107,7 @@ function SearchableSelect({
     <div
       ref={containerRef}
       className={`searchable-select ${className}`}
-      style={{ position: "relative", width: "100%" }}
+      style={{ position: "relative", width: "100%", zIndex: isOpen ? 50 : 1 }}
     >
       <button
         type="button"
@@ -243,7 +243,7 @@ export default function BookingsClient({
     status: "pending",
     customerId: "" as any,
     businessId: "" as any,
-    serviceName: "",
+    serviceId: "" as any,
     importe: "",
   };
 
@@ -309,8 +309,8 @@ export default function BookingsClient({
             valB = b.time;
             break;
           case "Servicio":
-            valA = a.serviceName.toLowerCase();
-            valB = b.serviceName.toLowerCase();
+            valA = (a.servicio?.nombre || "").toLowerCase();
+            valB = (b.servicio?.nombre || "").toLowerCase();
             break;
           case "Importe":
             valA = a.importe;
@@ -400,17 +400,15 @@ export default function BookingsClient({
 
   useEffect(() => {
     if (editingBookingId === null) return;
-    const matchingService = availableServices.find(
-      (service) => service.nombre === editForm.serviceName
-    );
-    setSelectedEditServiceId(matchingService?.id ?? "");
-  }, [availableServices, editingBookingId, editForm.businessId, editForm.serviceName]);
+    // Pre-select the service matching the current serviceId in the edit form
+    setSelectedEditServiceId(editForm.serviceId !== "" ? editForm.serviceId : "");
+  }, [availableServices, editingBookingId, editForm.businessId, editForm.serviceId]);
 
   function handleCreateBusinessChange(id: number | "") {
     setCreateForm((prev) => ({
       ...prev,
       businessId: id,
-      serviceName: "",
+      serviceId: "",
       importe: "",
     }));
     setSelectedCreateServiceId("");
@@ -420,7 +418,7 @@ export default function BookingsClient({
     setEditForm((prev) => ({
       ...prev,
       businessId: id,
-      serviceName: "",
+      serviceId: "",
       importe: "",
     }));
     setSelectedEditServiceId("");
@@ -431,7 +429,7 @@ export default function BookingsClient({
       setSelectedCreateServiceId("");
       setCreateForm((prev) => ({
         ...prev,
-        serviceName: "",
+        serviceId: "",
         importe: "",
       }));
       return;
@@ -443,7 +441,7 @@ export default function BookingsClient({
     setSelectedCreateServiceId(id);
     setCreateForm((prev) => ({
       ...prev,
-      serviceName: service.nombre,
+      serviceId: id,
       importe: service.precio,
     }));
   }
@@ -453,7 +451,7 @@ export default function BookingsClient({
       setSelectedEditServiceId("");
       setEditForm((prev) => ({
         ...prev,
-        serviceName: "",
+        serviceId: "",
         importe: "",
       }));
       return;
@@ -465,7 +463,7 @@ export default function BookingsClient({
     setSelectedEditServiceId(id);
     setEditForm((prev) => ({
       ...prev,
-      serviceName: service.nombre,
+      serviceId: id,
       importe: service.precio,
     }));
   }
@@ -505,7 +503,7 @@ export default function BookingsClient({
       status: booking.status,
       customerId: booking.customerId,
       businessId: booking.businessId,
-      serviceName: booking.serviceName,
+      serviceId: booking.serviceId ?? "",
       importe: booking.importe ?? 0,
     });
   }
@@ -533,7 +531,6 @@ export default function BookingsClient({
       !createForm.time ||
       (createForm.customerId as any) === "" ||
       (createForm.businessId as any) === "" ||
-      !createForm.serviceName ||
       createForm.importe === ""
     ) {
       setErrorMessage("Completa todos los campos");
@@ -555,9 +552,12 @@ export default function BookingsClient({
       }
 
       const created = await createAppointment({
-        ...createForm,
+        date: createForm.date,
+        time: createForm.time,
+        status: createForm.status,
         customerId: createForm.customerId as number,
         businessId: createForm.businessId as number,
+        ...(createForm.serviceId !== "" ? { serviceId: createForm.serviceId as number } : {}),
         importe: importeValue,
       });
       setBookings((prev) => [created, ...prev]);
@@ -580,7 +580,6 @@ export default function BookingsClient({
       !editForm.time ||
       (editForm.customerId as any) === "" ||
       (editForm.businessId as any) === "" ||
-      !editForm.serviceName ||
       editForm.importe === ""
     ) {
       setErrorMessage("Completa todos los campos");
@@ -608,7 +607,7 @@ export default function BookingsClient({
         status: editForm.status,
         customerId: editForm.customerId as number,
         businessId: editForm.businessId as number,
-        serviceName: editForm.serviceName,
+        ...(editForm.serviceId !== "" ? { serviceId: editForm.serviceId as number } : {}),
         importe: importeValue,
       };
 
@@ -790,10 +789,10 @@ export default function BookingsClient({
                 <>
                   <input
                     className="input"
-                    type="text"
-                    value={createForm.serviceName}
-                    onChange={(e) => updateCreateForm("serviceName", e.target.value)}
-                    placeholder="Servicio"
+                    type="number"
+                    value={createForm.serviceId}
+                    onChange={(e) => updateCreateForm("serviceId", Number(e.target.value))}
+                    placeholder="ID del Servicio"
                     required
                   />
                   <input
@@ -914,10 +913,10 @@ export default function BookingsClient({
                 <>
                   <input
                     className="input"
-                    type="text"
-                    value={editForm.serviceName}
-                    onChange={(e) => updateEditForm("serviceName", e.target.value)}
-                    placeholder="Servicio"
+                    type="number"
+                    value={editForm.serviceId}
+                    onChange={(e) => updateEditForm("serviceId", Number(e.target.value))}
+                    placeholder="ID del Servicio"
                     required
                   />
                   <input
@@ -1046,7 +1045,7 @@ export default function BookingsClient({
               <tr key={booking.id}>
                 <td>{formatDate(booking.date)}</td>
                 <td>{booking.time}</td>
-                <td>{booking.serviceName}</td>
+                <td>{booking.servicio?.nombre || '—'}</td>
                 <td>{formatImporte(booking.importe)}</td>
                 <td>
                   {customers.find((c) => c.id === booking.customerId)?.Nombre ||

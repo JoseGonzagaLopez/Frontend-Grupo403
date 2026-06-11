@@ -61,8 +61,8 @@ export default function UpcomingBookingsTable({
             valB = b.time;
             break;
           case "Servicio":
-            valA = a.serviceName.toLowerCase();
-            valB = b.serviceName.toLowerCase();
+            valA = (a.servicio?.nombre || "").toLowerCase();
+            valB = (b.servicio?.nombre || "").toLowerCase();
             break;
           case "Cliente": {
             const cA = customers.find((c) => c.id === a.customerId);
@@ -138,7 +138,7 @@ export default function UpcomingBookingsTable({
             <tr key={appointment.id}>
               <td style={{ color: 'var(--text)' }}>{appointment.date}</td>
               <td style={{ fontWeight: 700, color: 'var(--text)' }}>{appointment.time}</td>
-              <td>{appointment.serviceName}</td>
+              <td>{appointment.servicio?.nombre || '—'}</td>
               <td>{customers.find((c) => c.id === appointment.customerId)?.Nombre || `Cliente #${appointment.customerId}`}</td>
               <td style={{ color: 'var(--text)' }}>{formatImporte(appointment.importe)}</td>
               <td>

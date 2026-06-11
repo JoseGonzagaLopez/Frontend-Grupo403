@@ -8,6 +8,7 @@ interface CustomDatePickerProps {
   value: string;
   onChange: (date: string) => void;
   placeholder?: string;
+  minDate?: Date;
 }
 
 const daysOfWeek = ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"];
@@ -26,7 +27,7 @@ function getFirstDayOfMonth(year: number, month: number) {
   return day === 0 ? 6 : day - 1;
 }
 
-export function CustomDatePicker({ value, onChange, placeholder = "Seleccionar fecha" }: CustomDatePickerProps) {
+export function CustomDatePicker({ value, onChange, placeholder = "Seleccionar fecha", minDate }: CustomDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -173,12 +174,22 @@ export function CustomDatePicker({ value, onChange, placeholder = "Seleccionar f
           const today = new Date();
           const isToday = today.getDate() === day && today.getMonth() === currentMonth.month && today.getFullYear() === currentMonth.year;
 
+          let isDisabled = false;
+          if (minDate) {
+            // Compare only dates, ignoring time
+            const min = new Date(minDate);
+            min.setHours(0,0,0,0);
+            const current = new Date(`${currentDateStr}T00:00:00`);
+            if (current < min) isDisabled = true;
+          }
+
           return (
             <button
               key={day}
               type="button"
-              onClick={() => handleDateClick(day)}
-              className={`custom-datepicker__day ${isSelected ? "selected" : ""} ${isToday && !isSelected ? "today" : ""}`}
+              disabled={isDisabled}
+              onClick={() => { if (!isDisabled) handleDateClick(day); }}
+              className={`custom-datepicker__day ${isSelected ? "selected" : ""} ${isToday && !isSelected ? "today" : ""} ${isDisabled ? "disabled" : ""}`}
             >
               {day}
             </button>
@@ -280,8 +291,15 @@ export function CustomDatePicker({ value, onChange, placeholder = "Seleccionar f
           color: var(--text, #111827);
         }
 
-        .custom-datepicker__day:not(.empty):hover {
+        .custom-datepicker__day:not(.empty):not(.disabled):hover {
           background-color: var(--surface-hover, #f3f4f6);
+        }
+
+        .custom-datepicker__day.disabled {
+          color: var(--text-tertiary, #9ca3af);
+          background-color: transparent !important;
+          cursor: not-allowed;
+          opacity: 0.5;
         }
 
         .custom-datepicker__day.today {

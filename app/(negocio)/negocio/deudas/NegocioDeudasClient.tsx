@@ -104,7 +104,7 @@ export default function NegocioDeudasClient({
       const q = search.toLowerCase();
       list = list.filter((a) => {
         const name = (customerNames[a.customerId] || "").toLowerCase();
-        return name.includes(q) || !!a.serviceName?.toLowerCase().includes(q);
+        return name.includes(q) || !!a.servicio?.nombre?.toLowerCase().includes(q);
       });
     }
 
@@ -403,7 +403,7 @@ export default function NegocioDeudasClient({
                                   >
                                     <td style={{ padding: "8px 12px", color: "var(--text)" }}>{apt.date}</td>
                                     <td style={{ padding: "8px 12px", color: "var(--text)", fontWeight: 600 }}>{apt.time || "—"}</td>
-                                    <td style={{ padding: "8px 12px", color: "var(--text)" }}>{apt.serviceName}</td>
+                                    <td style={{ padding: "8px 12px", color: "var(--text)" }}>{apt.servicio?.nombre || 'Servicio eliminado'}</td>
                                     <td style={{ padding: "8px 12px", fontWeight: 700, color: "var(--text)" }}>{formatImporte(apt.importe)}</td>
                                     <td style={{ padding: "8px 12px" }}>
                                       <StatusBadge status={apt.status} />

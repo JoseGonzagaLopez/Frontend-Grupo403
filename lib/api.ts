@@ -7,8 +7,9 @@ export interface Booking {
   status: BookingStatus;
   customerId: number;
   businessId: number;
-  serviceName: string;
+  serviceId: number;
   importe: number;
+  servicio?: Service;
 }
 
 export interface CreateBookingDto {
@@ -17,7 +18,7 @@ export interface CreateBookingDto {
   status: BookingStatus;
   customerId: number;
   businessId: number;
-  serviceName: string;
+  serviceId: number;
   importe: number;
 }
 
@@ -27,7 +28,7 @@ export interface UpdateBookingDto {
   status?: BookingStatus;
   customerId?: number;
   businessId?: number;
-  serviceName?: string;
+  serviceId?: number;
   importe?: number;
 }
 
@@ -43,6 +44,10 @@ export interface Pago {
   Estado: string;
   Cliente?: string;
   Comercio?: string;
+  serviceId?: number;
+  appointmentId?: number;
+  servicio?: Service;
+  reserva?: Booking;
 }
 
 export type CreatePagoDto = {
@@ -52,6 +57,8 @@ export type CreatePagoDto = {
   Metodo: string;
   Fecha: string;
   Estado: string;
+  serviceId?: number;
+  appointmentId?: number;
 };
 
 export type UpdatePagoDto = Partial<CreatePagoDto>;
@@ -379,7 +386,7 @@ export async function createService(data: CreateServiceDto): Promise<Service> {
 
 export async function updateService(id: number, data: UpdateServiceDto): Promise<Service> {
   const res = await fetch(`${API_URL}/servicios/${id}`, {
-    method: "PATCH",
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });

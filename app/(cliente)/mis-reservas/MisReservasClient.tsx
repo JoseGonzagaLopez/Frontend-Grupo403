@@ -86,7 +86,7 @@ function ModalResena({ appt, customerName, onClose, onSaved }: {
       }}>
         <div>
           <h3 style={{ margin: 0, fontSize: "var(--text-lg)", fontWeight: 700 }}>Dejar reseña</h3>
-          <p style={{ margin: "4px 0 0", color: "var(--text-secondary)", fontSize: "var(--text-sm)" }}>{appt.serviceName}</p>
+          <p style={{ margin: "4px 0 0", color: "var(--text-secondary)", fontSize: "var(--text-sm)" }}>{appt.servicio?.nombre || 'Servicio eliminado'}</p>
         </div>
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
           <div>
@@ -159,7 +159,7 @@ function ModalCancelar({ appt, onClose, onCancelled }: {
         <div>
           <h3 style={{ margin: 0, fontSize: "var(--text-lg)", fontWeight: 700 }}>¿Cancelar reserva?</h3>
           <p style={{ margin: "8px 0 0", color: "var(--text-secondary)", fontSize: "var(--text-sm)", lineHeight: 1.6 }}>
-            Estás a punto de cancelar tu reserva de <strong>{appt.serviceName}</strong> del <strong>{dateFormatted}</strong> a las <strong>{appt.time}</strong>. Esta acción no se puede deshacer.
+            Estás a punto de cancelar tu reserva de <strong>{appt.servicio?.nombre || 'Servicio eliminado'}</strong> del <strong>{dateFormatted}</strong> a las <strong>{appt.time}</strong>. Esta acción no se puede deshacer.
           </p>
         </div>
         {error && <p style={{ color: "var(--danger, #c0392b)", fontSize: "var(--text-sm)", margin: 0 }}>{error}</p>}
@@ -207,7 +207,7 @@ function TarjetaReserva({ appt, resena, customerName, onResenaGuardada, onCancel
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "var(--space-3)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)", flex: 1 }}>
-            <p style={{ fontWeight: 600, margin: 0 }}>{appt.serviceName}</p>
+            <p style={{ fontWeight: 600, margin: 0 }}>{appt.servicio?.nombre || 'Servicio eliminado'}</p>
             <p style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)", margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
               <CalendarDays size={13} /> {dateFormatted} <Clock size={13} style={{ marginLeft: 4 }} /> {appt.time}
             </p>

@@ -17,7 +17,7 @@ export default function ReservarClient({
   const [selectedBusinessProfile, setSelectedBusinessProfile] = useState<Business | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [form, setForm] = useState({ businessId: "" as number | "", serviceName: "", date: "", time: "" });
+  const [form, setForm] = useState({ businessId: "" as number | "", serviceId: "" as number | "", date: "", time: "" });
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,29 +31,38 @@ export default function ReservarClient({
   const businessOptions = initialBusinesses.map((b) => ({ id: b.id, label: b.Nombre || `Empresa ${b.id}` }));
 
   useEffect(() => {
-    if (form.businessId === "") { setServices([]); setForm((f) => ({ ...f, serviceName: "" })); return; }
+    if (form.businessId === "") { setServices([]); setForm((f) => ({ ...f, serviceId: "" })); return; }
     setLoadingServices(true);
     getServices(form.businessId as number)
       .then(setServices)
       .catch(() => setServices([]))
       .finally(() => setLoadingServices(false));
-    setForm((f) => ({ ...f, serviceName: "" }));
+    setForm((f) => ({ ...f, serviceId: "" }));
   }, [form.businessId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.businessId === "" || !form.serviceName || !form.date || !form.time) {
+    if (form.businessId === "" || form.serviceId === "" || !form.date || !form.time) {
       setError("Por favor, completa todos los campos requeridos."); return;
     }
     if (!loggedCustomer) { setError("Debes iniciar sesión para realizar una reserva."); return; }
+    
+    // Validar que la fecha y hora no estén en el pasado
+    const now = new Date();
+    const selectedDateTime = new Date(`${form.date}T${form.time}`);
+    if (selectedDateTime < now) {
+      setError("No puedes hacer una reserva en el pasado."); 
+      return;
+    }
+
     setIsLoading(true); setError("");
     try {
       await createAppointment({
         date: form.date, time: form.time, status: "pending",
         customerId: loggedCustomer.id,
         businessId: form.businessId as number,
-        serviceName: form.serviceName,
-        importe: services.find((s) => s.nombre === form.serviceName)?.precio ?? 0,
+        serviceId: form.serviceId as number,
+        importe: services.find((s) => s.id === Number(form.serviceId))?.precio ?? 0,
       });
       // Guardamos el formulario actual antes de resetear el estado
       setSubmittedForm({ ...form });
@@ -86,7 +95,8 @@ export default function ReservarClient({
         setCalendarStatus("Autenticado. Creando evento en tu calendario...");
 
         const businessLabel = businessOptions.find((b) => b.id === submittedForm.businessId)?.label || "Negocio";
-        const title = `Reserva: ${submittedForm.serviceName} en ${businessLabel}`;
+        const serviceName = services.find(s => s.id === Number(submittedForm.serviceId))?.nombre || "Servicio";
+        const title = `Reserva: ${serviceName} en ${businessLabel}`;
         const startDateTime = new Date(`${submittedForm.date}T${submittedForm.time}`).toISOString();
         const endDateTime = new Date(
           new Date(`${submittedForm.date}T${submittedForm.time}`).getTime() + 60 * 60 * 1000
@@ -194,7 +204,7 @@ export default function ReservarClient({
             display: "flex", flexDirection: "column", gap: "var(--space-2)",
           }}>
             {selectedBusiness && <p style={{ margin: 0 }}><strong>Negocio:</strong> {selectedBusiness}</p>}
-            <p style={{ margin: 0 }}><strong>Servicio:</strong> {submittedForm.serviceName}</p>
+            <p style={{ margin: 0 }}><strong>Servicio:</strong> {services.find(s => s.id === Number(submittedForm.serviceId))?.nombre || "Servicio seleccionado"}</p>
             <p style={{ margin: 0 }}><strong>Fecha:</strong> {dateFormatted}</p>
             <p style={{ margin: 0 }}><strong>Hora:</strong> {submittedForm.time}</p>
             <p style={{ margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
@@ -265,8 +275,8 @@ export default function ReservarClient({
           <div style={{ display: "flex", gap: "var(--space-3)", width: "100%" }}>
             <button className="secondary-btn" style={{ flex: 1 }} onClick={() => { setIsSuccess(false); setSelectedBusinessProfile(null); }}>← Volver</button>
             <button className="primary-btn" style={{ flex: 1 }} onClick={() => {
-              setForm({ businessId: selectedBusinessProfile?.id || "", serviceName: "", date: "", time: "" });
-              setSubmittedForm({ businessId: selectedBusinessProfile?.id || "", serviceName: "", date: "", time: "" });
+              setForm({ businessId: selectedBusinessProfile?.id || "", serviceId: "", date: "", time: "" });
+              setSubmittedForm({ businessId: selectedBusinessProfile?.id || "", serviceId: "", date: "", time: "" });
               setIsSuccess(false);
               setCalendarStatus(null);
               setCalendarLink(null);
@@ -407,7 +417,7 @@ export default function ReservarClient({
         <div style={{ marginBottom: 24, paddingBottom: 24, borderBottom: "1px solid var(--border)" }}>
            <button 
              type="button"
-             onClick={() => { setSelectedBusinessProfile(null); setForm({ businessId: "", serviceName: "", date: "", time: "" }); setServices([]); }} 
+             onClick={() => { setSelectedBusinessProfile(null); setForm({ businessId: "", serviceId: "", date: "", time: "" }); setServices([]); }} 
              style={{ 
                display: "inline-flex", alignItems: "center", gap: 8, 
                fontSize: "14px", fontWeight: 600, color: "var(--text-secondary)", 
@@ -434,21 +444,21 @@ export default function ReservarClient({
               {loadingServices ? (
                 <div className="input" style={{ color: "var(--text-secondary)", display: "flex", alignItems: "center", background: "var(--surface-2)" }}>Cargando servicios...</div>
               ) : services.length > 0 ? (
-                <select className="input" style={{ width: "100%" }} value={form.serviceName} onChange={(e) => setForm((f) => ({ ...f, serviceName: e.target.value }))} required>
+                <select className="input" style={{ width: "100%" }} value={form.serviceId} onChange={(e) => setForm((f) => ({ ...f, serviceId: e.target.value ? Number(e.target.value) : "" }))} required>
                   <option value="">Selecciona un servicio...</option>
                   {services.map((s) => (
-                    <option key={s.id} value={s.nombre}>{s.nombre}{s.precio ? ` — ${s.precio}€` : ""}{s.duracion ? ` (${s.duracion} min)` : ""}</option>
+                    <option key={s.id} value={s.id}>{s.nombre}{s.precio ? ` — ${s.precio}€` : ""}{s.duracion ? ` (${s.duracion} min)` : ""}</option>
                   ))}
                 </select>
               ) : (
-                <input type="text" className="input" style={{ width: "100%" }} placeholder="Este negocio no tiene servicios definidos, escribe el servicio..." value={form.serviceName} onChange={(e) => setForm((f) => ({ ...f, serviceName: e.target.value }))} required />
+                <div className="input" style={{ width: "100%", color: "var(--text-secondary)", background: "var(--surface-2)" }}>Este negocio no tiene servicios definidos.</div>
               )}
             </div>
           </div>
           <div className="form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
             <div>
               <label className="block text-sm font-semibold mb-1">Fecha <span style={{ color: "var(--danger)" }}>*</span></label>
-              <CustomDatePicker value={form.date} onChange={(date) => setForm((f) => ({ ...f, date }))} />
+              <CustomDatePicker value={form.date} onChange={(date) => setForm((f) => ({ ...f, date }))} minDate={new Date()} />
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">Hora <span style={{ color: "var(--danger)" }}>*</span></label>

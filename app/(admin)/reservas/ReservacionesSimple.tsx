@@ -81,7 +81,7 @@ function SearchableSelect({
     <div
       ref={containerRef}
       className={`searchable-select ${className}`}
-      style={{ position: "relative", width: "100%" }}
+      style={{ position: "relative", width: "100%", zIndex: isOpen ? 50 : 1 }}
     >
       <button
         type="button"
