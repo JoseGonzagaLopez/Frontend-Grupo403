@@ -191,7 +191,7 @@ export default function NegociosClient({ initialBusinesses }: { initialBusinesse
             Total Empresas
           </span>
           <span style={{ fontSize: "1.6rem", fontWeight: 700, color: "#2dd4bf", lineHeight: 1 }}>
-            {businesses.length}
+            {filteredBusinesses.length}
           </span>
         </div>
       </div>
