@@ -452,25 +452,6 @@ export default function PaymentsClient({
     }
   }
 
-  const paidPayments = payments.filter((p) => p.Estado === 'paid' || p.Estado === 'Pagado');
-  const pendingPayments = payments.filter((p) => p.Estado === 'pending' || p.Estado === 'Por cobrar');
-  const collectedTotal = paidPayments.reduce((total, payment) => total + payment.Importe, 0);
-  const pendingTotal = pendingPayments.reduce((total, payment) => total + payment.Importe, 0);
-  const overallTotal = payments.reduce((total, payment) => total + payment.Importe, 0);
-  const conversion = payments.length > 0 ? Math.round((paidPayments.length / payments.length) * 100) : 0;
-
-  const paymentMethods = Array.from(
-    new Set(payments.map((payment) => payment.Metodo).filter((method) => method && method.trim() !== ""))
-  ).sort();
-
-  const filteredPaymentMethods = paymentMethods.filter((method) => method !== "Pendiente");
-
-  const methodCounts = payments.reduce<Record<string, number>>((acc, payment) => {
-    acc[payment.Metodo] = (acc[payment.Metodo] ?? 0) + 1;
-    return acc;
-  }, {});
-  const mostUsedMethod = Object.entries(methodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Sin datos';
-
   const filteredPayments = payments.filter((payment) => {
     if (statusFilter !== 'all' && payment.Estado !== statusFilter) {
       return false;
@@ -483,6 +464,25 @@ export default function PaymentsClient({
     const name = customer?.Nombre || (customer as any)?.nombre || "";
     return name.toLowerCase().includes(customerSearch.toLowerCase());
   });
+
+  const paidPayments = filteredPayments.filter((p) => p.Estado === 'paid' || p.Estado === 'Pagado');
+  const pendingPayments = filteredPayments.filter((p) => p.Estado === 'pending' || p.Estado === 'Por cobrar');
+  const collectedTotal = paidPayments.reduce((total, payment) => total + payment.Importe, 0);
+  const pendingTotal = pendingPayments.reduce((total, payment) => total + payment.Importe, 0);
+  const overallTotal = filteredPayments.reduce((total, payment) => total + payment.Importe, 0);
+  const conversion = filteredPayments.length > 0 ? Math.round((paidPayments.length / filteredPayments.length) * 100) : 0;
+
+  const paymentMethods = Array.from(
+    new Set(payments.map((payment) => payment.Metodo).filter((method) => method && method.trim() !== ""))
+  ).sort();
+
+  const filteredPaymentMethods = paymentMethods.filter((method) => method !== "Pendiente");
+
+  const methodCounts = filteredPayments.reduce<Record<string, number>>((acc, payment) => {
+    acc[payment.Metodo] = (acc[payment.Metodo] ?? 0) + 1;
+    return acc;
+  }, {});
+  const mostUsedMethod = Object.entries(methodCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'Sin datos';
 
   let sortedPayments = [...filteredPayments];
   if (sortColumn && sortDirection) {
@@ -552,7 +552,7 @@ export default function PaymentsClient({
       <section className="kpi-grid">
         <KpiCard
           title="Total Pagos"
-          value={`${payments.length}`}
+          value={`${filteredPayments.length}`}
           subtitle={`${formatCurrency(overallTotal)} € en total`}
         />
         <KpiCard
